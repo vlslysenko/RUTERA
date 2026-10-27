@@ -1,0 +1,22 @@
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Build
+target/
+*.log
+logs/
+
+# Local config and secrets
+.env
+conf/*.local.properties
+
+# Node (frontend, later)
+node_modules/
+dist/

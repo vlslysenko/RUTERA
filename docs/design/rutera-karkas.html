@@ -1,0 +1,1224 @@
+<title>Каркас RUTERA</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&family=Fira+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a design brief read top to bottom. Framed product "screens" with notes beside them; a sticky switcher re-skins every screen into one of three style directions. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --fg:#1B2430; --muted:#5C6773; --line:#D8DEE6; --accent:#1F4E8C; --accent-soft:#E3ECF8; --mark:#C9400E; --code-bg:#EAEEF3;
+  --font:'Golos Text',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#121619; --surface:#1A2026; --fg:#E6EAEE; --muted:#9AA5B1; --line:#2A333C; --accent:#8DB8F2; --accent-soft:#1C2B40; --mark:#F0905A; --code-bg:#222A32; color-scheme:dark }
+}
+:root[data-theme="dark"]{ --bg:#121619; --surface:#1A2026; --fg:#E6EAEE; --muted:#9AA5B1; --line:#2A333C; --accent:#8DB8F2; --accent-soft:#1C2B40; --mark:#F0905A; --code-bg:#222A32; color-scheme:dark }
+
+*{box-sizing:border-box}
+html{height:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+use{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chip use{stroke-width:2.4}
+.btn use,.bigbtn use,.field .in use,.lock use{stroke-width:2}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.55;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+h1,h2,h3,h4{text-wrap:balance;line-height:1.2;margin:0}
+p{margin:0}
+.wrap{max-width:1300px;margin:0 auto}
+.hero{padding-block:40px 24px;border-bottom:1px solid var(--line)}
+.hero .eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.hero h1{font-size:clamp(30px,4.5vw,44px);font-weight:700;margin-top:6px}
+.hero p.lead{max-width:62ch;margin-top:12px;color:var(--muted);font-size:17px}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.toc a{text-decoration:none;font-size:14px;font-weight:500;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--fg)}
+.toc a:hover{border-color:var(--accent);color:var(--accent)}
+section.block{padding-block:40px;border-bottom:1px solid var(--line)}
+section.block:last-of-type{border-bottom:0}
+.sec-head{display:grid;gap:8px;max-width:70ch;margin-bottom:24px}
+.sec-head .eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mark);font-weight:600}
+.sec-head h2{font-size:clamp(24px,3vw,32px);font-weight:700}
+.sec-head p{color:var(--muted)}
+h3{font-size:19px;font-weight:600;margin-top:32px;margin-bottom:12px}
+.note{color:var(--muted);font-size:14px}
+.prose{max-width:70ch}
+.prose ul{margin:8px 0 0;padding-left:20px}
+.prose li{margin:4px 0}
+strong{font-weight:600}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+
+/* explanation cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card-x{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:grid;gap:6px;align-content:start}
+.card-x h4{font-size:15.5px;font-weight:600}
+.card-x p{font-size:14.5px;color:var(--muted)}
+.card-x .k{font-family:var(--mono);font-size:12px;color:var(--mark);letter-spacing:.04em}
+
+/* screen frame + notes */
+.screen-row{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:start;margin-top:12px}
+@media (max-width:1000px){.screen-row{grid-template-columns:1fr}}
+.frame{overflow-x:auto;min-width:0;border-radius:12px}
+.notes{display:grid;gap:10px;font-size:14.5px}
+.notes h4{font-size:15px;font-weight:600}
+.notes ul{margin:0;padding-left:18px;color:var(--muted)}
+.notes li{margin:4px 0}
+.notes li b{color:var(--fg);font-weight:600}
+
+/* layout schematic */
+.schema{display:grid;grid-template-columns:150px 1fr;grid-template-rows:auto 300px;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px;min-width:0}
+.schema > div{border:1.5px dashed var(--accent);border-radius:8px;display:grid;place-items:center;align-content:center;text-align:center;padding:10px 8px;font-size:14px;color:var(--fg);background:var(--accent-soft)}
+.schema .top{grid-column:1/-1}
+.schema .main-z{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:transparent;border-color:transparent;padding:0}
+.schema .main-z > div{border:1.5px dashed var(--muted);border-radius:8px;display:grid;place-items:center;align-content:center;padding:8px;background:var(--surface)}
+.schema small{display:block;color:var(--muted);font-size:12.5px;margin-top:4px;text-wrap:balance}
+.schema-mob{display:grid;grid-template-rows:44px 1fr 56px;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px;height:358px;width:200px;max-width:100%}
+.schema-mob > div{border:1.5px dashed var(--accent);border-radius:8px;display:grid;place-items:center;align-content:center;text-align:center;padding:8px;font-size:13.5px;background:var(--accent-soft)}
+.schema-mob .body{border-color:var(--muted);background:var(--surface)}
+.schema-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start}
+@media (max-width:760px){.schema-grid{grid-template-columns:1fr}}
+
+/* roles matrix */
+.matrix-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table.matrix{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+.matrix th,.matrix td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.matrix thead th{font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;background:var(--bg)}
+.matrix tbody tr:last-child td{border-bottom:0}
+.matrix td.c{text-align:center;white-space:nowrap}
+.matrix td.m{font-weight:500}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+.dot.full{background:var(--accent)}
+.dot.half{background:transparent;border:2px solid var(--accent);box-sizing:border-box}
+.dot.none{background:var(--line)}
+.matrix small{color:var(--muted);font-size:12px;display:block}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13.5px;color:var(--muted);margin-top:10px}
+
+/* ===== PRODUCT MOCKUP SKINS (fixed per direction; these are renderings of the product, not page theme) ===== */
+.mocks[data-skin="a"],.skin-a{
+  --m-font:'IBM Plex Sans','Golos Text',system-ui,sans-serif; --m-head:'IBM Plex Sans','Golos Text',system-ui,sans-serif; --m-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --m-fs:13px; --m-row:32px; --m-radius:4px; --m-pad:12px; --m-gap:10px;
+  --m-bg:#EEF1F5; --m-surface:#FFFFFF; --m-fg:#1A2433; --m-muted:#5F6B7A; --m-line:#D5DBE3; --m-top-bg:#FFFFFF;
+  --m-accent:#1F5FBF; --m-accent-fg:#FFFFFF; --m-accent-soft:#E3ECFA;
+  --m-side-bg:#1E2A3A; --m-side-fg:#C9D3DF; --m-side-active:#2E3F56; --m-side-accent:#9CC3F5; --m-side-line:#2E3C50;
+  --m-shadow:none; --m-border:1px solid #D5DBE3; --m-input:#F7F9FB;
+  --s-good-bg:#E1F4E1; --s-good-fg:#146C14; --s-warn-bg:#FFF0D1; --s-warn-fg:#7A4E00; --s-crit-bg:#FBE2E2; --s-crit-fg:#9E1F1F; --s-info-bg:#E3ECFA; --s-info-fg:#1F4E9C;
+  --s-good:#0CA30C; --s-warn:#E59E0B; --s-crit:#D03B3B;
+  --m-map-land:#E9EDF1; --m-map-road:#CDD5DE; --m-map-water:#D7E3EE; --m-map-label:#5F6B7A;
+}
+.mocks[data-skin="b"],.skin-b{
+  --m-font:'Source Sans 3','Golos Text',system-ui,sans-serif; --m-head:'Manrope','Golos Text',system-ui,sans-serif; --m-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --m-fs:15px; --m-row:44px; --m-radius:10px; --m-pad:16px; --m-gap:14px;
+  --m-bg:#F6F5F1; --m-surface:#FFFFFF; --m-fg:#22262B; --m-muted:#6B7076; --m-line:#E6E3DB; --m-top-bg:#FFFFFF;
+  --m-accent:#0F766E; --m-accent-fg:#FFFFFF; --m-accent-soft:#DDF1EE;
+  --m-side-bg:#FFFFFF; --m-side-fg:#3C4248; --m-side-active:#DDF1EE; --m-side-accent:#0F766E; --m-side-line:#E6E3DB;
+  --m-shadow:0 1px 2px rgba(30,30,25,.05),0 4px 14px rgba(30,30,25,.06); --m-border:1px solid #EDEBE5; --m-input:#F6F5F1;
+  --s-good-bg:#E2F4E4; --s-good-fg:#1B6B2A; --s-warn-bg:#FDF0D5; --s-warn-fg:#7A4E00; --s-crit-bg:#FBE3E1; --s-crit-fg:#A02A22; --s-info-bg:#E4ECF7; --s-info-fg:#2E5B9A;
+  --s-good:#2E9E44; --s-warn:#E59E0B; --s-crit:#D03B3B;
+  --m-map-land:#EFEDE7; --m-map-road:#DAD6CC; --m-map-water:#DCE6EA; --m-map-label:#6B7076;
+}
+.mocks[data-skin="c"],.skin-c{
+  --m-font:'Fira Sans','Golos Text',system-ui,sans-serif; --m-head:'Fira Sans','Golos Text',system-ui,sans-serif; --m-mono:'JetBrains Mono',ui-monospace,monospace;
+  --m-fs:13px; --m-row:34px; --m-radius:6px; --m-pad:12px; --m-gap:10px;
+  --m-bg:#0F1417; --m-surface:#171D22; --m-fg:#E3E8EC; --m-muted:#8D98A3; --m-line:#26303A; --m-top-bg:#131A1F;
+  --m-accent:#22B8CF; --m-accent-fg:#06262B; --m-accent-soft:#113840;
+  --m-side-bg:#0B1013; --m-side-fg:#AEB8C2; --m-side-active:#16222B; --m-side-accent:#5FD3E3; --m-side-line:#1C262E;
+  --m-shadow:none; --m-border:1px solid #26303A; --m-input:#0F1417;
+  --s-good-bg:#123A1C; --s-good-fg:#7FDC8A; --s-warn-bg:#3E2F0C; --s-warn-fg:#F4C75A; --s-crit-bg:#431A1A; --s-crit-fg:#F39090; --s-info-bg:#113840; --s-info-fg:#7FDDEA;
+  --s-good:#3DBE5A; --s-warn:#F2B134; --s-crit:#E35D5D;
+  --m-map-land:#1A2229; --m-map-road:#2E3A45; --m-map-water:#14202A; --m-map-label:#8D98A3;
+}
+
+/* switcher */
+.switcher{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:20px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+.switcher .lbl{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.seg{display:flex;gap:4px;background:var(--bg);padding:3px;border-radius:999px;border:1px solid var(--line)}
+.seg button{font:inherit;font-size:14px;font-weight:500;padding:6px 14px;border:0;border-radius:999px;background:transparent;color:var(--fg);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.switcher label.chk{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer}
+
+/* app shell */
+.app{font-family:var(--m-font);font-size:var(--m-fs);line-height:1.35;background:var(--m-bg);color:var(--m-fg);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid;grid-template-columns:var(--m-side-w,208px) minmax(0,1fr);grid-template-rows:46px minmax(0,1fr);min-width:960px;font-variant-numeric:tabular-nums}
+.mocks[data-skin="b"] .app:not(.mini){min-width:1080px}
+.app.collapsed{--m-side-w:52px}
+.app.mini{min-width:0;grid-template-columns:118px minmax(0,1fr);grid-template-rows:40px minmax(0,1fr);border-radius:10px}
+.topbar{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--m-top-bg);border-bottom:1px solid var(--m-line);min-width:0}
+.logo{font-family:var(--m-head);font-weight:700;letter-spacing:.06em;font-size:1.1em;color:var(--m-fg);display:flex;align-items:center;gap:6px;flex:none}
+.logo i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--m-accent)}
+.firma{color:var(--m-muted);font-size:.93em;flex:none;border-left:1px solid var(--m-line);padding-left:10px}
+.search{flex:1;display:flex;align-items:center;gap:8px;background:var(--m-input);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:0 10px;height:30px;color:var(--m-muted);min-width:0;margin:0 8px}
+.search span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.search kbd{font-family:var(--m-mono);font-size:.8em;border:1px solid var(--m-line);border-radius:3px;padding:0 4px;margin-left:auto;color:var(--m-muted);background:var(--m-surface)}
+.topbar .ic{position:relative;width:30px;height:30px;display:grid;place-items:center;border-radius:var(--m-radius);color:var(--m-muted);flex:none}
+.topbar .ic svg{width:18px;height:18px}
+.badge{position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:var(--s-crit);color:#fff;font-size:10.5px;font-weight:600;display:grid;place-items:center;padding:0 4px}
+.lang{font-weight:600;font-size:.9em;border:1px solid var(--m-line);border-radius:var(--m-radius);padding:3px 8px;color:var(--m-muted);flex:none}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--m-accent);color:var(--m-accent-fg);display:grid;place-items:center;font-weight:600;font-size:.8em;flex:none}
+.user{display:flex;align-items:center;gap:8px;flex:none}
+.user small{display:block;color:var(--m-muted);font-size:.85em;line-height:1.1}
+.side{background:var(--m-side-bg);color:var(--m-side-fg);padding:8px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--m-side-line);min-width:0;overflow:hidden}
+.nav{display:flex;align-items:center;gap:10px;height:calc(var(--m-row) - 2px);padding:0 9px;border-radius:var(--m-radius);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;position:relative}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav.active{background:var(--m-side-active);color:var(--m-side-accent)}
+.nav .cnt{margin-left:auto;font-size:.8em;background:var(--s-crit);color:#fff;border-radius:999px;padding:0 6px;font-weight:600}
+.app.collapsed .nav span,.app.collapsed .navgroup,.app.collapsed .nav .cnt{display:none}
+.app.collapsed .nav{justify-content:center;padding:0}
+.navgroup{font-size:.74em;text-transform:uppercase;letter-spacing:.08em;opacity:.55;padding:12px 9px 4px;font-weight:600}
+.side .spacer{flex:1}
+.main{padding:var(--m-pad);display:grid;gap:var(--m-gap);min-width:0;align-content:start}
+.ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.ph h1{font-family:var(--m-head);font-size:1.45em;font-weight:600;margin:0;line-height:1.2}
+.ph .sub{color:var(--m-muted)}
+.ph .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{font:inherit;font-size:.95em;font-weight:500;height:30px;padding:0 12px;border-radius:var(--m-radius);border:1px solid var(--m-line);background:var(--m-surface);color:var(--m-fg);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn.primary{background:var(--m-accent);color:var(--m-accent-fg);border-color:var(--m-accent)}
+.btn.sm{height:26px;padding:0 9px;font-size:.88em}
+.card{background:var(--m-surface);border:var(--m-border);border-radius:var(--m-radius);box-shadow:var(--m-shadow);min-width:0;overflow:hidden}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:calc(var(--m-pad)*.7) var(--m-pad);border-bottom:1px solid var(--m-line);font-weight:600;font-family:var(--m-head)}
+.card-h a{color:var(--m-accent);font-weight:500;font-size:.92em;text-decoration:none}
+.card-b{padding:var(--m-pad);min-width:0}
+.card-b > *{min-width:0}
+.grid-2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:var(--m-gap);min-width:0}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--m-gap);min-width:0}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--m-gap);min-width:0}
+.kpi{padding:calc(var(--m-pad)*.85) var(--m-pad);display:grid;gap:4px}
+.kpi .l{color:var(--m-muted);font-size:.92em}
+.kpi .v{font-family:var(--m-head);font-size:1.9em;font-weight:600;line-height:1.1}
+.kpi .v small{font-size:.5em;color:var(--m-muted);font-weight:500}
+.kpi .d{font-size:.88em;color:var(--m-muted)}
+.kpi .d.crit{color:var(--s-crit-fg)}
+.kpi .d.good{color:var(--s-good-fg)}
+.fleetbar{display:flex;height:10px;border-radius:999px;overflow:hidden;gap:2px;background:var(--m-line)}
+.fleetbar i{display:block;height:100%}
+.fleetlegend{display:flex;gap:14px;flex-wrap:wrap;font-size:.9em;color:var(--m-muted);margin-top:8px}
+.fleetlegend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:0}
+.tbl{width:100%;border-collapse:collapse;min-width:0}
+.tbl th{text-align:left;font-size:.8em;text-transform:uppercase;letter-spacing:.05em;color:var(--m-muted);font-weight:600;padding:6px var(--m-pad);border-bottom:1px solid var(--m-line);white-space:nowrap}
+.tbl td{height:var(--m-row);padding:3px var(--m-pad);border-bottom:1px solid var(--m-line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.num,.tbl th.num{text-align:right}
+.tbl td.mono,.tbl td.num{white-space:nowrap}
+.tbl tr.sel td{background:var(--m-accent-soft)}
+.tbl .sub{color:var(--m-muted);font-size:.88em}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:1px 8px;border-radius:999px;font-size:.86em;font-weight:500;white-space:nowrap;line-height:1.6}
+.chip svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.chip.good{background:var(--s-good-bg);color:var(--s-good-fg)}
+.chip.warn{background:var(--s-warn-bg);color:var(--s-warn-fg)}
+.chip.crit{background:var(--s-crit-bg);color:var(--s-crit-fg)}
+.chip.info{background:var(--s-info-bg);color:var(--s-info-fg)}
+.chip.neutral{background:var(--m-bg);color:var(--m-muted);border:1px solid var(--m-line)}
+.plate{font-family:var(--m-mono);font-weight:500;letter-spacing:.03em;border:1px solid var(--m-line);padding:0 5px;border-radius:3px;background:var(--m-bg);white-space:nowrap;font-size:.95em}
+.mono{font-family:var(--m-mono)}
+.muted{color:var(--m-muted)}
+.alerts{display:grid}
+.alert{display:grid;grid-template-columns:4px 1fr auto;gap:12px;align-items:center;padding:8px var(--m-pad);border-bottom:1px solid var(--m-line);min-height:var(--m-row)}
+.alert:last-child{border-bottom:0}
+.alert i{display:block;width:4px;height:100%;min-height:26px;border-radius:2px}
+.alert.crit i{background:var(--s-crit)} .alert.warn i{background:var(--s-warn)} .alert.info i{background:var(--m-accent)}
+.alert .t{font-weight:500}
+.alert .s{color:var(--m-muted);font-size:.9em}
+.alert a{color:var(--m-accent);text-decoration:none;font-size:.92em;white-space:nowrap}
+.bar{height:8px;background:var(--m-line);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--m-accent);border-radius:999px}
+.bar.warn i{background:var(--s-warn)}
+.bar.crit i{background:var(--s-crit)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.97em}
+.kv dt{color:var(--m-muted);margin:0}
+.kv dd{margin:0;font-weight:500}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--m-line);overflow:hidden}
+.tabs span{padding:8px 12px;color:var(--m-muted);font-weight:500;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs span.on{color:var(--m-accent);border-color:var(--m-accent)}
+.hdr-card{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:var(--m-pad)}
+.hdr-card .big{font-family:var(--m-mono);font-size:1.7em;font-weight:500;letter-spacing:.04em;border:1.5px solid var(--m-fg);border-radius:4px;padding:0 8px;line-height:1.4}
+.hdr-card .title{font-family:var(--m-head);font-size:1.25em;font-weight:600}
+.hdr-card .chips{display:flex;gap:6px;flex-wrap:wrap}
+.hdr-card .right{margin-left:auto;display:flex;gap:8px}
+.av-big{width:44px;height:44px;border-radius:50%;background:var(--m-accent-soft);color:var(--m-accent);display:grid;place-items:center;font-weight:600;font-size:1.1em;font-family:var(--m-head)}
+.lock{display:inline-flex;align-items:center;gap:5px;color:var(--m-muted);font-size:.85em}
+.lock svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.spark{display:flex;align-items:flex-end;gap:3px;height:34px}
+.spark i{display:block;flex:1;background:var(--m-accent-soft);border-top:2px solid var(--m-accent);border-radius:2px 2px 0 0}
+.spark i.hi{background:var(--m-accent);opacity:.9}
+.field{display:grid;gap:3px;font-size:.93em}
+.field label{color:var(--m-muted);font-size:.9em}
+.field .in{height:32px;border:1px solid var(--m-line);border-radius:var(--m-radius);background:var(--m-input);display:flex;align-items:center;padding:0 10px;gap:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.field .in svg{width:14px;height:14px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;color:var(--m-muted)}
+.field .in .chev{margin-left:auto}
+.tl{display:grid;gap:0;margin:0;padding:0;list-style:none}
+.tl li{display:grid;grid-template-columns:44px 14px 1fr;gap:8px;align-items:start;padding:5px 0;font-size:.95em}
+.tl li .t{font-family:var(--m-mono);color:var(--m-muted);font-size:.92em;padding-top:1px}
+.tl li .m{width:10px;height:10px;border-radius:50%;background:var(--m-accent);margin-top:4px;position:relative}
+.tl li .m.rest{background:var(--s-warn)}
+.tl li .m.end{background:var(--s-good)}
+.tl li .m::after{content:"";position:absolute;left:4px;top:11px;width:2px;height:22px;background:var(--m-line)}
+.tl li:last-child .m::after{display:none}
+.tl li .x{font-weight:500}
+.tl li .x small{display:block;color:var(--m-muted);font-weight:400}
+.cost{width:100%;border-collapse:collapse;font-size:.95em}
+.cost td{padding:4px 0;border-bottom:1px dashed var(--m-line)}
+.cost td:last-child{text-align:right;font-family:var(--m-mono)}
+.cost tr.total td{border-bottom:0;font-weight:600;padding-top:6px}
+.cost .sub{color:var(--m-muted);font-size:.88em}
+.eta{display:grid;gap:2px;padding:10px 12px;border-radius:var(--m-radius);background:var(--m-accent-soft);margin-bottom:10px}
+.eta .v{font-family:var(--m-head);font-size:1.6em;font-weight:600;line-height:1.1}
+.eta .v small{font-size:.5em;font-weight:500;color:var(--m-muted)}
+.eta .s{font-size:.92em;color:var(--m-muted)}
+.callout{border-left:3px solid var(--s-warn);padding:6px 10px;background:var(--s-warn-bg);color:var(--s-warn-fg);border-radius:0 var(--m-radius) var(--m-radius) 0;font-size:.9em;margin-top:10px}
+
+/* map */
+.mapwrap{position:relative;min-height:420px;background:var(--m-map-land);border-radius:var(--m-radius);overflow:hidden;border:var(--m-border)}
+.mapwrap svg.map{position:absolute;inset:0;width:100%;height:100%}
+.mapwrap .ov{position:absolute;background:var(--m-surface);border:var(--m-border);border-radius:var(--m-radius);box-shadow:var(--m-shadow);font-size:.9em}
+.mapwrap .ov.tl{top:10px;left:10px;display:flex;gap:6px;padding:6px;align-items:center}
+.mapwrap .ov.tl .search{margin:0;width:200px}
+.mapwrap .ov.br{bottom:10px;right:10px;display:grid}
+.mapwrap .ov.br span{width:28px;height:28px;display:grid;place-items:center;border-bottom:1px solid var(--m-line);font-weight:600}
+.mapwrap .ov.br span:last-child{border-bottom:0}
+.mapwrap .ov.bl{bottom:10px;left:10px;padding:6px 10px;display:flex;gap:12px;color:var(--m-muted)}
+.mapwrap .ov.bl i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.map text{font-family:var(--m-font);font-size:11px;fill:var(--m-map-label)}
+.map .city{fill:var(--m-map-label)}
+.map .road{stroke:var(--m-map-road);stroke-width:2.5;fill:none;stroke-linecap:round}
+.map .road.minor{stroke-width:1.3}
+.map .border{stroke:var(--m-map-label);stroke-dasharray:4 4;stroke-width:1;fill:none;opacity:.6}
+.map .water{fill:var(--m-map-water)}
+.map .route{stroke:var(--m-accent);stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.map .route-halo{stroke:var(--m-surface);stroke-width:7;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.map .truck rect{fill:var(--m-surface);stroke:var(--m-fg);stroke-width:1.2}
+.map .truck.move rect{stroke:var(--m-accent);stroke-width:1.6}
+.map .truck.rest rect{stroke:var(--s-warn);stroke-width:1.6}
+.map .truck text{font-family:var(--m-mono);font-size:10px;font-weight:500;fill:var(--m-fg)}
+.map .stop circle{fill:var(--m-surface);stroke-width:2.5}
+.map .stop.rest circle{stroke:var(--s-warn)}
+.map .stop.end circle{stroke:var(--s-good)}
+.map .stop text{font-size:10.5px;fill:var(--m-fg);font-weight:500}
+.map .stop text.s{fill:var(--m-map-label);font-weight:400}
+.map .lbl-tag rect{fill:var(--m-surface);stroke:var(--m-line)}
+.map .cc{font-size:22px;font-weight:600;fill:var(--m-map-label);opacity:.35}
+.minimap{position:relative;height:190px;background:var(--m-map-land);border-radius:var(--m-radius);overflow:hidden}
+.minimap svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* phones */
+.phones{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+.phone{width:300px;max-width:100%;height:620px;border-radius:36px;background:#15181C;padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.25);flex:none;border:1px solid #2A2F36}
+.scr{height:100%;border-radius:27px;overflow:hidden;background:var(--m-bg);display:flex;flex-direction:column;font-family:var(--m-font);font-size:14px;color:var(--m-fg);line-height:1.35;font-variant-numeric:tabular-nums}
+.sbar{display:flex;justify-content:space-between;padding:10px 20px 4px;font-size:12px;font-weight:600;color:var(--m-muted)}
+.sbody{flex:1;padding:8px 14px 12px;display:grid;gap:10px;align-content:start;overflow:hidden}
+.shead{display:flex;align-items:center;gap:10px;padding:4px 2px}
+.shead h2{font-family:var(--m-head);font-size:20px;font-weight:600;margin:0}
+.shead small{display:block;color:var(--m-muted);font-size:12.5px}
+.mcard{background:var(--m-surface);border:var(--m-border);border-radius:14px;box-shadow:var(--m-shadow);padding:12px}
+.mcard .ttl{font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.mcard .ttl small{color:var(--m-muted);font-weight:400}
+.mrow{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;padding:4px 0}
+.mrow .l{color:var(--m-muted)}
+.bigbtn{height:48px;border-radius:12px;background:var(--m-accent);color:var(--m-accent-fg);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px}
+.bigbtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.qa{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.qa div{background:var(--m-surface);border:var(--m-border);border-radius:12px;box-shadow:var(--m-shadow);height:64px;display:grid;place-items:center;align-content:center;gap:4px;font-size:12px;font-weight:500;text-align:center}
+.qa svg{width:20px;height:20px;color:var(--m-accent)}
+.ring{display:flex;gap:12px;align-items:center}
+.ring svg{width:64px;height:64px;flex:none}
+.ring .tx{font-size:13px}
+.ring .tx b{display:block;font-size:17px;font-family:var(--m-head)}
+.ring .tx span{color:var(--m-muted)}
+.tabbar{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--m-line);background:var(--m-surface);padding:8px 4px 10px}
+.tabbar div{display:grid;place-items:center;gap:3px;font-size:11px;font-weight:500;color:var(--m-muted)}
+.tabbar div.on{color:var(--m-accent)}
+.tabbar svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.mbar{display:grid;gap:3px;font-size:13px}
+.mbar .r{display:flex;justify-content:space-between}
+.mbar .r span:last-child{font-family:var(--m-mono);font-size:12.5px}
+
+/* ===== style directions ===== */
+.dirs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:980px){.dirs{grid-template-columns:1fr}}
+.dir{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid;grid-template-rows:auto auto auto auto 1fr;min-width:0}
+.dir .head{padding:16px 18px 10px}
+.dir .head .k{font-family:var(--mono);color:var(--mark);font-size:12px;letter-spacing:.06em}
+.dir .head h3{margin:4px 0 4px;font-size:20px}
+.dir .head p{font-size:14px;color:var(--muted)}
+.dir .mini-wrap{padding:0 12px}
+.dir .mini{box-shadow:0 4px 18px rgba(0,0,0,.08)}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:12px}
+.sw{display:grid;gap:3px;font-size:10.5px;color:var(--muted);min-width:0}
+.sw i{display:block;height:34px;border-radius:6px;border:1px solid var(--line)}
+.sw b{font-weight:500;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sw code{font-size:10px;background:transparent;padding:0;color:var(--muted)}
+.spec{padding:4px 18px 14px;display:grid;gap:8px;border-top:1px solid var(--line)}
+.spec .fam{font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:600;padding-top:12px}
+.spec .h{font-family:var(--m-head);font-weight:600;font-size:21px;line-height:1.2}
+.spec .b{font-family:var(--m-font);font-size:var(--m-fs);line-height:1.45}
+.spec .n{font-family:var(--m-mono);font-size:13px;color:var(--muted)}
+.pros{padding:12px 18px 18px;border-top:1px solid var(--line);font-size:14px;display:grid;gap:8px}
+.pros b{font-weight:600}
+.pros p{color:var(--muted)}
+.cmp-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-top:28px}
+table.cmp{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+.cmp th,.cmp td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.cmp thead th{font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;background:var(--bg)}
+.cmp tbody th{font-weight:500;color:var(--fg);white-space:nowrap}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+
+/* decisions */
+.decide{display:grid;gap:12px;max-width:72ch}
+.decide .q{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+.decide .q .n{font-family:var(--mono);color:var(--mark);font-size:13px;padding-top:3px}
+.decide .q b{font-weight:600}
+.decide .q p{color:var(--muted);font-size:14.5px;margin-top:3px}
+.decide .q p.ans{color:var(--fg);font-weight:600;margin-top:8px}
+.footer{color:var(--muted);font-size:13px;padding-top:20px}
+</style>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-home" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M7.2 6H14a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h6.8"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h11v10H2z"/><path d="M13 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19a6 6 0 0 1 12 0"/><path d="M15.5 12.6a4 4 0 0 1 5.5 4.9"/><circle cx="17" cy="8.5" r="2.4"/></symbol>
+  <symbol id="i-tacho" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 2.5h8l5 5V21.5H6z"/><path d="M14 2.5v5h5"/><path d="M9 13h6M9 17h6"/></symbol>
+  <symbol id="i-invoice" viewBox="0 0 24 24"><path d="M5 3h14v18l-2.3-1.6L14.4 21 12 19.4 9.6 21l-2.3-1.6L5 21z"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></symbol>
+  <symbol id="i-fuel" viewBox="0 0 24 24"><path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16"/><path d="M3 21h13"/><path d="M6.5 6.5h6v4h-6z"/><path d="M15 9.5h2a2 2 0 0 1 2 2V17a1.5 1.5 0 0 0 3 0V9.5l-2.5-2.5"/></symbol>
+  <symbol id="i-report" viewBox="0 0 24 24"><path d="M6 20v-6M12 20V7M18 20v-9"/><path d="M3 20h18"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3.5 8H8l2-3h4l2 3h4.5v11h-17z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-nav" viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8z"/></symbol>
+  <symbol id="i-rest" viewBox="0 0 24 24"><path d="M3 7v11M3 14h18v4M3 11a2 2 0 0 1 4 0v3M9 14V9h12v5"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l4 4L19 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-exchange" viewBox="0 0 24 24"><path d="M4 7h13l-3-3M20 17H7l3 3"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-euro" viewBox="0 0 24 24"><path d="M17 6.5A6.5 6.5 0 0 0 7 12a6.5 6.5 0 0 0 10 5.5M4 10h9M4 14h9"/></symbol>
+</svg>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">RUTERA · черновик для обсуждения · 27.10.2026</div>
+    <h1>Каркас приложения и визуальный стиль</h1>
+    <p class="lead">Как устроен интерфейс RUTERA: зоны экрана, навигация по модулям, ключевые экраны для владельца, диспетчера, бухгалтера и водителя, и три стилевых направления на выбор. Все данные в макетах придуманы для примера.</p>
+    <nav class="toc" aria-label="Содержание">
+      <a href="#karkas">Каркас и навигация</a>
+      <a href="#ergonomika">Правила эргономики</a>
+      <a href="#ekrany">Экраны</a>
+      <a href="#stili">Три стилевых направления</a>
+      <a href="#reshenia">Что решить</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ================= 1. КАРКАС ================= -->
+<section class="block" id="karkas">
+  <div class="sec-head">
+    <div class="eyebrow">Каркас</div>
+    <h2>Три зоны экрана и одна логика для всех модулей</h2>
+    <p>Пользователь RUTERA приходит с конкретным вопросом: где машина, сколько часов у водителя, кто не заплатил. Каркас построен так, чтобы ответ был в один-два клика из любого места.</p>
+  </div>
+
+  <div class="schema-grid">
+    <div>
+      <div class="schema" role="img" aria-label="Схема: верхняя панель, боковое меню, рабочая область">
+        <div class="top">Верхняя панель<small>фирма · глобальный поиск (Ctrl+K) · уведомления · язык · пользователь</small></div>
+        <div>Боковое меню<small>модули по ролям, сворачивается до иконок</small></div>
+        <div class="main-z">
+          <div>Список / карта / сводка<small>таблица с фильтрами, карта с машинами или дашборд</small></div>
+          <div>Карточка справа<small>открывается поверх списка, контекст не теряется</small></div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:10px">Десктоп и планшет. Рабочая область получает всю ширину, потому что в ней живут таблицы и карта.</p>
+    </div>
+    <div>
+      <div class="schema-mob" role="img" aria-label="Схема мобильного экрана водителя">
+        <div>Заголовок экрана</div>
+        <div class="body">Одна задача на экран<small>рейс сегодня, часы, фото CMR</small></div>
+        <div>Нижние вкладки (4)</div>
+      </div>
+      <p class="note" style="margin-top:10px">Телефон водителя (PWA): отдельная оболочка без бокового меню.</p>
+    </div>
+  </div>
+
+  <h3>Почему так</h3>
+  <div class="cards">
+    <div class="card-x"><div class="k">МЕНЮ СЛЕВА</div><h4>12 модулей не помещаются в верхнюю строку</h4><p>На немецком или финском подписи длиннее русских на 30–40 %. Вертикальное меню переносит длинные названия без ломки макета, а в свёрнутом виде оставляет только иконки и отдаёт ширину таблицам.</p></div>
+    <div class="card-x"><div class="k">СПИСОК + КАРТОЧКА</div><h4>Карточка открывается справа, а не отдельной страницей</h4><p>Диспетчер проверяет пять водителей подряд: список остаётся на месте, карточка меняется. Кнопка «Открыть полностью» ведёт на отдельную страницу, когда нужно больше места.</p></div>
+    <div class="card-x"><div class="k">ПОИСК</div><h4>Один поиск по номеру машины, водителю, фактуре, CMR</h4><p>Самый частый вопрос звучит как «DW 4471F» или «Ковальский». Поле всегда вверху, Ctrl+K открывает его с клавиатуры, результаты сгруппированы по типу.</p></div>
+    <div class="card-x"><div class="k">РОЛИ</div><h4>Меню показывает только доступные модули</h4><p>Бухгалтер не видит карту, диспетчер не видит оплаты. Права берутся из того же механизма, что и для API и MCP, поэтому интерфейс и ИИ видят одно и то же.</p></div>
+  </div>
+
+  <h3>Модули в меню и доступ по ролям</h3>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Модуль (порядок в меню)</th><th>Владелец</th><th>Диспетчер</th><th>Логист</th><th>Бухгалтер</th><th>Водитель (кабинет)</th></tr></thead>
+      <tbody>
+        <tr><td class="m">Обзор<small>сводка дня, своя у каждой роли</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot full"></i> «Сегодня»</td></tr>
+        <tr><td class="m">Карта<small>позиции, история, калькулятор рейса</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot none"></i></td><td class="c"><i class="dot none"></i></td></tr>
+        <tr><td class="m">Рейсы<small>создание, статусы, расчёт</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i> свои</td></tr>
+        <tr><td class="m">Автопарк<small>машины, прицепы, документы, сервис</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i> своя</td></tr>
+        <tr><td class="m">Водители<small>карточка, документы, доступность</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i> своя</td></tr>
+        <tr><td class="m">Тахограф<small>DDD, часы, нарушения 561/2006</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i> свои</td></tr>
+        <tr><td class="m">HR<small>отпуска, больничные, рабочие дни</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i> доступность</td><td class="c"><i class="dot half"></i> доступность</td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i> заявка на отпуск</td></tr>
+        <tr><td class="m">Оплаты водителей<small>ставки, суточные, к выплате</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot none"></i></td><td class="c"><i class="dot none"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i> свои</td></tr>
+        <tr><td class="m">Документы<small>CMR, сканы, привязка к рейсу</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot full"></i> фото по рейсу</td></tr>
+        <tr><td class="m">Финансы<small>фактуры, должники, напоминания</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot none"></i></td><td class="c"><i class="dot half"></i> статус</td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot none"></i></td></tr>
+        <tr><td class="m">Топливо<small>транзакции карт, расход</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i> чек без карты</td></tr>
+        <tr><td class="m">Биржи<small>Trans.eu и другие, позже</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot none"></i></td><td class="c"><i class="dot none"></i></td></tr>
+        <tr><td class="m">Отчёты</td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot half"></i></td><td class="c"><i class="dot none"></i></td></tr>
+        <tr><td class="m">Настройки<small>фирма, пользователи, роли, API и MCP-токены</small></td><td class="c"><i class="dot full"></i></td><td class="c"><i class="dot none"></i></td><td class="c"><i class="dot none"></i></td><td class="c"><i class="dot none"></i></td><td class="c"><i class="dot none"></i></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="legend"><span><i class="dot full"></i> управление</span><span><i class="dot half"></i> просмотр</span><span><i class="dot none"></i> модуля нет в меню</span><span>Источник: руководства по ролям в <code>docs/ai-roles/</code></span></div>
+</section>
+
+<!-- ================= 2. ЭРГОНОМИКА ================= -->
+<section class="block" id="ergonomika">
+  <div class="sec-head">
+    <div class="eyebrow">Эргономика</div>
+    <h2>Девять правил, которые держат интерфейс простым</h2>
+    <p>Эти правила одинаковы для любого стилевого направления ниже. Они определяют, как ведут себя экраны, а не как они покрашены.</p>
+  </div>
+  <div class="cards">
+    <div class="card-x"><h4>1. Сводка раньше деталей</h4><p>Каждый модуль открывается с ответа на главный вопрос роли, а клик по цифре ведёт в отфильтрованный список. Владелец утром видит «3 просроченные фактуры», а не таблицу на 48 строк.</p></div>
+    <div class="card-x"><h4>2. Статус = форма + цвет + слово</h4><p>Нарушение показано красной полосой, иконкой и текстом «превышение 4,5 ч». Цвет никогда не единственный носитель смысла: это важно для печати, дальтоников и тёмной темы.</p></div>
+    <div class="card-x"><h4>3. Числа выровнены, номера моноширинные</h4><p>Табличные цифры одинаковой ширины, номера машин и фактур в моноширинном шрифте, время по 561/2006 в формате 4:30, а не 4,5 ч. Так глаз сравнивает столбцы без усилий.</p></div>
+    <div class="card-x"><h4>4. Главное действие в одном месте</h4><p>Одна основная кнопка в правом верхнем углу экрана («+ Машина», «Рассчитать», «+ Фактура»). Остальные действия вторичные, с рамкой. Разрушительные действия с подтверждением и отменой.</p></div>
+    <div class="card-x"><h4>5. Формы без модальных лабиринтов</h4><p>Создание и правка идут в правой карточке или прямо в строке таблицы. Модальное окно только для короткого подтверждения.</p></div>
+    <div class="card-x"><h4>6. 26 языков заложены в сетку</h4><p>Кнопки и ячейки растут по содержимому, подписи переносятся, иконки сопровождают текст. Даты, числа и валюты в формате языка пользователя, время в часовом поясе фирмы.</p></div>
+    <div class="card-x"><h4>7. Телефон водителя: одна задача на экран</h4><p>Кнопки от 44 px, крупный текст, четыре вкладки внизу. Фото CMR и чеков становятся в очередь и уходят, когда появится связь.</p></div>
+    <div class="card-x"><h4>8. Клавиатура для диспетчера</h4><p>Ctrl+K поиск, стрелки по списку, Enter открывает карточку, Esc закрывает. Диспетчер работает часами, мышь замедляет.</p></div>
+    <div class="card-x"><h4>9. Одинаковые карточки для машины, водителя, рейса</h4><p>Шапка с главными фактами, вкладки, справа «что требует внимания». Выучил одну карточку, знаешь все.</p></div>
+  </div>
+</section>
+
+<!-- ================= 3. ЭКРАНЫ ================= -->
+<section class="block" id="ekrany">
+  <div class="sec-head">
+    <div class="eyebrow">Экраны</div>
+    <h2>Шесть ключевых экранов</h2>
+    <p>Переключатель ниже перекрашивает все макеты в одно из трёх стилевых направлений, чтобы сравнивать их на одинаковом содержании. Сами направления описаны в следующем разделе.</p>
+  </div>
+
+  <div class="switcher" id="switcher">
+    <span class="lbl">Стиль макетов</span>
+    <div class="seg" role="group" aria-label="Выбор стилевого направления">
+      <button type="button" id="sk-a" data-skin="a" aria-pressed="true">A · Диспетчерская</button>
+      <button type="button" id="sk-b" data-skin="b" aria-pressed="false">B · Светлый офис</button>
+      <button type="button" id="sk-c" data-skin="c" aria-pressed="false">C · Ночная смена</button>
+    </div>
+    <label class="chk"><input type="checkbox" id="collapse"> свернуть боковое меню</label>
+  </div>
+
+  <div class="mocks" id="mocks" data-skin="a">
+
+  <!-- ---------- Экран 1: Обзор ---------- -->
+  <h3>1. Обзор дня для владельца и диспетчера</h3>
+  <div class="screen-row">
+    <div class="frame">
+      <div class="app" data-collapsible>
+        <div class="topbar">
+          <div class="logo"><i></i>RUTERA</div>
+          <div class="firma">TransPol Sp. z o.o.</div>
+          <div class="search"><svg width="16" height="16" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><use href="#i-search"/></svg><span>Поиск: номер машины, водитель, фактура, CMR</span><kbd>Ctrl K</kbd></div>
+          <div class="ic"><svg><use href="#i-bell" style="stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"/></svg><span class="badge">5</span></div>
+          <div class="lang">RU</div>
+          <div class="user"><div class="avatar">ВЛ</div><div>Volodymyr<small>владелец</small></div></div>
+        </div>
+        <nav class="side">
+          <div class="nav active"><svg><use href="#i-home"/></svg><span>Обзор</span></div>
+          <div class="nav"><svg><use href="#i-map"/></svg><span>Карта</span></div>
+          <div class="nav"><svg><use href="#i-route"/></svg><span>Рейсы</span></div>
+          <div class="navgroup">Ресурсы</div>
+          <div class="nav"><svg><use href="#i-truck"/></svg><span>Автопарк</span></div>
+          <div class="nav"><svg><use href="#i-users"/></svg><span>Водители</span></div>
+          <div class="nav"><svg><use href="#i-tacho"/></svg><span>Тахограф</span><span class="cnt">2</span></div>
+          <div class="navgroup">Документы и деньги</div>
+          <div class="nav"><svg><use href="#i-doc"/></svg><span>Документы</span></div>
+          <div class="nav"><svg><use href="#i-invoice"/></svg><span>Финансы</span><span class="cnt">3</span></div>
+          <div class="nav"><svg><use href="#i-fuel"/></svg><span>Топливо</span></div>
+          <div class="nav"><svg><use href="#i-report"/></svg><span>Отчёты</span></div>
+          <div class="spacer"></div>
+          <div class="nav"><svg><use href="#i-settings"/></svg><span>Настройки</span></div>
+        </nav>
+        <div class="main">
+          <div class="ph"><h1>Понедельник, 27 октября</h1><span class="sub">12 машин · 14 водителей</span><div class="right"><span class="chip neutral">обновлено 14:02</span></div></div>
+          <div class="card"><div class="card-b" style="padding-top:10px;padding-bottom:10px">
+            <div class="fleetbar"><i style="width:58.3%;background:var(--m-accent)"></i><i style="width:16.7%;background:var(--s-warn)"></i><i style="width:16.7%;background:var(--m-muted)"></i><i style="width:8.3%;background:var(--s-crit)"></i></div>
+            <div class="fleetlegend"><span><i style="background:var(--m-accent)"></i>7 в пути</span><span><i style="background:var(--s-warn)"></i>2 на отдыхе</span><span><i style="background:var(--m-muted)"></i>2 на базе</span><span><i style="background:var(--s-crit)"></i>1 в сервисе</span></div>
+          </div></div>
+          <div class="grid-4">
+            <div class="card kpi"><div class="l">Нарушения 561 за 7 дней</div><div class="v">2</div><div class="d crit">1 серьёзное · Nowak P.</div></div>
+            <div class="card kpi"><div class="l">Просроченные фактуры</div><div class="v">12 780 <small>€</small></div><div class="d crit">3 фактуры · старейшая 14 дней</div></div>
+            <div class="card kpi"><div class="l">Документы истекают</div><div class="v">3</div><div class="d">в 30 дней: техосмотр, карта водителя, ADR</div></div>
+            <div class="card kpi"><div class="l">Расход за неделю</div><div class="v">31,2 <small>л/100 км</small></div><div class="d good">−1,4 к прошлой неделе</div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-h">Требует внимания <a href="#ekrany">все 9</a></div>
+              <div class="alerts">
+                <div class="alert crit"><i></i><div><div class="t">Nowak Piotr · превышение 4:30 без перерыва на 38 мин</div><div class="s"><span class="plate">DW 8821K</span> · вчера 17:40 · из DDD карты водителя</div></div><a href="#ekrany">К нарушению</a></div>
+                <div class="alert warn"><i></i><div><div class="t">FV/2026/0912 Logistix GmbH · 4 320 € просрочена 14 дней</div><div class="s">напоминание №2 отправлено 25.10, следующее 02.11</div></div><a href="#ekrany">Фактура</a></div>
+                <div class="alert warn"><i></i><div><div class="t">Техосмотр <span class="plate">DW 4471F</span> истекает через 6 дней</div><div class="s">02.11.2026 · машина сейчас в рейсе в Hamburg</div></div><a href="#ekrany">Машина</a></div>
+                <div class="alert warn"><i></i><div><div class="t">Карта водителя Шевченко Олег · срок до 12.11.2026</div><div class="s">подать заявление на новую карту заранее</div></div><a href="#ekrany">Водитель</a></div>
+                <div class="alert info"><i></i><div><div class="t">DDD не выгружен 28 дней · <span class="plate">DW 2210P</span></div><div class="s">память тахографа, последняя выгрузка 29.09</div></div><a href="#ekrany">Загрузить</a></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h">Где машины <a href="#ekrany">Карта</a></div>
+              <div class="card-b" style="padding:6px">
+                <div class="minimap">
+                  <svg viewBox="0 0 300 190" class="map" aria-hidden="true">
+                    <path class="water" d="M0 0h300v22Q230 40 150 18 70 0 0 10z"/>
+                    <path class="border" d="M168 0q-8 60 2 100t-6 90"/>
+                    <path class="road" d="M40 30q60 40 110 70t110 50"/><path class="road" d="M20 120q80-10 150 20t110 20"/><path class="road minor" d="M120 10q10 70 40 120t60 60"/>
+                    <text class="cc" x="60" y="160">DE</text><text class="cc" x="220" y="60">PL</text>
+                    <g fill="var(--m-accent)"><circle cx="150" cy="95" r="5"/><circle cx="110" cy="70" r="5"/><circle cx="80" cy="60" r="5"/><circle cx="210" cy="110" r="5"/><circle cx="70" cy="135" r="5"/><circle cx="240" cy="90" r="5"/><circle cx="185" cy="150" r="5"/></g>
+                    <g fill="var(--s-warn)"><circle cx="125" cy="118" r="5"/><circle cx="55" cy="40" r="5"/></g>
+                    <g fill="var(--m-muted)"><circle cx="262" cy="150" r="5"/><circle cx="268" cy="156" r="5"/></g>
+                    <g fill="var(--s-crit)"><circle cx="255" cy="145" r="5"/></g>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h">Водители в работе и остаток часов <a href="#ekrany">Все 14</a></div>
+            <table class="tbl">
+              <thead><tr><th>Водитель</th><th>Машина</th><th>Статус</th><th>Вождение сегодня / неделя</th><th>Следующий отдых</th></tr></thead>
+              <tbody>
+                <tr><td>Kowalski Jan</td><td><span class="plate">DW 4471F</span></td><td><span class="chip info">в пути</span></td><td class="mono"><div style="display:flex;gap:8px;align-items:center">3:20 / 9:00<div class="bar" style="width:56px"><i style="width:37%"></i></div></div><div class="sub">неделя 31:10 / 56:00</div></td><td>перерыв через 1:10</td></tr>
+                <tr><td>Nowak Piotr</td><td><span class="plate">DW 8821K</span></td><td><span class="chip info">в пути</span></td><td class="mono"><div style="display:flex;gap:8px;align-items:center">8:05 / 9:00<div class="bar warn" style="width:56px"><i style="width:90%"></i></div></div><div class="sub">неделя 49:30 / 56:00</div></td><td>дневной отдых через 0:55</td></tr>
+                <tr><td>Шевченко Олег</td><td><span class="plate">DW 2210P</span></td><td><span class="chip warn">отдых</span></td><td class="mono"><div style="display:flex;gap:8px;align-items:center">0:00 / 10:00<div class="bar" style="width:56px"><i style="width:0%"></i></div></div><div class="sub">неделя 22:40 / 56:00</div></td><td>отдых до 05:30</td></tr>
+                <tr><td>Wiśniewski Marek</td><td><span class="plate">DW 5120C</span></td><td><span class="chip neutral">на базе</span></td><td class="mono"><div style="display:flex;gap:8px;align-items:center">0:00 / 9:00<div class="bar" style="width:56px"><i style="width:0%"></i></div></div><div class="sub">неделя 40:00 / 56:00</div></td><td>недельный отдых идёт</td></tr>
+                <tr><td>Petrenko Andriy</td><td><span class="plate">DW 3390H</span></td><td><span class="chip info">выгрузка</span></td><td class="mono"><div style="display:flex;gap:8px;align-items:center">5:45 / 9:00<div class="bar" style="width:56px"><i style="width:64%"></i></div></div><div class="sub">неделя 35:20 / 56:00</div></td><td>перерыв через 0:20</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="notes">
+      <h4>Что здесь важно</h4>
+      <ul>
+        <li><b>Полоса автопарка</b> сверху отвечает на первый вопрос дня за секунду: сколько машин едет, отдыхает, стоит.</li>
+        <li><b>Четыре цифры</b> вместо графиков: нарушения, просрочка, документы, расход. Каждая кликабельна и ведёт в отфильтрованный список.</li>
+        <li><b>«Требует внимания»</b> объединяет события из всех модулей в один список с полосой серьёзности. Это главный рабочий инструмент владельца.</li>
+        <li><b>Остаток часов</b> показан числом и полосой: диспетчер видит, кому скоро нужен отдых, не открывая карточку.</li>
+        <li>У диспетчера тот же экран без денег; у бухгалтера вместо карты и часов блок дебиторки.</li>
+      </ul>
+    </aside>
+  </div>
+
+  <!-- ---------- Экран 2: Карта + калькулятор ---------- -->
+  <h3>2. Карта с машинами и калькулятор рейса</h3>
+  <div class="screen-row">
+    <div class="frame">
+      <div class="app collapsed">
+        <div class="topbar">
+          <div class="logo"><i></i>RUTERA</div>
+          <div class="firma">TransPol Sp. z o.o.</div>
+          <div class="search"><svg width="16" height="16" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><use href="#i-search"/></svg><span>Поиск</span><kbd>Ctrl K</kbd></div>
+          <div class="ic"><svg><use href="#i-bell"/></svg><span class="badge">5</span></div>
+          <div class="lang">RU</div>
+          <div class="user"><div class="avatar">АК</div><div>Anna K.<small>диспетчер</small></div></div>
+        </div>
+        <nav class="side">
+          <div class="nav"><svg><use href="#i-home"/></svg><span>Обзор</span></div>
+          <div class="nav active"><svg><use href="#i-map"/></svg><span>Карта</span></div>
+          <div class="nav"><svg><use href="#i-route"/></svg><span>Рейсы</span></div>
+          <div class="navgroup">Ресурсы</div>
+          <div class="nav"><svg><use href="#i-truck"/></svg><span>Автопарк</span></div>
+          <div class="nav"><svg><use href="#i-users"/></svg><span>Водители</span></div>
+          <div class="nav"><svg><use href="#i-tacho"/></svg><span>Тахограф</span><span class="cnt">2</span></div>
+          <div class="navgroup">Документы</div>
+          <div class="nav"><svg><use href="#i-doc"/></svg><span>Документы</span></div>
+          <div class="nav"><svg><use href="#i-fuel"/></svg><span>Топливо</span></div>
+          <div class="nav"><svg><use href="#i-report"/></svg><span>Отчёты</span></div>
+          <div class="spacer"></div>
+        </nav>
+        <div class="main" style="grid-template-columns:minmax(0,1fr) 320px;align-items:stretch">
+          <div class="mapwrap">
+            <svg class="map" viewBox="0 -180 640 800" preserveAspectRatio="xMidYMid slice" aria-label="Схематичная карта: маршрут Wrocław – Hamburg">
+              <path class="water" d="M0-180h640v220Q500 70 380 30 250 0 120 50 60 70 0 40z"/>
+              <path class="border" d="M352 20q-18 100 4 190t-8 230"/>
+              <path class="border" d="M300 440q60-60 140-40t160-20"/>
+              <path class="road minor" d="M210 262q60 120 180 160"/>
+              <path class="road minor" d="M290 300q30 90 50 200"/>
+              <path class="road minor" d="M140 420q120 10 220 60"/>
+              <g class="city"><circle cx="340" cy="470" r="3.5"/><text x="350" y="466">Praha</text></g>
+              <path class="road" d="M120 70q80 70 140 115t110 110"/>
+              <path class="road" d="M500 318q-70 20-140 0t-120-70"/>
+              <path class="road" d="M60 160q90-10 150 40t120 50"/>
+              <path class="road minor" d="M300 90q40 60 40 140t10 160"/>
+              <path class="road minor" d="M470 110q40 90 30 210"/>
+              <path class="road minor" d="M170 300q100 20 200 10"/>
+              <text class="cc" x="90" y="400">DE</text><text class="cc" x="540" y="120">PL</text><text class="cc" x="470" y="425">CZ</text>
+              <g class="city">
+                <circle cx="130" cy="72" r="4"/><text x="140" y="68">Hamburg</text>
+                <circle cx="268" cy="188" r="4"/><text x="278" y="184">Berlin</text>
+                <circle cx="470" cy="312" r="4"/><text x="480" y="330">Wrocław</text>
+                <circle cx="440" cy="205" r="3.5"/><text x="450" y="201">Poznań</text>
+                <circle cx="300" cy="98" r="3.5"/><text x="310" y="94">Szczecin</text>
+                <circle cx="290" cy="300" r="3.5"/><text x="300" y="316">Dresden</text>
+                <circle cx="210" cy="262" r="3.5"/><text x="220" y="258">Leipzig</text>
+                <circle cx="70" cy="165" r="3.5"/><text x="80" y="161">Hannover</text>
+              </g>
+              <path class="route-halo" d="M470 312L398 302Q338 295 318 262Q296 228 268 192Q212 134 132 76"/>
+              <path class="route" d="M470 312L398 302Q338 295 318 262Q296 228 268 192Q212 134 132 76"/>
+              <g class="stop rest"><circle cx="336" cy="283" r="6"/><g class="lbl-tag"><rect x="346" y="268" width="150" height="34" rx="4"/></g><text x="353" y="282">11:00 · перерыв 45 мин</text><text class="s" x="353" y="296">Raststätte Vetschau, A15</text></g>
+              <g class="stop end"><circle cx="132" cy="76" r="6"/><g class="lbl-tag"><rect x="142" y="88" width="138" height="34" rx="4"/></g><text x="149" y="102">15:45 · выгрузка</text><text class="s" x="149" y="116">Hamburg-Billbrook</text></g>
+              <g class="truck move"><rect x="372" y="289" width="22" height="13" rx="2" transform="rotate(-8 383 295)"/><text x="356" y="322">DW 4471F</text></g>
+              <g class="truck"><rect x="428" y="196" width="22" height="13" rx="2"/><text x="410" y="226">DW 8821K</text></g>
+              <g class="truck rest"><rect x="256" y="200" width="22" height="13" rx="2"/><text x="232" y="228">DW 2210P</text></g>
+              <g class="truck"><rect x="474" y="296" width="22" height="13" rx="2"/><text x="500" y="306">DW 5120C</text></g>
+              <g class="truck"><rect x="118" y="84" width="22" height="13" rx="2"/><text x="80" y="110">DW 3390H</text></g>
+            </svg>
+            <div class="ov tl"><div class="search" style="height:28px"><svg width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><use href="#i-search"/></svg><span>Найти машину</span></div><span class="chip info">в пути 7</span><span class="chip warn">отдых 2</span><span class="chip neutral">все 12</span></div>
+            <div class="ov bl"><span><i style="background:var(--m-accent)"></i>маршрут</span><span><i style="background:var(--s-warn)"></i>перерыв / отдых</span><span><i style="background:var(--s-good)"></i>выгрузка</span></div>
+            <div class="ov br"><span>+</span><span>−</span></div>
+          </div>
+          <div class="card" style="display:grid;grid-template-rows:auto 1fr">
+            <div class="card-h">Калькулятор рейса <span class="chip neutral">черновик</span></div>
+            <div class="card-b" style="display:grid;gap:8px;align-content:start">
+              <div class="field"><label>Машина и водитель</label><div class="in"><svg><use href="#i-truck"/></svg><span class="plate">DW 4471F</span> MAN TGX · Kowalski J.<svg class="chev"><use href="#i-down"/></svg></div></div>
+              <div class="field"><label>Откуда</label><div class="in"><svg><use href="#i-pin"/></svg>Текущая позиция · A4, Krzyżowa<svg class="chev"><use href="#i-down"/></svg></div></div>
+              <div class="field"><label>Куда</label><div class="in"><svg><use href="#i-pin"/></svg>Hamburg, Werner-Siemens-Str. 1</div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div class="field"><label>Выезд</label><div class="in"><svg><use href="#i-cal"/></svg>27.10 · 06:30</div></div>
+                <div class="field"><label>Экипаж</label><div class="in">1 водитель<svg class="chev"><use href="#i-down"/></svg></div></div>
+              </div>
+              <div style="display:flex;gap:8px;margin:4px 0 6px"><span class="btn primary">Рассчитать</span><span class="btn">Создать рейс</span></div>
+              <div class="eta"><div class="v">15:45 <small>сегодня</small></div><div class="s">641 км · 8:32 вождения + 0:45 перерыв · ещё 0:28 часов в запасе</div></div>
+              <ul class="tl">
+                <li><span class="t">06:30</span><span class="m"></span><span class="x">Выезд после загрузки<small>Wrocław-Bielany · 9:00 вождения доступно</small></span></li>
+                <li><span class="t">11:00</span><span class="m rest"></span><span class="x">Перерыв 45 мин<small>4:30 вождения · Raststätte Vetschau, A15</small></span></li>
+                <li><span class="t">11:45</span><span class="m"></span><span class="x">Продолжение<small>граница DE пройдена в 09:50</small></span></li>
+                <li><span class="t">15:45</span><span class="m end"></span><span class="x">Прибытие на выгрузку<small>Hamburg-Billbrook · окно 14:00–17:00 ✓</small></span></li>
+              </ul>
+              <table class="cost">
+                <tr><td>Топливо<span class="sub"> · 192 л × 1,45 €</span></td><td>278 €</td></tr>
+                <tr><td>Дороги PL<span class="sub"> · e-TOLL, 84 км</span></td><td>14 €</td></tr>
+                <tr><td>Дороги DE<span class="sub"> · Maut, 418 км</span></td><td>146 €</td></tr>
+                <tr><td>Водитель<span class="sub"> · ставка + суточные</span></td><td>95 €</td></tr>
+                <tr class="total"><td>Итого</td><td>533 €</td></tr>
+              </table>
+              <div class="callout">Выезд после 10:30: дневной отдых 11 ч в пути, прибытие завтра 07:40.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="notes">
+      <h4>Что здесь важно</h4>
+      <ul>
+        <li><b>Карта всегда занимает максимум</b>: меню здесь свёрнуто до иконок, калькулятор живёт в правой панели и не закрывает машины.</li>
+        <li><b>Три поля и кнопка.</b> Машина уже знает свои оси, массу, расход и водителя с остатком часов. Пользователь вводит только адрес и время.</li>
+        <li><b>Время прибытия крупно</b>, под ним цепочка событий: где и когда перерыв, когда граница. Те же точки отмечены на карте.</li>
+        <li><b>Стоимость как чек</b>: топливо, дороги по странам, водитель. Расход и цена топлива берутся из последних заправок по карте.</li>
+        <li><b>Жёлтая подсказка</b> показывает, что меняется при позднем выезде: именно это диспетчер решает с клиентом.</li>
+        <li>«Создать рейс» превращает расчёт в рейс, к которому потом привяжут CMR и фактуру.</li>
+      </ul>
+    </aside>
+  </div>
+
+  <!-- ---------- Экран 3: Карточка машины ---------- -->
+  <h3>3. Карточка машины</h3>
+  <div class="screen-row">
+    <div class="frame">
+      <div class="app" data-collapsible>
+        <div class="topbar">
+          <div class="logo"><i></i>RUTERA</div>
+          <div class="firma">TransPol Sp. z o.o.</div>
+          <div class="search"><svg width="16" height="16" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><use href="#i-search"/></svg><span>Поиск</span><kbd>Ctrl K</kbd></div>
+          <div class="ic"><svg><use href="#i-bell"/></svg><span class="badge">5</span></div>
+          <div class="lang">RU</div>
+          <div class="user"><div class="avatar">ВЛ</div><div>Volodymyr<small>владелец</small></div></div>
+        </div>
+        <nav class="side">
+          <div class="nav"><svg><use href="#i-home"/></svg><span>Обзор</span></div>
+          <div class="nav"><svg><use href="#i-map"/></svg><span>Карта</span></div>
+          <div class="nav"><svg><use href="#i-route"/></svg><span>Рейсы</span></div>
+          <div class="navgroup">Ресурсы</div>
+          <div class="nav active"><svg><use href="#i-truck"/></svg><span>Автопарк</span></div>
+          <div class="nav"><svg><use href="#i-users"/></svg><span>Водители</span></div>
+          <div class="nav"><svg><use href="#i-tacho"/></svg><span>Тахограф</span><span class="cnt">2</span></div>
+          <div class="navgroup">Документы и деньги</div>
+          <div class="nav"><svg><use href="#i-doc"/></svg><span>Документы</span></div>
+          <div class="nav"><svg><use href="#i-invoice"/></svg><span>Финансы</span><span class="cnt">3</span></div>
+          <div class="nav"><svg><use href="#i-fuel"/></svg><span>Топливо</span></div>
+          <div class="nav"><svg><use href="#i-report"/></svg><span>Отчёты</span></div>
+          <div class="spacer"></div>
+          <div class="nav"><svg><use href="#i-settings"/></svg><span>Настройки</span></div>
+        </nav>
+        <div class="main">
+          <div class="ph"><span class="muted">Автопарк</span><svg width="14" height="14" style="color:var(--m-muted)"><use href="#i-chev"/></svg><span class="muted">Машины</span><div class="right"><span class="btn">Редактировать</span><span class="btn primary"><svg><use href="#i-route"/></svg>Рассчитать рейс</span></div></div>
+          <div class="card">
+            <div class="hdr-card">
+              <div class="big">DW 4471F</div>
+              <div><div class="title">MAN TGX 18.510 · тягач</div><div class="muted">2022 · Euro 6 · VIN WMA06XZZ…</div></div>
+              <div class="chips"><span class="chip info">в пути · A15, DE</span><span class="chip neutral">Kowalski Jan</span><span class="chip neutral">прицеп <span class="plate">WPR 55K7</span></span><span class="chip warn"><svg><use href="#i-warn"/></svg>техосмотр через 6 дней</span></div>
+            </div>
+            <div class="tabs"><span class="on">Обзор</span><span>Водители</span><span>Документы и сроки</span><span>Тахограф</span><span>Топливо</span><span>Сервис</span><span>Рейсы</span><span>История</span></div>
+          </div>
+          <div class="grid-3">
+            <div class="card">
+              <div class="card-h">Для маршрута и дорог</div>
+              <div class="card-b"><dl class="kv">
+                <dt>Оси</dt><dd>2 + 3 (прицеп)</dd>
+                <dt>Полная масса</dt><dd>40 т</dd>
+                <dt>Высота / ширина</dt><dd>4,00 / 2,55 м</dd>
+                <dt>Длина состава</dt><dd>16,5 м</dd>
+                <dt>Расход</dt><dd>29,8 л/100 км <span class="muted">(среднее 90 дней)</span></dd>
+                <dt>Бак</dt><dd>2 × 400 л</dd>
+                <dt>ADR</dt><dd>нет</dd>
+                <dt>Платные дороги</dt><dd>e-TOLL PL · Toll Collect DE · DKV Box</dd>
+              </dl></div>
+            </div>
+            <div class="card">
+              <div class="card-h">Документы и сроки <a href="#ekrany">все</a></div>
+              <div class="alerts">
+                <div class="alert warn"><i></i><div><div class="t">Техосмотр</div><div class="s">до 02.11.2026</div></div><span class="chip warn">6 дней</span></div>
+                <div class="alert info"><i></i><div><div class="t">Страховка OC / AC</div><div class="s">до 15.03.2027 · PZU</div></div><span class="chip good"><svg><use href="#i-check"/></svg>ок</span></div>
+                <div class="alert info"><i></i><div><div class="t">Калибровка тахографа</div><div class="s">VDO DTCO 4.1 Gen2 · до 20.08.2027</div></div><span class="chip good"><svg><use href="#i-check"/></svg>ок</span></div>
+                <div class="alert info"><i></i><div><div class="t">Выгрузка памяти тахографа</div><div class="s">последняя 14.10.2026 · следующая до 11.01.2027</div></div><span class="chip good"><svg><use href="#i-check"/></svg>ок</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h">Последние 30 дней</div>
+              <div class="card-b" style="display:grid;gap:10px">
+                <dl class="kv">
+                  <dt>Пробег</dt><dd>9 840 км</dd>
+                  <dt>Рейсов</dt><dd>7</dd>
+                  <dt>Заправок</dt><dd>11 · 2 960 л · 4 280 €</dd>
+                  <dt>Расход</dt><dd>30,1 л/100 км</dd>
+                </dl>
+                <div><div class="muted" style="font-size:.88em;margin-bottom:4px">Расход по неделям, л/100 км</div><div class="spark"><i style="height:78%"></i><i style="height:92%"></i><i style="height:70%"></i><i class="hi" style="height:66%"></i></div></div>
+                <div class="muted" style="font-size:.9em">Сейчас: A15, 12 км до границы DE · 82 км/ч · 14:02</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="notes">
+      <h4>Что здесь важно</h4>
+      <ul>
+        <li><b>Номер крупно и моноширинно</b>, как на табличке. Это то, по чему машину узнают все.</li>
+        <li><b>Шапка одинаковая</b> у машины, водителя и рейса: главные факты, статусы, вкладки.</li>
+        <li><b>Первый блок — параметры для маршрута.</b> Их заполняют один раз, дальше ими пользуется калькулятор и расчёт платных дорог.</li>
+        <li><b>Сроки документов</b> выглядят так же, как «требует внимания» на обзоре: полоса, дата, сколько осталось.</li>
+        <li>Такая же карточка для прицепа, только без тахографа и расхода.</li>
+      </ul>
+    </aside>
+  </div>
+
+  <!-- ---------- Экран 4: Карточка водителя ---------- -->
+  <h3>4. Карточка водителя с часами и HR</h3>
+  <div class="screen-row">
+    <div class="frame">
+      <div class="app" data-collapsible>
+        <div class="topbar">
+          <div class="logo"><i></i>RUTERA</div>
+          <div class="firma">TransPol Sp. z o.o.</div>
+          <div class="search"><svg width="16" height="16" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><use href="#i-search"/></svg><span>Поиск</span><kbd>Ctrl K</kbd></div>
+          <div class="ic"><svg><use href="#i-bell"/></svg><span class="badge">5</span></div>
+          <div class="lang">RU</div>
+          <div class="user"><div class="avatar">ВЛ</div><div>Volodymyr<small>владелец</small></div></div>
+        </div>
+        <nav class="side">
+          <div class="nav"><svg><use href="#i-home"/></svg><span>Обзор</span></div>
+          <div class="nav"><svg><use href="#i-map"/></svg><span>Карта</span></div>
+          <div class="nav"><svg><use href="#i-route"/></svg><span>Рейсы</span></div>
+          <div class="navgroup">Ресурсы</div>
+          <div class="nav"><svg><use href="#i-truck"/></svg><span>Автопарк</span></div>
+          <div class="nav active"><svg><use href="#i-users"/></svg><span>Водители</span></div>
+          <div class="nav"><svg><use href="#i-tacho"/></svg><span>Тахограф</span><span class="cnt">2</span></div>
+          <div class="navgroup">Документы и деньги</div>
+          <div class="nav"><svg><use href="#i-doc"/></svg><span>Документы</span></div>
+          <div class="nav"><svg><use href="#i-invoice"/></svg><span>Финансы</span><span class="cnt">3</span></div>
+          <div class="nav"><svg><use href="#i-fuel"/></svg><span>Топливо</span></div>
+          <div class="nav"><svg><use href="#i-report"/></svg><span>Отчёты</span></div>
+          <div class="spacer"></div>
+          <div class="nav"><svg><use href="#i-settings"/></svg><span>Настройки</span></div>
+        </nav>
+        <div class="main">
+          <div class="ph"><span class="muted">Водители</span><div class="right"><span class="btn">Редактировать</span><span class="btn primary"><svg><use href="#i-plus"/></svg>Отпуск / больничный</span></div></div>
+          <div class="card">
+            <div class="hdr-card">
+              <div class="av-big">JK</div>
+              <div><div class="title">Kowalski Jan</div><div class="muted">водитель · в фирме с 03.2021 · +48 601 234 567</div></div>
+              <div class="chips"><span class="chip info">в пути · <span class="plate">DW 4471F</span></span><span class="chip good"><svg><use href="#i-check"/></svg>карта водителя до 03.2028</span><span class="chip good"><svg><use href="#i-check"/></svg>код 95 до 2029</span></div>
+            </div>
+            <div class="tabs"><span class="on">Обзор</span><span>Часы и нарушения</span><span>Отпуска и больничные</span><span>Оплаты</span><span>Документы</span><span>Рейсы</span><span>История</span></div>
+          </div>
+          <div class="grid-3">
+            <div class="card">
+              <div class="card-h">Часы по 561/2006 <span class="muted" style="font-weight:400;font-size:.88em">DDD от 26.10</span></div>
+              <div class="card-b" style="display:grid;gap:10px">
+                <div><div style="display:flex;justify-content:space-between;font-size:.95em"><span>Сегодня вождение</span><span class="mono">3:20 / 9:00</span></div><div class="bar" style="margin-top:4px"><i style="width:37%"></i></div><div class="muted" style="font-size:.88em;margin-top:3px">перерыв 45 мин нужен через 1:10</div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:.95em"><span>Неделя</span><span class="mono">31:10 / 56:00</span></div><div class="bar" style="margin-top:4px"><i style="width:56%"></i></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:.95em"><span>Две недели</span><span class="mono">71:00 / 90:00</span></div><div class="bar" style="margin-top:4px"><i style="width:79%"></i></div></div>
+                <dl class="kv" style="margin-top:4px"><dt>10-часовых дней</dt><dd>1 из 2 на этой неделе</dd><dt>Недельный отдых</dt><dd>начать до пт 31.10 22:00</dd><dt>Сокращённых отдыхов</dt><dd>1, компенсировать до 16.11</dd></dl>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h">Нарушения за 28 дней <a href="#ekrany">все</a></div>
+              <div class="alerts">
+                <div class="alert warn"><i></i><div><div class="t">Превышение 4:30 на 12 мин</div><div class="s">22.10 · незначительное · <span class="plate">DW 4471F</span></div></div><span class="chip warn">незнач.</span></div>
+              </div>
+              <div class="card-h" style="border-top:1px solid var(--m-line)">Доступность</div>
+              <div class="card-b"><dl class="kv">
+                <dt>Отпуск</dt><dd>остаток 14 дней · следующий 15–22.12</dd>
+                <dt>Больничный</dt><dd>0 дней в 2026</dd>
+                <dt>Рабочих дней</dt><dd>19 в октябре</dd>
+                <dt>Свободен с</dt><dd>ср 29.10 после отдыха</dd>
+              </dl></div>
+            </div>
+            <div class="card">
+              <div class="card-h">Оплаты · октябрь <span class="lock"><svg><use href="#i-lock"/></svg>владелец, бухгалтер</span></div>
+              <div class="card-b" style="display:grid;gap:8px">
+                <table class="cost">
+                  <tr><td>Ставка<span class="sub"> · 19 рабочих дней</span></td><td>1 450 €</td></tr>
+                  <tr><td>Суточные<span class="sub"> · 12 дней DE, 4 дня PL</span></td><td>690 €</td></tr>
+                  <tr><td>Удержания</td><td>0 €</td></tr>
+                  <tr class="total"><td>К выплате</td><td>2 140 €</td></tr>
+                </table>
+                <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="btn sm">Расчётный лист</span><span class="btn sm">Отметить выплату</span></div>
+                <div class="muted" style="font-size:.88em">Диспетчер и логист видят вместо этого блока только «Свободен с».</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="notes">
+      <h4>Что здесь важно</h4>
+      <ul>
+        <li><b>Часы как три полосы</b>: день, неделя, две недели. Это то, что диспетчер спрашивает чаще всего, и то, что нужно калькулятору.</li>
+        <li><b>Нарушения и доступность</b> рядом: на вопрос «кто может взять рейс завтра» отвечают оба блока.</li>
+        <li><b>Оплаты с замком</b>: один и тот же экран, но блок виден только владельцу и бухгалтеру. Права, а не отдельные экраны.</li>
+        <li><b>HR в одной карточке</b>: отпуска, больничные, рабочие дни, оплаты. Этого нет у конкурентов, поэтому это видно сразу, а не спрятано в отчётах.</li>
+      </ul>
+    </aside>
+  </div>
+
+  <!-- ---------- Экран 5: Фактуры ---------- -->
+  <h3>5. Фактуры и должники: список и карточка справа</h3>
+  <div class="screen-row">
+    <div class="frame">
+      <div class="app collapsed">
+        <div class="topbar">
+          <div class="logo"><i></i>RUTERA</div>
+          <div class="firma">TransPol Sp. z o.o.</div>
+          <div class="search"><svg width="16" height="16" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><use href="#i-search"/></svg><span>Поиск</span><kbd>Ctrl K</kbd></div>
+          <div class="ic"><svg><use href="#i-bell"/></svg><span class="badge">3</span></div>
+          <div class="lang">PL</div>
+          <div class="user"><div class="avatar">MW</div><div>Marta W.<small>бухгалтер</small></div></div>
+        </div>
+        <nav class="side">
+          <div class="nav"><svg><use href="#i-home"/></svg><span>Обзор</span></div>
+          <div class="nav"><svg><use href="#i-route"/></svg><span>Рейсы</span></div>
+          <div class="navgroup">Ресурсы</div>
+          <div class="nav"><svg><use href="#i-truck"/></svg><span>Автопарк</span></div>
+          <div class="nav"><svg><use href="#i-users"/></svg><span>Водители</span></div>
+          <div class="navgroup">Документы и деньги</div>
+          <div class="nav"><svg><use href="#i-doc"/></svg><span>Документы</span></div>
+          <div class="nav active"><svg><use href="#i-invoice"/></svg><span>Финансы</span><span class="cnt">3</span></div>
+          <div class="nav"><svg><use href="#i-fuel"/></svg><span>Топливо</span></div>
+          <div class="nav"><svg><use href="#i-report"/></svg><span>Отчёты</span></div>
+          <div class="spacer"></div>
+        </nav>
+        <div class="main" style="grid-template-columns:minmax(0,1fr) 280px;align-items:start">
+          <div style="display:grid;gap:var(--m-gap);min-width:0">
+            <div class="ph"><h1>Фактуры</h1><div class="right"><span class="btn">Импорт</span><span class="btn primary"><svg><use href="#i-plus"/></svg>Фактура</span></div></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="chip neutral">Все 48</span><span class="chip info">Ожидают 9 · 25 670 €</span><span class="chip crit">Просрочены 3 · 12 780 €</span><span class="chip good">Оплачены 36</span><span class="muted" style="margin-left:auto;font-size:.9em">октябрь 2026 ▾</span></div>
+            <div class="card">
+              <table class="tbl">
+                <thead><tr><th>Номер</th><th>Контрагент</th><th>Срок</th><th class="num">Сумма</th><th>Статус</th></tr></thead>
+                <tbody>
+                  <tr class="sel"><td class="mono">FV/2026/0912</td><td>Logistix GmbH<div class="sub">рейс #1187</div></td><td>13.10.2026</td><td class="num mono">4 320,00 €</td><td><span class="chip crit">просрочена 14 дн.</span><div class="sub">2 напоминания · след. 02.11</div></td></tr>
+                  <tr><td class="mono">FV/2026/0905</td><td>Nordfracht AS<div class="sub">рейс #1181</div></td><td>20.10.2026</td><td class="num mono">6 150,00 €</td><td><span class="chip crit">просрочена 7 дн.</span><div class="sub">1 напоминание · след. 30.10</div></td></tr>
+                  <tr><td class="mono">FV/2026/0899</td><td>Baltic Cargo Sp. z o.o.<div class="sub">рейс #1176</div></td><td>24.10.2026</td><td class="num mono">2 310,00 €</td><td><span class="chip crit">просрочена 3 дн.</span><div class="sub">напоминание сегодня</div></td></tr>
+                  <tr><td class="mono">FV/2026/0921</td><td>Logistix GmbH<div class="sub">рейс #1194</div></td><td>05.11.2026</td><td class="num mono">4 320,00 €</td><td><span class="chip info">ожидает</span></td></tr>
+                  <tr><td class="mono">FV/2026/0918</td><td>Hansa Spedition<div class="sub">рейс #1190</div></td><td>02.11.2026</td><td class="num mono">3 980,00 €</td><td><span class="chip info">ожидает</span></td></tr>
+                  <tr><td class="mono">FV/2026/0890</td><td>Nordfracht AS<div class="sub">рейс #1170</div></td><td>10.10.2026</td><td class="num mono">5 400,00 €</td><td><span class="chip good">оплачена 09.10</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><span class="mono">FV/2026/0912</span><span class="chip crit">просрочена</span></div>
+            <div class="card-b" style="display:grid;gap:10px">
+              <div><div style="font-family:var(--m-head);font-size:1.3em;font-weight:600">4 320,00 €</div><div class="muted">Logistix GmbH · срок 13.10.2026 · 14 дней просрочки</div></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="btn sm primary">Отметить оплату</span><span class="btn sm">Напомнить сейчас</span><span class="btn sm">Пауза</span></div>
+              <div><div style="font-weight:600;margin-bottom:4px">Напоминания должнику</div>
+                <ul class="tl">
+                  <li><span class="t">16.10</span><span class="m end"></span><span class="x">№1 отправлено<small>письмо открыто 16.10 11:20</small></span></li>
+                  <li><span class="t">25.10</span><span class="m end"></span><span class="x">№2 отправлено<small>открыто 25.10 09:05, ответа нет</small></span></li>
+                  <li><span class="t">02.11</span><span class="m rest"></span><span class="x">№3 по графику<small>шаблон «предупреждение», копия владельцу</small></span></li>
+                </ul>
+              </div>
+              <dl class="kv"><dt>Рейс</dt><dd class="mono">#1187 Wrocław → Hamburg</dd><dt>CMR</dt><dd>2 файла, подписан 14.09</dd><dt>Контакт</dt><dd>buchhaltung@logistix.example</dd><dt>Баланс клиента</dt><dd>8 640 € открыто, 2 фактуры</dd></dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="notes">
+      <h4>Что здесь важно</h4>
+      <ul>
+        <li><b>Чипы-фильтры с суммами</b> заменяют дашборд: «Просрочены 3 · 12 780 €» и есть ответ, клик фильтрует таблицу.</li>
+        <li><b>Карточка справа</b> не уводит со списка: бухгалтер проходит по трём должникам подряд. Меню свёрнуто, чтобы отдать ширину таблице и карточке.</li>
+        <li><b>История напоминаний</b> в той же форме, что цепочка событий в калькуляторе: дата, точка, что произошло. Один язык для всего приложения.</li>
+        <li><b>Три действия</b>, которые реально нужны: отметить оплату, напомнить, поставить на паузу. Остальное в меню «…».</li>
+        <li>Связь с рейсом и CMR показана прямо здесь: это закрывает вопрос «что мы вообще везли».</li>
+      </ul>
+    </aside>
+  </div>
+
+  <!-- ---------- Экран 6: Телефон водителя ---------- -->
+  <h3>6. Кабинет водителя на телефоне (PWA)</h3>
+  <div class="screen-row">
+    <div class="phones">
+      <div class="phone">
+        <div class="scr">
+          <div class="sbar"><span>14:02</span><span>LTE ▪▪▪ 82 %</span></div>
+          <div class="sbody">
+            <div class="shead"><div class="av-big" style="width:38px;height:38px;font-size:1em">JK</div><div><h2>Привет, Jan</h2><small>TransPol · <span class="plate">DW 4471F</span></small></div></div>
+            <div class="mcard">
+              <div class="ttl">Рейс #1187 <small>сегодня</small></div>
+              <div style="font-family:var(--m-head);font-weight:600;font-size:16px;margin:6px 0 4px">Wrocław → Hamburg</div>
+              <div class="mrow"><span class="l">Загрузка</span><span>06:00 · Bielany <span class="chip good" style="font-size:11px">✓</span></span></div>
+              <div class="mrow"><span class="l">Выгрузка</span><span>15:45 · Billbrook</span></div>
+              <div class="mrow"><span class="l">Окно</span><span>14:00–17:00</span></div>
+              <div class="bigbtn" style="margin-top:8px"><svg><use href="#i-check"/></svg>Я на выгрузке</div>
+            </div>
+            <div class="mcard">
+              <div class="ring">
+                <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--m-line)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="var(--m-accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="60.5 163.4" transform="rotate(-90 32 32)"/><text x="32" y="36" text-anchor="middle" font-size="12" font-weight="600" fill="var(--m-fg)" style="font-family:var(--m-mono)">3:20</text></svg>
+                <div class="tx"><b>Осталось 5:40</b><span>перерыв 45 мин через 1:10</span></div>
+              </div>
+            </div>
+            <div class="qa">
+              <div><svg><use href="#i-camera"/></svg>Фото CMR</div>
+              <div><svg><use href="#i-fuel"/></svg>Заправка без карты</div>
+              <div><svg><use href="#i-rest"/></svg>Начать отдых</div>
+            </div>
+          </div>
+          <div class="tabbar"><div class="on"><svg><use href="#i-home"/></svg>Сегодня</div><div><svg><use href="#i-tacho"/></svg>Часы</div><div><svg><use href="#i-folder"/></svg>Документы</div><div><svg><use href="#i-user"/></svg>Я</div></div>
+        </div>
+      </div>
+      <div class="phone">
+        <div class="scr">
+          <div class="sbar"><span>14:02</span><span>LTE ▪▪▪ 82 %</span></div>
+          <div class="sbody">
+            <div class="shead"><div><h2>Мои часы</h2><small>по данным тахографа от 26.10</small></div></div>
+            <div class="mcard"><div class="mbar">
+              <div class="r"><span>Сегодня</span><span>3:20 / 9:00</span></div><div class="bar"><i style="width:37%"></i></div>
+              <div class="r" style="margin-top:6px"><span>Неделя</span><span>31:10 / 56:00</span></div><div class="bar"><i style="width:56%"></i></div>
+              <div class="r" style="margin-top:6px"><span>Две недели</span><span>71:00 / 90:00</span></div><div class="bar"><i style="width:79%"></i></div>
+            </div>
+            <div class="mrow" style="margin-top:8px"><span class="l">Недельный отдых</span><span>начать до пт 22:00</span></div>
+            <div class="mrow"><span class="l">10-часовых дней</span><span>1 из 2</span></div>
+            </div>
+            <div class="mcard"><div class="ttl">Нарушения за 28 дней <span class="chip warn" style="font-size:11px">1</span></div>
+              <div class="mrow" style="margin-top:6px"><span>22.10 · 4:30 превышено на 12 мин</span><span class="l">незнач.</span></div>
+            </div>
+            <div class="mcard"><div class="ttl">Отпуск <small>остаток 14 дней</small></div>
+              <div class="mrow" style="margin-top:4px"><span class="l">Следующий</span><span>15–22.12.2026</span></div>
+              <div class="bigbtn" style="margin-top:8px;background:var(--m-surface);color:var(--m-accent);border:1.5px solid var(--m-accent)"><svg><use href="#i-cal"/></svg>Запросить отпуск</div>
+            </div>
+          </div>
+          <div class="tabbar"><div><svg><use href="#i-home"/></svg>Сегодня</div><div class="on"><svg><use href="#i-tacho"/></svg>Часы</div><div><svg><use href="#i-folder"/></svg>Документы</div><div><svg><use href="#i-user"/></svg>Я</div></div>
+        </div>
+      </div>
+    </div>
+    <aside class="notes">
+      <h4>Что здесь важно</h4>
+      <ul>
+        <li><b>Экран «Сегодня» = один рейс и одна большая кнопка</b> следующего статуса. Водитель нажимает её в перчатках, на парковке, за 2 секунды.</li>
+        <li><b>Часы в кольце</b>: сколько осталось и когда перерыв. Те же числа, что видит диспетчер.</li>
+        <li><b>Три быстрых действия</b>: фото CMR, чек заправки без карты, начать отдых. Фото уходят в очередь, если нет связи.</li>
+        <li><b>Отпуск и больничный</b> водитель видит сам и подаёт заявку с телефона; владелец получает её в «требует внимания».</li>
+        <li>Четыре вкладки, никакого бокового меню. Это та же PWA, что и десктоп, но другая оболочка для роли.</li>
+      </ul>
+    </aside>
+  </div>
+
+  </div><!-- /mocks -->
+</section>
+
+<!-- ================= 4. СТИЛИ ================= -->
+<section class="block" id="stili">
+  <div class="sec-head">
+    <div class="eyebrow">Стиль</div>
+    <h2>Три направления на выбор</h2>
+    <p>Каждое направление реализуется темой Mantine (цвет, радиус, отступы, шрифт), поэтому выбор не ограничивает архитектуру. Статусные цвета (зелёный, жёлтый, красный) общие для всех трёх и не совпадают с акцентом. Все шрифты бесплатные, с кириллицей, греческим и расширенной латиницей для 26 языков.</p>
+  </div>
+
+  <div class="dirs">
+    <!-- A -->
+    <div class="dir skin-a">
+      <div class="head"><div class="k">НАПРАВЛЕНИЕ A · ВЫБРАНО 27.10.2026</div><h3>Диспетчерская</h3><p>Плотный рабочий инструмент. Прохладные серо-синие нейтрали, тёмное боковое меню, синий акцент дорожных указателей, тонкие рамки вместо теней.</p></div>
+      <div class="mini-wrap">
+        <div class="app mini">
+          <div class="topbar"><div class="logo"><i></i>RUTERA</div><div class="search"><span>Поиск</span><kbd>⌘K</kbd></div><div class="avatar">ВЛ</div></div>
+          <nav class="side"><div class="nav active"><svg><use href="#i-home"/></svg><span>Обзор</span></div><div class="nav"><svg><use href="#i-map"/></svg><span>Карта</span></div><div class="nav"><svg><use href="#i-truck"/></svg><span>Автопарк</span></div><div class="nav"><svg><use href="#i-invoice"/></svg><span>Финансы</span></div></nav>
+          <div class="main" style="padding:10px;gap:8px">
+            <div class="grid-2" style="gap:8px"><div class="card kpi" style="padding:8px 10px"><div class="l">Просрочено</div><div class="v" style="font-size:1.4em">12 780 <small>€</small></div></div><div class="card kpi" style="padding:8px 10px"><div class="l">Нарушения</div><div class="v" style="font-size:1.4em">2</div></div></div>
+            <div class="card"><table class="tbl"><tbody><tr><td style="padding:0 8px"><span class="plate">DW 4471F</span></td><td style="padding:0 8px"><span class="chip info">в пути</span></td><td class="num mono" style="padding:0 8px">3:20</td></tr><tr><td style="padding:0 8px"><span class="plate">DW 8821K</span></td><td style="padding:0 8px"><span class="chip warn">отдых</span></td><td class="num mono" style="padding:0 8px">8:05</td></tr><tr><td style="padding:0 8px"><span class="plate">DW 2210P</span></td><td style="padding:0 8px"><span class="chip crit">наруш.</span></td><td class="num mono" style="padding:0 8px">0:00</td></tr></tbody></table></div>
+            <div><span class="btn primary sm">Рассчитать</span> <span class="btn sm">Отмена</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="swatches">
+        <div class="sw"><i style="background:#EEF1F5"></i><b>Фон</b><code>EEF1F5</code></div>
+        <div class="sw"><i style="background:#FFFFFF"></i><b>Поверхность</b><code>FFFFFF</code></div>
+        <div class="sw"><i style="background:#1A2433"></i><b>Текст</b><code>1A2433</code></div>
+        <div class="sw"><i style="background:#1F5FBF"></i><b>Акцент</b><code>1F5FBF</code></div>
+        <div class="sw"><i style="background:#1E2A3A"></i><b>Меню</b><code>1E2A3A</code></div>
+        <div class="sw"><i style="background:linear-gradient(90deg,#0CA30C 33%,#E59E0B 33% 66%,#D03B3B 66%)"></i><b>Статусы</b><code>общие</code></div>
+      </div>
+      <div class="spec">
+        <div class="fam">IBM Plex Sans · IBM Plex Mono · 13 px · строка 32 px</div>
+        <div class="h">Водители в работе и остаток часов</div>
+        <div class="b">Kowalski Jan завершил рейс #1187. Выгрузка подтверждена фото CMR в 15:52, фактура FV/2026/0921 выставлена автоматически.</div>
+        <div class="n">DW 4471F · 641 км · 8:32 · 533,40 €</div>
+      </div>
+      <div class="pros"><div><b>Кому подходит.</b><p>Диспетчеру и бухгалтеру, которые смотрят на таблицы часами: больше строк на экране, спокойный контраст.</p></div><div><b>Риск.</b><p>Для владельца фирмы на пять машин может выглядеть «как программа для профессионалов», холодновато.</p></div></div>
+    </div>
+
+    <!-- B -->
+    <div class="dir skin-b">
+      <div class="head"><div class="k">НАПРАВЛЕНИЕ B</div><h3>Светлый офис</h3><p>Просторно и тепло. Бумажно-белые нейтрали, светлое меню, бирюзовый акцент, мягкие тени и скругления, крупнее шрифт и выше строки.</p></div>
+      <div class="mini-wrap">
+        <div class="app mini">
+          <div class="topbar"><div class="logo"><i></i>RUTERA</div><div class="search"><span>Поиск</span><kbd>⌘K</kbd></div><div class="avatar">ВЛ</div></div>
+          <nav class="side"><div class="nav active"><svg><use href="#i-home"/></svg><span>Обзор</span></div><div class="nav"><svg><use href="#i-map"/></svg><span>Карта</span></div><div class="nav"><svg><use href="#i-truck"/></svg><span>Автопарк</span></div><div class="nav"><svg><use href="#i-invoice"/></svg><span>Финансы</span></div></nav>
+          <div class="main" style="padding:10px;gap:8px">
+            <div class="grid-2" style="gap:8px"><div class="card kpi" style="padding:8px 10px"><div class="l">Просрочено</div><div class="v" style="font-size:1.4em">12 780 <small>€</small></div></div><div class="card kpi" style="padding:8px 10px"><div class="l">Нарушения</div><div class="v" style="font-size:1.4em">2</div></div></div>
+            <div class="card"><table class="tbl"><tbody><tr><td style="padding:0 8px"><span class="plate">DW 4471F</span></td><td style="padding:0 8px"><span class="chip info">в пути</span></td><td class="num mono" style="padding:0 8px">3:20</td></tr><tr><td style="padding:0 8px"><span class="plate">DW 8821K</span></td><td style="padding:0 8px"><span class="chip warn">отдых</span></td><td class="num mono" style="padding:0 8px">8:05</td></tr><tr><td style="padding:0 8px"><span class="plate">DW 2210P</span></td><td style="padding:0 8px"><span class="chip crit">наруш.</span></td><td class="num mono" style="padding:0 8px">0:00</td></tr></tbody></table></div>
+            <div><span class="btn primary sm">Рассчитать</span> <span class="btn sm">Отмена</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="swatches">
+        <div class="sw"><i style="background:#F6F5F1"></i><b>Фон</b><code>F6F5F1</code></div>
+        <div class="sw"><i style="background:#FFFFFF"></i><b>Поверхность</b><code>FFFFFF</code></div>
+        <div class="sw"><i style="background:#22262B"></i><b>Текст</b><code>22262B</code></div>
+        <div class="sw"><i style="background:#0F766E"></i><b>Акцент</b><code>0F766E</code></div>
+        <div class="sw"><i style="background:#FFFFFF"></i><b>Меню</b><code>FFFFFF</code></div>
+        <div class="sw"><i style="background:linear-gradient(90deg,#2E9E44 33%,#E59E0B 33% 66%,#D03B3B 66%)"></i><b>Статусы</b><code>общие</code></div>
+      </div>
+      <div class="spec">
+        <div class="fam">Manrope (заголовки) · Source Sans 3 · 15 px · строка 44 px</div>
+        <div class="h">Водители в работе и остаток часов</div>
+        <div class="b">Kowalski Jan завершил рейс #1187. Выгрузка подтверждена фото CMR в 15:52, фактура FV/2026/0921 выставлена автоматически.</div>
+        <div class="n">DW 4471F · 641 км · 8:32 · 533,40 €</div>
+      </div>
+      <div class="pros"><div><b>Кому подходит.</b><p>Владельцу небольшой фирмы, который заходит несколько раз в день с ноутбука или планшета, и водителю на телефоне: крупно, дружелюбно, мало рамок.</p></div><div><b>Риск.</b><p>Меньше строк на экране; на 30 машинах таблицы потребуют «компактного режима» (это один переключатель в Mantine).</p></div></div>
+    </div>
+
+    <!-- C -->
+    <div class="dir skin-c">
+      <div class="head"><div class="k">НАПРАВЛЕНИЕ C</div><h3>Ночная смена</h3><p>Тёмная диспетчерская у мониторов. Графитовые поверхности, бирюзово-голубой акцент, карта в тёмных тонах, цифры в моноширинном шрифте.</p></div>
+      <div class="mini-wrap">
+        <div class="app mini">
+          <div class="topbar"><div class="logo"><i></i>RUTERA</div><div class="search"><span>Поиск</span><kbd>⌘K</kbd></div><div class="avatar">ВЛ</div></div>
+          <nav class="side"><div class="nav active"><svg><use href="#i-home"/></svg><span>Обзор</span></div><div class="nav"><svg><use href="#i-map"/></svg><span>Карта</span></div><div class="nav"><svg><use href="#i-truck"/></svg><span>Автопарк</span></div><div class="nav"><svg><use href="#i-invoice"/></svg><span>Финансы</span></div></nav>
+          <div class="main" style="padding:10px;gap:8px">
+            <div class="grid-2" style="gap:8px"><div class="card kpi" style="padding:8px 10px"><div class="l">Просрочено</div><div class="v" style="font-size:1.4em">12 780 <small>€</small></div></div><div class="card kpi" style="padding:8px 10px"><div class="l">Нарушения</div><div class="v" style="font-size:1.4em">2</div></div></div>
+            <div class="card"><table class="tbl"><tbody><tr><td style="padding:0 8px"><span class="plate">DW 4471F</span></td><td style="padding:0 8px"><span class="chip info">в пути</span></td><td class="num mono" style="padding:0 8px">3:20</td></tr><tr><td style="padding:0 8px"><span class="plate">DW 8821K</span></td><td style="padding:0 8px"><span class="chip warn">отдых</span></td><td class="num mono" style="padding:0 8px">8:05</td></tr><tr><td style="padding:0 8px"><span class="plate">DW 2210P</span></td><td style="padding:0 8px"><span class="chip crit">наруш.</span></td><td class="num mono" style="padding:0 8px">0:00</td></tr></tbody></table></div>
+            <div><span class="btn primary sm">Рассчитать</span> <span class="btn sm">Отмена</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="swatches">
+        <div class="sw"><i style="background:#0F1417"></i><b>Фон</b><code>0F1417</code></div>
+        <div class="sw"><i style="background:#171D22"></i><b>Поверхность</b><code>171D22</code></div>
+        <div class="sw"><i style="background:#E3E8EC"></i><b>Текст</b><code>E3E8EC</code></div>
+        <div class="sw"><i style="background:#22B8CF"></i><b>Акцент</b><code>22B8CF</code></div>
+        <div class="sw"><i style="background:#0B1013"></i><b>Меню</b><code>0B1013</code></div>
+        <div class="sw"><i style="background:linear-gradient(90deg,#3DBE5A 33%,#F2B134 33% 66%,#E35D5D 66%)"></i><b>Статусы</b><code>тёмные шаги</code></div>
+      </div>
+      <div class="spec">
+        <div class="fam">Fira Sans · JetBrains Mono · 13 px · строка 34 px</div>
+        <div class="h">Водители в работе и остаток часов</div>
+        <div class="b">Kowalski Jan завершил рейс #1187. Выгрузка подтверждена фото CMR в 15:52, фактура FV/2026/0921 выставлена автоматически.</div>
+        <div class="n">DW 4471F · 641 км · 8:32 · 533,40 €</div>
+      </div>
+      <div class="pros"><div><b>Кому подходит.</b><p>Диспетчеру, у которого карта открыта весь день, и ночной работе. Машины и маршрут на тёмной карте читаются лучше всего.</p></div><div><b>Риск.</b><p>Бухгалтеру и владельцу днём тёмный интерфейс обычно неудобен. Разумнее делать C как тёмную тему к A или B, а не как основное направление. Тёмные тайлы карты: CARTO Dark Matter бесплатно для малой нагрузки или свой стиль.</p></div></div>
+    </div>
+  </div>
+
+  <div class="cmp-wrap">
+    <table class="cmp">
+      <thead><tr><th>Параметр</th><th>A · Диспетчерская</th><th>B · Светлый офис</th><th>C · Ночная смена</th></tr></thead>
+      <tbody>
+        <tr><th>Базовый кегль / строка таблицы</th><td>13 px / 32 px</td><td>15 px / 44 px</td><td>13 px / 34 px</td></tr>
+        <tr><th>Строк таблицы на экране 1080p</th><td>около 26</td><td>около 18</td><td>около 24</td></tr>
+        <tr><th>Шрифты</th><td>IBM Plex Sans + Plex Mono</td><td>Manrope + Source Sans 3 + Plex Mono</td><td>Fira Sans + JetBrains Mono</td></tr>
+        <tr><th>Скругление / разделение блоков</th><td>4 px, рамки 1 px</td><td>10 px, мягкие тени</td><td>6 px, рамки 1 px</td></tr>
+        <tr><th>Боковое меню</th><td>тёмное на светлом фоне</td><td>светлое, сливается с фоном</td><td>чёрное</td></tr>
+        <tr><th>Карта (OSM)</th><td>стандартные светлые тайлы</td><td>светлые тайлы, приглушённые</td><td>тёмные тайлы (CARTO Dark Matter или свой стиль)</td></tr>
+        <tr><th>Светлая / тёмная тема</th><td>светлая основная, тёмная позже</td><td>светлая основная, тёмная позже</td><td>тёмная основная, светлая обязательна для бухгалтера</td></tr>
+        <tr><th>Mantine</th><td><code>primaryColor: blue</code>, <code>radius: sm</code>, компактные таблицы</td><td><code>primaryColor: teal</code>, <code>radius: md</code>, <code>shadows</code> вкл.</td><td><code>colorScheme: dark</code>, <code>primaryColor: cyan</code></td></tr>
+        <tr><th>Телефон водителя</th><td>те же токены, кнопки 48 px</td><td>лучше всего подходит как есть</td><td>хорош ночью, днём слепит на солнце</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note" style="margin-top:12px">Можно смешивать: например, плотность и тёмное меню из A с тёплыми нейтралями и акцентом из B. Направление выбирается один раз, дальше всё описывается токенами темы.</p>
+</section>
+
+<!-- ================= 5. ЧТО РЕШИТЬ ================= -->
+<section class="block" id="reshenia">
+  <div class="sec-head">
+    <div class="eyebrow">Решения</div>
+    <h2>Решения приняты 27.10.2026</h2>
+    <p>Ответы записаны в REQUIREMENTS.md (версия 0.3, раздел 15). Следующий шаг: токены темы Mantine, набор базовых компонентов и кликабельный прототип этих экранов в React.</p>
+  </div>
+  <div class="decide">
+    <div class="q"><span class="n">01</span><div><b>Стилевое направление: A, B или C?</b><p>Можно назвать смесь: «плотность A, цвета B». Рекомендация: A как основа для десктопа, с правилами B для телефона водителя; C как тёмная тема во вторую очередь.</p><p class="ans">Решено: A «Диспетчерская».</p></div></div>
+    <div class="q"><span class="n">02</span><div><b>Меню слева с группами или плоский список без групп?</b><p>На макетах три группы: работа, ресурсы, документы и деньги. Для пяти машин, возможно, хватит плоского списка из 8 пунктов.</p><p class="ans">Решено: меню с группами.</p></div></div>
+    <div class="q"><span class="n">03</span><div><b>Карточка справа поверх списка или всегда отдельная страница?</b><p>Карточка справа быстрее для диспетчера и бухгалтера; отдельная страница проще в разработке и лучше для ссылок из писем и ИИ. На макетах: карточка справа для списков, отдельная страница для машины и водителя.</p><p class="ans">Решено: карточка справа, в её шапке иконка «открыть на отдельной странице».</p></div></div>
+    <div class="q"><span class="n">04</span><div><b>Первый экран после входа: «Обзор» со списком «требует внимания»?</b><p>Альтернатива: открывать карту. Для владельца обзор, для диспетчера карта, настраивается в профиле.</p><p class="ans">Решено: первый экран настраивается пользователем.</p></div></div>
+    <div class="q"><span class="n">05</span><div><b>Тёмная тема нужна в MVP или позже?</b><p>Токены закладываем сразу в любом случае; вопрос только в объёме проверки экранов.</p><p class="ans">Решено: тёмная тема не нужна, направление C отброшено.</p></div></div>
+  </div>
+  <p class="footer">Все названия фирм, людей, номера машин и суммы в макетах придуманы. Маршрут Wrocław – Hamburg и расчёт по 561/2006 показаны как пример логики, не как точные цифры.</p>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var mocks=document.getElementById('mocks');
+  var btns=document.querySelectorAll('.seg button');
+  var saved=null;
+  try{saved=localStorage.getItem('rutera-skin')}catch(e){}
+  function setSkin(s){
+    mocks.setAttribute('data-skin',s);
+    btns.forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-skin')===s))});
+    try{localStorage.setItem('rutera-skin',s)}catch(e){}
+  }
+  if(saved==='a'||saved==='b'||saved==='c') setSkin(saved);
+  btns.forEach(function(b){b.addEventListener('click',function(){setSkin(b.getAttribute('data-skin'))})});
+  var chk=document.getElementById('collapse');
+  var apps=document.querySelectorAll('.app[data-collapsible]');
+  chk.addEventListener('change',function(){apps.forEach(function(a){a.classList.toggle('collapsed',chk.checked)})});
+})();
+</script>
