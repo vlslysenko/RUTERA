@@ -1,0 +1,19 @@
+.plate {
+  display: inline-block;
+  padding: 0 5px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 3px;
+  background: var(--mantine-color-gray-1);
+  font-family: var(--mantine-font-family-monospace);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.lg {
+  padding: 0 8px;
+  border: 1.5px solid var(--mantine-color-text);
+  background: transparent;
+  font-size: 1.4em;
+  line-height: 1.4;
+}

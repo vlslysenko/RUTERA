@@ -1,0 +1,43 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.chip svg {
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+
+.good {
+  background: var(--rutera-status-good-bg);
+  color: var(--rutera-status-good-fg);
+}
+
+.warn {
+  background: var(--rutera-status-warn-bg);
+  color: var(--rutera-status-warn-fg);
+}
+
+.crit {
+  background: var(--rutera-status-crit-bg);
+  color: var(--rutera-status-crit-fg);
+}
+
+.info {
+  background: var(--rutera-status-info-bg);
+  color: var(--rutera-status-info-fg);
+}
+
+.neutral {
+  background: var(--mantine-color-gray-1);
+  color: var(--mantine-color-dimmed);
+  border: 1px solid var(--mantine-color-default-border);
+}

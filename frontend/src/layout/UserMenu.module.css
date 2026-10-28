@@ -1,0 +1,23 @@
+.user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 2px 4px;
+  border-radius: var(--mantine-radius-sm);
+  max-width: 220px;
+}
+
+.user:hover {
+  background: var(--mantine-color-gray-1);
+}
+
+.text {
+  min-width: 0;
+}
+
+@media (max-width: $mantine-breakpoint-sm) {
+  .text {
+    display: none;
+  }
+}

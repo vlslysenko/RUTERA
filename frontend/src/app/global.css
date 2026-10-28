@@ -1,0 +1,29 @@
+/* Direction A "Dispatch room": light, dense, cool neutrals. Page background is a theme token (gray.1). */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--mantine-color-gray-1);
+  color: var(--mantine-color-text);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keyboard focus is always visible: dispatchers work with Tab, arrows, Enter and Esc. */
+:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

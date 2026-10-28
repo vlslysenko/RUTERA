@@ -1,0 +1,58 @@
+# RUTERA frontend
+
+React + TypeScript + Vite + Mantine web client. Style direction A "Dispatch room" (REQUIREMENTS.md, section 15).
+
+## Run
+
+```bash
+cd frontend
+npm install
+npm run dev        # http://localhost:5173, mock API on
+npm run typecheck  # tsc -b
+npm run build      # tsc -b && vite build -> dist/ (PWA: manifest + service worker)
+```
+
+Node 22+ (npm 10+). Dependencies are pinned to exact versions; bump them deliberately.
+
+## Backend connection
+
+- `VITE_API_MOCK=true` (default in dev): an in-browser mock answers `/app/...` (`src/api/mock`). No backend needed.
+- `VITE_API_MOCK=false`: the Vite dev server proxies `/app` to `VITE_API_PROXY` (default `http://localhost:8080`).
+  Copy `.env.example` to `.env.local` to change it. Production builds never use the mock.
+
+Mock test accounts (login = password): `owner`, `dispatcher`, `logistician`, `accountant`. Firma "TransPol Sp. z o.o.".
+
+Internal endpoints used (all under `/app`, session cookie + CSRF header `X-XSRF-TOKEN` from cookie `XSRF-TOKEN`):
+
+| Method | Path | Body / result |
+|---|---|---|
+| POST | `/app/auth/login` | `{ login, password }` -> `User`; 401 `{ code: "auth.login.invalid" }` |
+| POST | `/app/auth/logout` | 204 |
+| GET | `/app/auth/me` | `User`; 401 `{ code: "auth.unauthenticated" }` |
+| PUT | `/app/me/settings` | `{ language?, startScreen? }` -> `User` |
+| GET | `/app/i18n/{lang}` | flat JSON dictionary |
+| GET | `/app/fleet/vehicles`, `/app/fleet/vehicles/{id}` | demo list / card (mock only for now) |
+
+`User = { id, login, name, role, firma: { id, name }, language, startScreen }`. Error bodies carry `code` = i18n key.
+
+## i18n
+
+Same mechanism as the backend: flat keys `module.topic.name`, one dictionary per language, 26 languages
+(24 EU + uk + ru). The client loads `/app/i18n/{lang}`; `src/i18n/locales/*.json` are the bundled copies used by
+the mock and as the English fallback. UI keys introduced by the frontend must also be added to
+`common/src/main/resources/i18n/messages_*.properties` so the backend serves them.
+
+## Structure
+
+```
+src/app        theme (tokens of direction A), navigation (groups, roles, start screens), router, query client
+src/api        fetch wrapper (/app, CSRF), auth, i18n, fleet; mock/ = in-browser backend for dev
+src/auth       session hooks (TanStack Query), RequireAuth, ScreenGuard (role -> screen)
+src/layout     AppLayout (AppShell), TopBar, Sidebar, LanguageMenu, UserMenu
+src/components DetailDrawer (card in the right panel + "open as page"), PageHeader, StatusChip, Plate, ...
+src/pages      Login, Overview, Settings (language, start screen), Fleet (list + card demo), placeholders
+src/i18n       i18next setup, language list, locales/
+```
+
+Detail cards: a list route has a child `:id` route that renders `<DetailDrawer>` into the right panel; the
+sibling route `:id/page` renders the same component with `mode="page"`. Each card has its own URL.

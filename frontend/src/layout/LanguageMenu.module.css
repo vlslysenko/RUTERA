@@ -1,0 +1,14 @@
+.trigger {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--mantine-color-dimmed);
+  flex: none;
+}
+
+.code {
+  display: inline-block;
+  width: 24px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}

@@ -1,0 +1,25 @@
+.kv {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) 2fr;
+  gap: 14px;
+  min-height: 20px;
+}
+
+.label {
+  margin: 0;
+  color: var(--mantine-color-dimmed);
+}
+
+.value {
+  margin: 0;
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
