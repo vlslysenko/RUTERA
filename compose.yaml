@@ -1,0 +1,33 @@
+# Local development database for RUTERA.
+# Start:  docker compose up -d
+# Stop:   docker compose down        (add -v to drop the data volume)
+# Override credentials/port via .env (see .env.example).
+name: rutera
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: rutera-mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --innodb-file-per-table=1
+      - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+    environment:
+      TZ: UTC
+      MYSQL_DATABASE: ${RUTERA_DB_NAME:-rutera}
+      MYSQL_USER: ${RUTERA_DB_USER:-rutera}
+      MYSQL_PASSWORD: ${RUTERA_DB_PASSWORD:-rutera}
+      MYSQL_ROOT_PASSWORD: ${RUTERA_DB_ROOT_PASSWORD:-root}
+    ports:
+      - "${RUTERA_DB_PORT:-3306}:3306"
+    volumes:
+      - rutera-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  rutera-mysql-data:

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Spring Boot 4.0.x line (same line as SMDP). Managed versions: Spring 7, Security 7, Hibernate 7,
+         Jetty 12.1, Flyway 11, MySQL Connector/J 9, Testcontainers 2. -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.8</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.rutera</groupId>
+    <artifactId>rutera-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>RUTERA</name>
+    <description>RUTERA: cloud TMS and fleet management for small transport companies</description>
+    <url>https://github.com/vlslysenko/RUTERA</url>
+
+    <modules>
+        <!-- common: JPA entities, repositories, Flyway migrations, i18n bundles, tenant context, privilege catalog -->
+        <module>common</module>
+        <!-- core: the Spring Boot application (web, security, internal frontend API) -->
+        <module>core</module>
+        <!-- later: ai-access (public API + MCP, paid module), cloud (registration, billing) -->
+    </modules>
+
+    <properties>
+        <java.version>25</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.rutera</groupId>
+                <artifactId>rutera-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
