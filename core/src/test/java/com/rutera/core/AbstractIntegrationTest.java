@@ -88,6 +88,10 @@ public abstract class AbstractIntegrationTest {
             return perform(withBody(MockMvcRequestBuilders.put(path), body));
         }
 
+        public MvcResult delete(String path) throws Exception {
+            return perform(withBody(MockMvcRequestBuilders.delete(path), null));
+        }
+
         /** Same as {@link #post} but without the CSRF header (the cookie still travels). */
         public MvcResult postWithoutCsrfHeader(String path, Object body) throws Exception {
             String saved = csrf;

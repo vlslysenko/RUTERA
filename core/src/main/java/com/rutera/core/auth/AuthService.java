@@ -106,7 +106,7 @@ public class AuthService {
         establishSession(principal, http, response);
         attempts.succeeded(user);
         log.info("User {} signed in", user.getId());
-        return toDto(user);
+        return toDto(user, principal);
     }
 
     /** {@code GET /app/auth/me}: current user, with the session snapshot refreshed from the database. */
@@ -119,19 +119,20 @@ public class AuthService {
             storeAuthentication(refreshed, http, response);
             SessionUserFilter.scope(refreshed);
         }
-        return toDto(user);
+        return toDto(user, refreshed);
     }
 
     /** Replaces the session principal after a change of the user's own data (language, settings). */
-    public void refreshPrincipal(AppUser user, HttpServletRequest http, HttpServletResponse response) {
+    public AuthenticatedUser refreshPrincipal(AppUser user, HttpServletRequest http, HttpServletResponse response) {
         AuthenticatedUser refreshed = sessionUsers.principalOf(user);
         storeAuthentication(refreshed, http, response);
         SessionUserFilter.scope(refreshed);
+        return refreshed;
     }
 
-    public UserDto toDto(AppUser user) {
+    public UserDto toDto(AppUser user, AuthenticatedUser principal) {
         Firma firma = user.getFirmaId() == null ? null : firmas.findById(user.getFirmaId()).orElse(null);
-        return UserDto.of(user, firma, UserSettings.parse(objectMapper, user.getSettings()));
+        return UserDto.of(user, firma, UserSettings.parse(objectMapper, user.getSettings()), principal.privileges());
     }
 
     private void establishSession(AuthenticatedUser principal, HttpServletRequest http, HttpServletResponse response) {

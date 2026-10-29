@@ -18,8 +18,9 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
-/** The user's own profile settings: interface language and start screen. */
+/** The user's own profile: interface language, start screen and password. */
 @Service
 public class UserSettingsService {
 
@@ -28,11 +29,14 @@ public class UserSettingsService {
     private final AppUserRepository users;
     private final AuditService audit;
     private final ObjectMapper objectMapper;
+    private final PasswordService passwords;
 
-    public UserSettingsService(AppUserRepository users, AuditService audit, ObjectMapper objectMapper) {
+    public UserSettingsService(AppUserRepository users, AuditService audit, ObjectMapper objectMapper,
+                               PasswordService passwords) {
         this.users = users;
         this.audit = audit;
         this.objectMapper = objectMapper;
+        this.passwords = passwords;
     }
 
     /**
@@ -42,9 +46,7 @@ public class UserSettingsService {
     @RequiresPrivilege(Privileges.PROFILE_SELF_MANAGE)
     @Transactional
     public AppUser updateOwn(UserSettingsPatch patch) {
-        Long userId = CurrentUser.require().id();
-        AppUser user = users.findById(userId)
-                .orElseThrow(() -> ApiException.unauthorized(ErrorCodes.UNAUTHENTICATED));
+        AppUser user = own();
 
         Map<String, String> errors = new LinkedHashMap<>();
         String language = null;
@@ -75,7 +77,7 @@ public class UserSettingsService {
         if (resetStartScreen || startScreen != null) {
             UserSettings before = UserSettings.parse(objectMapper, user.getSettings());
             String after = resetStartScreen ? null : startScreen;
-            if (!java.util.Objects.equals(before.startScreen(), after)) {
+            if (!Objects.equals(before.startScreen(), after)) {
                 user.setSettings(UserSettings.withStartScreen(objectMapper, user.getSettings(), after));
                 changes.put("startScreen", after == null ? "default" : after);
             }
@@ -90,6 +92,33 @@ public class UserSettingsService {
             audit.record(event);
         }
         return user;
+    }
+
+    /**
+     * {@code PUT /app/me/password}: the current password must match (422 {@code auth.password.wrong_current}
+     * on {@code currentPassword}), the new one must satisfy the length rules. The session stays valid.
+     */
+    @RequiresPrivilege(Privileges.PROFILE_SELF_MANAGE)
+    @Transactional
+    public void changeOwnPassword(ChangePasswordRequest request) {
+        AppUser user = own();
+        Map<String, String> errors = new LinkedHashMap<>();
+        passwords.check("newPassword", request.newPassword(), errors);
+        if (!passwords.matches(request.currentPassword(), user)) {
+            errors.put("currentPassword", ErrorCodes.PASSWORD_WRONG_CURRENT);
+        }
+        if (!errors.isEmpty()) {
+            throw ApiException.validation(errors);
+        }
+        passwords.apply(user, request.newPassword());
+        users.save(user);
+        audit.record(AuditEvent.of(MODULE, "password_changed", "Changed own password").entity("app_user", user.getId()));
+    }
+
+    private AppUser own() {
+        Long userId = CurrentUser.require().id();
+        return users.findById(userId)
+                .orElseThrow(() -> ApiException.unauthorized(ErrorCodes.UNAUTHENTICATED));
     }
 
     private static String readLanguage(JsonNode node, Map<String, String> errors) {

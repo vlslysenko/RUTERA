@@ -22,7 +22,16 @@ public final class ErrorCodes {
     public static final String FIELD_REQUIRED = "validation.required";
     public static final String FIELD_INVALID_VALUE = "validation.invalid_value";
     public static final String FIELD_TOO_LONG = "validation.too_long";
+    public static final String FIELD_TOO_SHORT = "validation.too_short";
     public static final String FIELD_INVALID_FORMAT = "validation.invalid_format";
+
+    /** Passwords and user administration (per-field unless noted). */
+    public static final String PASSWORD_WRONG_CURRENT = "auth.password.wrong_current";
+    public static final String USER_LOGIN_TAKEN = "admin.user.login_taken";
+    /** Top-level 403: the actor's role level is not high enough for the target user or the requested role. */
+    public static final String USER_ROLE_NOT_ALLOWED = "admin.user.role_not_allowed";
+    /** Top-level 403: a user may not change their own role or status, nor delete themselves. */
+    public static final String USER_SELF_FORBIDDEN = "admin.user.self_forbidden";
 
     private ErrorCodes() {
     }

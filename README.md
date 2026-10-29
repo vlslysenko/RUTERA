@@ -55,12 +55,41 @@ mirrored in header `X-XSRF-TOKEN` on every POST/PUT/PATCH/DELETE, login included
 | POST | `/app/auth/logout` | 204 |
 | GET | `/app/auth/me` | `User`; 401 `{code: auth.unauthenticated}`; also refreshes the session's privilege snapshot |
 | PUT | `/app/me/settings` | `{language?, startScreen?}` -> `User`; 422 `{code: error.validation, details: {field: validation.*}}` |
+| PUT | `/app/me/password` | `{currentPassword, newPassword}` -> 204; 422 details `currentPassword: auth.password.wrong_current`, `newPassword: validation.required \| validation.too_short \| validation.too_long` |
 | GET | `/app/i18n/{lang}` | flat `{key: text}` dictionary of `messages_<lang>.properties` (public) |
 | GET | `/actuator/health` | liveness (public) |
 
-`User = {id, login, name, role, firma: {id, name} | null, language, startScreen | null}`. Every 4xx/5xx body is
-`{code, message?, details?}` where `code` is an i18n key; `message` is that text in the language of the request
-(the user's language, otherwise `Accept-Language`).
+`User = {id, login, name, role, firma: {id, name} | null, language, startScreen | null, privileges: string[]}`;
+`privileges` is the effective set of `module.entity/action` keys (empty for the superuser, who bypasses checks),
+so the client can hide what the user may not do. Every 4xx/5xx body is `{code, message?, details?}` where
+`code` is an i18n key; `message` is that text in the language of the request (the user's language, otherwise
+`Accept-Language`).
+
+### User administration (`/app/admin/users`, privileges `admin.user/view` and `admin.user/manage`)
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/admin/users` | `AdminUser[]` of the own firma, sorted by name; deleted users excluded |
+| GET | `/app/admin/users/{id}` | `AdminUser`; 404 for unknown ids and users of other firmas |
+| POST | `/app/admin/users` | `{login, firstName, lastName?, role, customRoleId?, phone?, language?, password}` -> 201 `AdminUser` |
+| PUT | `/app/admin/users/{id}` | `{firstName, lastName?, role, customRoleId?, phone?, language, active}` -> `AdminUser` |
+| PUT | `/app/admin/users/{id}/password` | `{newPassword}` -> 204 (also lifts a lockout) |
+| POST | `/app/admin/users/{id}/unlock` | 204: clears `locked_until` and the failure counter |
+| DELETE | `/app/admin/users/{id}` | 204: soft delete; the login stays reserved |
+
+`AdminUser = {id, login, firstName, lastName, name, role, customRoleId, phone, language, active, locked,
+failedLogins, createdAt, updatedAt}`. `role` is one of `OWNER, DISPATCHER, LOGISTICIAN, ACCOUNTANT, DRIVER,
+CUSTOM` (`CUSTOM` needs a `customRoleId` of the firma); `login` is trimmed and lower-cased, 3 to 254 characters
+of letters, digits and `. _ @ + -`, globally unique; `language` defaults to the firma language on creation.
+Passwords are 10 (`RUTERA_PASSWORD_MIN_LENGTH`) to 72 characters.
+
+Rules: a user may manage only users whose role level is greater than or equal to their own and may assign only
+such roles (`Role.getLevel()`: OWNER 1, DISPATCHER/LOGISTICIAN/ACCOUNTANT 3, CUSTOM its own level, DRIVER 9),
+otherwise 403 `admin.user.role_not_allowed`. Nobody changes their own role or `active` flag, resets their own
+password here or deletes themselves: 403 `admin.user.self_forbidden` (own name, phone and language are fine).
+422 `error.validation` carries per-field codes, including `login: admin.user.login_taken`. Deactivating or
+deleting a user ends their session on their next request; a role change takes effect for an open session on its
+next `GET /app/auth/me` (the client calls it on every load).
 
 Service and controller methods are guarded with `@RequiresPrivilege("module.entity/action")` (AOP, module
 `core.security`); the effective set = role defaults + custom role + per-user overrides, computed at login. Every
