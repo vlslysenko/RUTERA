@@ -11,18 +11,43 @@ Requirements: `docs/REQUIREMENTS.md`; database sketch: `docs/DB_SCHEMA.md`; AI r
 | `common/` | JPA entities, repositories, Flyway migrations (`db/migration`), i18n bundles (`i18n/messages_xx.properties`, 26 languages), tenant context, privilege catalogue |
 | `core/` | Spring Boot application on Jetty: web layer, security, internal API for the React client (`/app/...`) |
 | `frontend/` | React + TypeScript client (Vite, Mantine, PWA) |
-| `compose.yaml` | MySQL 8.4 for local development |
+| `Dockerfile` | Standalone image: client + backend in one jar on a JRE |
+| `compose.yaml` | Standalone stack (MySQL 8.4 + RUTERA); its `mysql` service alone is the development database |
 | `docs/` | Requirements, DB schema, AI role guides, UI mockups |
 
-## Build and run (backend)
-
-Prerequisites: JDK 25, Maven 3.9+, Docker.
+## Standalone with one command (Docker)
 
 ```bash
-docker compose up -d          # MySQL 8.4 on localhost:3307 (3306 is often taken by another MySQL)
-mvn verify                    # builds both modules
+cp .env.example .env          # optional: port, database credentials, first firma and owner
+docker compose up -d --build  # builds the image (client + jar), starts MySQL and RUTERA
+docker compose exec rutera grep "generated password" logs/rutera.log   # owner admin, first start
+```
+
+RUTERA is then at `http://localhost:8080` (`RUTERA_PORT` changes the published port; MySQL is published on
+`RUTERA_DB_PORT`, default 3307). The `rutera` service waits for a healthy MySQL and is healthy itself once
+`/actuator/health` answers. Volumes: `rutera-mysql-data` (database), `rutera-conf` (`/opt/rutera/conf`, optional
+`application.properties` / `logback.xml`), `rutera-logs` (`/opt/rutera/logs`). JVM options go to
+`RUTERA_JAVA_OPTS`. Behind an HTTPS reverse proxy set `RUTERA_COOKIE_SECURE=true`. Update: `git pull` and the same
+`docker compose up -d --build`; `docker compose down -v` removes everything including the data.
+
+## Build and run (development)
+
+Prerequisites: JDK 25, Maven 3.9+, Docker; Node 22+ for the client.
+
+```bash
+docker compose up -d mysql    # MySQL 8.4 only, on localhost:3307 (3306 is often taken by another MySQL)
+mvn verify                    # builds both modules (API only, no client in the jar)
 java -jar core/target/rutera.jar
 ```
+
+The client runs from the Vite dev server (`cd frontend && npm run dev`, http://localhost:5173), which proxies
+`/app` to the backend (`VITE_API_PROXY` in `frontend/.env.local`, see `frontend/README.md`).
+`mvn -Pfrontend package` also runs `npm ci` + `npm run build` in `frontend/` and puts `frontend/dist` into the jar
+(`classpath:/static/`); with `-Dexec.skip=true` npm is skipped and an existing `frontend/dist` is taken. The jar
+then serves the client itself (`core.config.FrontendConfig`): files from the build, hashed `/assets/**` cached for
+a year, everything else revalidated; any other GET whose last path segment has no extension (a client route such
+as `/fleet/12`) gets `index.html`. `/app/**`, `/actuator/**` and missing files (`/assets/x.js`) are never answered
+with the page.
 
 Configuration defaults live in `core/src/main/resources/application.properties`. An installation overrides
 them in `conf/application.properties` next to the jar or with environment variables (`RUTERA_DB_HOST`,

@@ -1,0 +1,20 @@
+# Build context of the Dockerfile: sources only. Dependencies and outputs are rebuilt inside the image.
+.git
+.gitignore
+.idea
+.vscode
+.claude
+**/*.iml
+**/node_modules
+**/target
+**/dist
+**/dev-dist
+**/*.tsbuildinfo
+logs
+**/*.log
+conf
+docs
+# Local settings and secrets (frontend/.env.local could switch the client to the mock API)
+**/.env
+**/.env.*
+!.env.example
