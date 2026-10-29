@@ -29,9 +29,11 @@ export function TopBar({ mobileOpened, onToggleMobile }: Props) {
         <span className={classes.dot} />
         {t('app.name')}
       </Link>
-      <span className={classes.firma} title={user.firma.name}>
-        {user.firma.name}
-      </span>
+      {user.firma && (
+        <span className={classes.firma} title={user.firma.name}>
+          {user.firma.name}
+        </span>
+      )}
       <TextInput
         ref={searchRef}
         className={classes.search}

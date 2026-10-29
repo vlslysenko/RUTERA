@@ -1,9 +1,12 @@
 import { Outlet, useNavigate, useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Paper, Table, Text } from '@mantine/core';
+import { IconTools } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
 import { fleetApi, type Vehicle } from '@/api/fleet';
+import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { PageHeader } from '@/components/PageHeader';
@@ -29,6 +32,9 @@ export function FleetPage() {
       <PageHeader title={t('fleet.title')} subtitle={q.data?.length} />
       {q.isPending ? (
         <FullScreenLoader fullScreen={false} />
+      ) : q.isError && q.error instanceof ApiError && q.error.status === 404 ? (
+        // The backend has no fleet module yet: show the placeholder instead of an error.
+        <EmptyState icon={<IconTools size={28} stroke={1.5} />} text={t('common.in_development')} />
       ) : q.isError ? (
         <ErrorState message={t(errorCode(q.error))} onRetry={() => void q.refetch()} />
       ) : (

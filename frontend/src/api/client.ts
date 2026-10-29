@@ -35,6 +35,11 @@ function defaultCode(status: number): string {
       return 'error.not_found';
     case 422:
       return 'error.validation';
+    case 502:
+    case 503:
+    case 504:
+      // The proxy or load balancer answered, the backend did not.
+      return 'error.network';
     default:
       return 'error.internal';
   }
@@ -78,17 +83,35 @@ function transport(): Promise<Fetch> {
   return transportPromise;
 }
 
-export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+/**
+ * The backend writes the XSRF-TOKEN cookie on every response and clears it on logout. When the cookie is missing
+ * (fresh browser, after sign-out) any GET brings a new one; /auth/me is public and cheap.
+ */
+async function refreshCsrfToken(doFetch: Fetch): Promise<void> {
+  try {
+    await doFetch(`${API_BASE}/auth/me`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+    });
+  } catch {
+    // The real request below reports the network problem.
+  }
+}
+
+export async function api<T>(path: string, opts: RequestOptions = {}, csrfRetried = false): Promise<T> {
   const method = opts.method ?? 'GET';
   const url = `${API_BASE}${path}${opts.query ? toQuery(opts.query) : ''}`;
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+
+  const doFetch = await transport();
   if (method !== 'GET') {
+    if (!csrfToken() && !USE_MOCK) await refreshCsrfToken(doFetch);
     const token = csrfToken();
     if (token) headers['X-XSRF-TOKEN'] = token;
   }
 
-  const doFetch = await transport();
   let res: Response;
   try {
     res = await doFetch(url, {
@@ -113,6 +136,14 @@ export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T
       data = null;
     }
   }
-  if (!res.ok) throw new ApiError(res.status, data as Partial<ApiErrorBody> | null);
+  if (!res.ok) {
+    const error = new ApiError(res.status, data as Partial<ApiErrorBody> | null);
+    // Stale or rotated CSRF token (e.g. the first POST after sign-out): fetch a fresh one and retry once.
+    if (error.status === 403 && error.code === 'auth.csrf_invalid' && method !== 'GET' && !csrfRetried) {
+      await refreshCsrfToken(doFetch);
+      return api<T>(path, opts, true);
+    }
+    throw error;
+  }
   return data as T;
 }

@@ -35,7 +35,8 @@ export interface User {
   /** Display name, e.g. "Anna Kowalska". */
   name: string;
   role: Role;
-  firma: Firma;
+  /** null for service accounts without a company (SUPERUSER). */
+  firma: Firma | null;
   language: LanguageCode;
   /** null = default start screen for the role. */
   startScreen: ScreenKey | null;

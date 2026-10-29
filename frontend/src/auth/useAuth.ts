@@ -29,9 +29,10 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSettled: () => {
-      qc.setQueryData<User | null>(ME_QUERY_KEY, null);
-      // Drop everything that belonged to the previous session.
+      // Drop everything that belonged to the previous session. The session query is reset rather than set to
+      // null so the login page asks the backend again, which also issues a fresh CSRF cookie after sign-out.
       qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'auth' });
+      void qc.resetQueries({ queryKey: ME_QUERY_KEY });
     },
   });
 }
