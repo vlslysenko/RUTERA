@@ -13,7 +13,8 @@ import {
   IconUsers,
   type IconProps,
 } from '@tabler/icons-react';
-import type { Role, ScreenKey } from './types';
+import { hasAnyPrivilege, PRIV } from '@/auth/privileges';
+import type { Role, ScreenKey, User } from './types';
 
 export type NavIcon = ComponentType<IconProps>;
 
@@ -23,8 +24,8 @@ export interface NavItem {
   icon: NavIcon;
   /** i18n key of the label (flat key, same dictionary as the backend). */
   labelKey: string;
-  /** Roles that see the item. Undefined = everyone. */
-  roles?: readonly Role[];
+  /** The item is shown when the user holds at least one of these privileges. Undefined = everyone. */
+  privileges?: readonly string[];
 }
 
 export interface NavGroup {
@@ -34,33 +35,29 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-const ALL: readonly Role[] = ['SUPERUSER', 'OWNER', 'DISPATCHER', 'LOGISTICIAN', 'ACCOUNTANT', 'DRIVER', 'CUSTOM'];
-const OPS: readonly Role[] = ['SUPERUSER', 'OWNER', 'DISPATCHER', 'LOGISTICIAN', 'CUSTOM'];
-const MONEY: readonly Role[] = ['SUPERUSER', 'OWNER', 'ACCOUNTANT', 'CUSTOM'];
-
 export const SCREENS: Record<ScreenKey, NavItem> = {
-  overview: { key: 'overview', path: '/overview', icon: IconHome, labelKey: 'nav.overview', roles: ALL },
-  map: { key: 'map', path: '/map', icon: IconMap, labelKey: 'nav.map', roles: OPS },
-  trips: { key: 'trips', path: '/trips', icon: IconRoute, labelKey: 'nav.trips', roles: OPS },
-  fleet: { key: 'fleet', path: '/fleet', icon: IconTruck, labelKey: 'nav.fleet', roles: OPS },
-  drivers: { key: 'drivers', path: '/drivers', icon: IconUsers, labelKey: 'nav.drivers', roles: OPS },
-  tacho: {
-    key: 'tacho',
-    path: '/tacho',
-    icon: IconClockHour4,
-    labelKey: 'nav.tacho',
-    roles: ['SUPERUSER', 'OWNER', 'DISPATCHER', 'CUSTOM'],
-  },
+  overview: { key: 'overview', path: '/overview', icon: IconHome, labelKey: 'nav.overview' },
+  map: { key: 'map', path: '/map', icon: IconMap, labelKey: 'nav.map', privileges: [PRIV.MAP_POSITION_VIEW] },
+  trips: { key: 'trips', path: '/trips', icon: IconRoute, labelKey: 'nav.trips', privileges: [PRIV.TRIP_TRIP_VIEW] },
+  fleet: { key: 'fleet', path: '/fleet', icon: IconTruck, labelKey: 'nav.fleet', privileges: [PRIV.FLEET_VEHICLE_VIEW] },
+  drivers: { key: 'drivers', path: '/drivers', icon: IconUsers, labelKey: 'nav.drivers', privileges: [PRIV.DRIVER_VIEW] },
+  tacho: { key: 'tacho', path: '/tacho', icon: IconClockHour4, labelKey: 'nav.tacho', privileges: [PRIV.TACHO_HOS_VIEW] },
   documents: {
     key: 'documents',
     path: '/documents',
     icon: IconFileText,
     labelKey: 'nav.documents',
-    roles: [...OPS, 'ACCOUNTANT'],
+    privileges: [PRIV.FLEET_DOCUMENT_MANAGE, PRIV.TRIP_CMR_MANAGE],
   },
-  finance: { key: 'finance', path: '/finance', icon: IconFileInvoice, labelKey: 'nav.finance', roles: MONEY },
-  fuel: { key: 'fuel', path: '/fuel', icon: IconGasStation, labelKey: 'nav.fuel', roles: [...OPS, 'ACCOUNTANT'] },
-  reports: { key: 'reports', path: '/reports', icon: IconChartBar, labelKey: 'nav.reports', roles: [...OPS, 'ACCOUNTANT'] },
+  finance: {
+    key: 'finance',
+    path: '/finance',
+    icon: IconFileInvoice,
+    labelKey: 'nav.finance',
+    privileges: [PRIV.FINANCE_INVOICE_VIEW],
+  },
+  fuel: { key: 'fuel', path: '/fuel', icon: IconGasStation, labelKey: 'nav.fuel', privileges: [PRIV.FUEL_TRANSACTION_VIEW] },
+  reports: { key: 'reports', path: '/reports', icon: IconChartBar, labelKey: 'nav.reports', privileges: [PRIV.REPORT_VIEW] },
 };
 
 export const SETTINGS_ITEM: NavItem = {
@@ -92,22 +89,24 @@ export const DEFAULT_START_SCREEN: Record<Role, ScreenKey> = {
   CUSTOM: 'overview',
 };
 
-export function canSee(item: NavItem, role: Role): boolean {
-  return !item.roles || item.roles.includes(role);
+/** Menu items follow the effective privileges the backend sends with the user (role defaults + custom + overrides). */
+export function canSee(item: NavItem, user: User): boolean {
+  return hasAnyPrivilege(user, item.privileges);
 }
 
-export function visibleGroups(role: Role): NavGroup[] {
-  return NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => canSee(i, role)) })).filter(
+export function visibleGroups(user: User): NavGroup[] {
+  return NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => canSee(i, user)) })).filter(
     (g) => g.items.length > 0,
   );
 }
 
-export function visibleScreens(role: Role): NavItem[] {
-  return visibleGroups(role).flatMap((g) => g.items);
+export function visibleScreens(user: User): NavItem[] {
+  return visibleGroups(user).flatMap((g) => g.items);
 }
 
-export function startScreenPath(role: Role, preferred: ScreenKey | null): string {
-  const key = preferred && canSee(SCREENS[preferred], role) ? preferred : DEFAULT_START_SCREEN[role];
+export function startScreenPath(user: User): string {
+  const preferred = user.startScreen;
+  const key = preferred && canSee(SCREENS[preferred], user) ? preferred : DEFAULT_START_SCREEN[user.role];
   const item = SCREENS[key];
-  return canSee(item, role) ? item.path : SCREENS.overview.path;
+  return canSee(item, user) ? item.path : SCREENS.overview.path;
 }

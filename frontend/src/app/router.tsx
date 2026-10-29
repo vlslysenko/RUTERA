@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router';
+import { PRIV } from '@/auth/privileges';
 import { RequireAuth } from '@/auth/RequireAuth';
-import { ScreenGuard } from '@/auth/ScreenGuard';
+import { PrivilegeGuard, ScreenGuard } from '@/auth/ScreenGuard';
 import { useUser } from '@/auth/useAuth';
 import { AppLayout } from '@/layout/AppLayout';
 import { LoginPage } from '@/pages/LoginPage';
@@ -9,17 +10,21 @@ import { OverviewPage } from '@/pages/OverviewPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { FleetPage } from '@/pages/fleet/FleetPage';
 import { VehicleDetail } from '@/pages/fleet/VehicleDetail';
-import { SettingsPage } from '@/pages/settings/SettingsPage';
+import { PasswordTab } from '@/pages/settings/PasswordTab';
+import { ProfileTab } from '@/pages/settings/ProfileTab';
+import { SettingsLayout } from '@/pages/settings/SettingsLayout';
+import { UserDetail } from '@/pages/settings/users/UserDetail';
+import { UsersPage } from '@/pages/settings/users/UsersPage';
 import { SCREENS, startScreenPath } from './navigation';
 import type { ScreenKey } from './types';
 
 /** "/" sends the user to the start screen from the profile, or the role default. */
 function StartRedirect() {
   const user = useUser();
-  return <Navigate to={startScreenPath(user.role, user.startScreen)} replace />;
+  return <Navigate to={startScreenPath(user)} replace />;
 }
 
-/** A screen is reachable only for roles that see it in the menu. */
+/** A screen is reachable only for users who see it in the menu (privileges). */
 function screen(key: ScreenKey, routes: RouteObject[]): RouteObject {
   return { element: <ScreenGuard screen={key} />, children: routes };
 }
@@ -54,7 +59,28 @@ export const router = createBrowserRouter([
           placeholder('finance'),
           placeholder('fuel'),
           placeholder('reports'),
-          { path: 'settings', element: <SettingsPage /> },
+          {
+            path: 'settings',
+            element: <SettingsLayout />,
+            children: [
+              { index: true, element: <ProfileTab /> },
+              { path: 'password', element: <PasswordTab /> },
+              {
+                element: <PrivilegeGuard privilege={PRIV.ADMIN_USER_VIEW} />,
+                children: [
+                  {
+                    path: 'users',
+                    element: <UsersPage />,
+                    children: [
+                      { path: 'new', element: <UserDetail mode="drawer" /> },
+                      { path: ':id', element: <UserDetail mode="drawer" /> },
+                    ],
+                  },
+                  { path: 'users/:id/page', element: <UserDetail mode="page" /> },
+                ],
+              },
+            ],
+          },
           { path: '*', element: <NotFoundPage /> },
         ],
       },

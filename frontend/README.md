@@ -20,9 +20,11 @@ Node 22+ (npm 10+). Dependencies are pinned to exact versions; bump them deliber
 - `VITE_API_MOCK=false`: the Vite dev server proxies `/app` to `VITE_API_PROXY` (default `http://localhost:8080`).
   Copy `.env.example` to `.env.local` to change it. Production builds never use the mock.
 
-Mock test accounts (login = password): `owner`, `dispatcher`, `logistician`, `accountant`. Firma "TransPol Sp. z o.o.".
+Mock test accounts (login = password): `owner`, `dispatcher`, `logistician`, `accountant` (locked), `driver`
+(inactive). Firma "TransPol Sp. z o.o.". Mock users live in memory per page load.
 
-Internal endpoints used (all under `/app`, session cookie + CSRF header `X-XSRF-TOKEN` from cookie `XSRF-TOKEN`):
+Internal endpoints used (all under `/app`, session cookie + CSRF header `X-XSRF-TOKEN` from cookie `XSRF-TOKEN`;
+the backend clears the cookie on logout, the client fetches a new one with `GET /app/auth/me` and retries once):
 
 | Method | Path | Body / result |
 |---|---|---|
@@ -30,10 +32,17 @@ Internal endpoints used (all under `/app`, session cookie + CSRF header `X-XSRF-
 | POST | `/app/auth/logout` | 204 |
 | GET | `/app/auth/me` | `User`; 401 `{ code: "auth.unauthenticated" }` |
 | PUT | `/app/me/settings` | `{ language?, startScreen? }` -> `User` |
+| PUT | `/app/me/password` | `{ currentPassword, newPassword }` -> 204; 422 details per field |
 | GET | `/app/i18n/{lang}` | flat JSON dictionary |
-| GET | `/app/fleet/vehicles`, `/app/fleet/vehicles/{id}` | demo list / card (mock only for now) |
+| GET/POST | `/app/admin/users` | `AdminUser[]` / create (`admin.user/view`, `admin.user/manage`) |
+| GET/PUT/DELETE | `/app/admin/users/{id}` | card / full update / soft delete |
+| PUT | `/app/admin/users/{id}/password`, POST `.../unlock` | 204 |
+| GET | `/app/fleet/vehicles`, `/app/fleet/vehicles/{id}` | demo list / card (mock only for now; 404 shows the placeholder) |
 
-`User = { id, login, name, role, firma: { id, name }, language, startScreen }`. Error bodies carry `code` = i18n key.
+`User = { id, login, name, role, firma: { id, name } | null, language, startScreen, privileges: string[] }`.
+Menu items and screens are shown by `privileges` (`module.entity/action`, see `src/app/navigation.ts` and
+`src/auth/privileges.ts`); the superuser has an empty list and bypasses checks. Error bodies carry `code` = i18n
+key and, for 422, `details: { field: code }`, which forms map onto their fields (`src/forms/serverErrors.ts`).
 
 ## i18n
 

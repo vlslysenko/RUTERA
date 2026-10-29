@@ -16,7 +16,7 @@ interface Props {
 export function Sidebar({ collapsed, onToggleCollapsed }: Props) {
   const { t } = useTranslation();
   const user = useUser();
-  const groups = visibleGroups(user.role);
+  const groups = visibleGroups(user);
 
   return (
     <nav className={cx(classes.side, collapsed && classes.collapsed)} aria-label={t('nav.menu')}>

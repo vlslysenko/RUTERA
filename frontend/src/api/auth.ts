@@ -1,4 +1,4 @@
-import type { User, UserSettingsPatch } from '@/app/types';
+import type { PasswordChange, User, UserSettingsPatch } from '@/app/types';
 import { api, ApiError } from './client';
 
 export interface LoginRequest {
@@ -29,4 +29,10 @@ export const authApi = {
   },
 
   updateSettings: (patch: UserSettingsPatch) => api<User>('/me/settings', { method: 'PUT', body: patch }),
+
+  /**
+   * PUT /app/me/password -> 204; 422 details: currentPassword = auth.password.wrong_current,
+   * newPassword = validation.required | validation.too_short | validation.too_long. The session stays open.
+   */
+  changePassword: (body: PasswordChange) => api<void>('/me/password', { method: 'PUT', body }),
 };

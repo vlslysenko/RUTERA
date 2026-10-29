@@ -8,12 +8,11 @@ import type { ScreenKey } from '@/app/types';
 import { useUpdateSettings, useUser } from '@/auth/useAuth';
 import { setLanguage } from '@/i18n';
 import { isLanguageCode, LANGUAGES, type LanguageCode } from '@/i18n/languages';
-import { PageHeader } from '@/components/PageHeader';
 
 const DEFAULT_SCREEN = '__default__';
 
 /** Profile settings: interface language and the start screen after sign-in (REQUIREMENTS.md, section 15). */
-export function SettingsPage() {
+export function ProfileTab() {
   const { t } = useTranslation();
   const user = useUser();
   const update = useUpdateSettings();
@@ -21,7 +20,7 @@ export function SettingsPage() {
   const [language, setLanguageValue] = useState<LanguageCode>(user.language);
   const [startScreen, setStartScreen] = useState<string>(user.startScreen ?? DEFAULT_SCREEN);
 
-  const screens = visibleScreens(user.role);
+  const screens = visibleScreens(user);
   const chosenScreen = startScreen === DEFAULT_SCREEN ? null : (startScreen as ScreenKey);
   const dirty = language !== user.language || chosenScreen !== user.startScreen;
 
@@ -36,42 +35,39 @@ export function SettingsPage() {
   };
 
   return (
-    <>
-      <PageHeader title={t('settings.title')} />
-      <Paper p="lg" maw={520}>
-        <Stack gap="md">
-          <Title order={3}>{t('settings.profile')}</Title>
-          <Select
-            label={t('settings.language')}
-            data={LANGUAGES.map((l) => ({ value: l.code, label: l.name }))}
-            value={language}
-            onChange={(v) => {
-              if (isLanguageCode(v)) setLanguageValue(v);
-            }}
-            allowDeselect={false}
-            searchable
-            maxDropdownHeight={300}
-          />
-          <Select
-            label={t('settings.start_screen')}
-            description={t('settings.start_screen.hint')}
-            data={[
-              { value: DEFAULT_SCREEN, label: t('common.default') },
-              ...screens.map((s) => ({ value: s.key, label: t(s.labelKey) })),
-            ]}
-            value={startScreen}
-            onChange={(v) => {
-              if (v) setStartScreen(v);
-            }}
-            allowDeselect={false}
-          />
-          <Group justify="flex-end">
-            <Button onClick={() => void save()} loading={update.isPending} disabled={!dirty}>
-              {t('common.save')}
-            </Button>
-          </Group>
-        </Stack>
-      </Paper>
-    </>
+    <Paper p="lg" maw={520}>
+      <Stack gap="md">
+        <Title order={3}>{t('settings.profile')}</Title>
+        <Select
+          label={t('settings.language')}
+          data={LANGUAGES.map((l) => ({ value: l.code, label: l.name }))}
+          value={language}
+          onChange={(v) => {
+            if (isLanguageCode(v)) setLanguageValue(v);
+          }}
+          allowDeselect={false}
+          searchable
+          maxDropdownHeight={300}
+        />
+        <Select
+          label={t('settings.start_screen')}
+          description={t('settings.start_screen.hint')}
+          data={[
+            { value: DEFAULT_SCREEN, label: t('common.default') },
+            ...screens.map((s) => ({ value: s.key, label: t(s.labelKey) })),
+          ]}
+          value={startScreen}
+          onChange={(v) => {
+            if (v) setStartScreen(v);
+          }}
+          allowDeselect={false}
+        />
+        <Group justify="flex-end">
+          <Button onClick={() => void save()} loading={update.isPending} disabled={!dirty}>
+            {t('common.save')}
+          </Button>
+        </Group>
+      </Stack>
+    </Paper>
   );
 }
