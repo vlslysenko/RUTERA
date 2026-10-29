@@ -68,10 +68,16 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Tests: Spring Boot test support + MySQL in Docker via Testcontainers -->
+        <!-- Tests: Spring Boot test support (+ MockMvc auto-configuration, a separate module in Boot 4)
+             and MySQL in Docker via Testcontainers -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
