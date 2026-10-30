@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Button, Group, NumberInput, Select, Stack, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
+import { DRIVERS_KEY, driversApi } from '@/api/drivers';
 import { errorCode } from '@/api/errors';
 import {
   EURO_CLASSES,
@@ -20,6 +21,8 @@ import {
   type Vehicle,
   type VehicleInput,
 } from '@/api/fleet';
+import { hasPrivilege, PRIV } from '@/auth/privileges';
+import { useUser } from '@/auth/useAuth';
 import { DetailDrawer } from '@/components/DetailDrawer';
 import { ErrorState } from '@/components/ErrorState';
 import { Plate } from '@/components/Plate';
@@ -55,6 +58,7 @@ const schema = z.object({
   avgL100km: numberField(0, 999.99),
   tachoGen: z.enum(TACHO_GENS),
   odometerKm: numberField(0, 99_999_999, { integer: true }),
+  defaultDriverId: z.string().nullable(),
   defaultTrailerId: z.string().nullable(),
 });
 
@@ -77,6 +81,7 @@ const FIELDS: readonly FieldPath<FormInput>[] = [
   'avgL100km',
   'tachoGen',
   'odometerKm',
+  'defaultDriverId',
   'defaultTrailerId',
 ];
 
@@ -95,6 +100,7 @@ const EMPTY: FormInput = {
   avgL100km: null,
   tachoGen: 'GEN2',
   odometerKm: null,
+  defaultDriverId: null,
   defaultTrailerId: null,
 };
 
@@ -114,6 +120,7 @@ function toFormValues(v: Vehicle): FormInput {
     avgL100km: v.avgL100km,
     tachoGen: v.tachoGen,
     odometerKm: v.odometerKm,
+    defaultDriverId: v.defaultDriver ? String(v.defaultDriver.id) : null,
     defaultTrailerId: v.defaultTrailer ? String(v.defaultTrailer.id) : null,
   };
 }
@@ -121,7 +128,7 @@ function toFormValues(v: Vehicle): FormInput {
 const blankToNull = (s: string) => (s.trim() === '' ? null : s.trim());
 
 /** Trailers have no engine fields; they are sent as null so a kind change does not leave stale values behind. */
-function toInput(f: FormValues, current: Vehicle | undefined): VehicleInput {
+function toInput(f: FormValues): VehicleInput {
   const trailer = isTrailer(f.kind);
   return {
     kind: f.kind,
@@ -138,8 +145,7 @@ function toInput(f: FormValues, current: Vehicle | undefined): VehicleInput {
     avgL100km: trailer ? null : f.avgL100km,
     tachoGen: trailer ? 'NONE' : f.tachoGen,
     odometerKm: trailer ? null : f.odometerKm,
-    // Drivers are assigned in the drivers module (not there yet, the backend accepts only null); keep the current one.
-    defaultDriverId: trailer ? null : (current?.defaultDriver?.id ?? null),
+    defaultDriverId: trailer || !f.defaultDriverId ? null : Number(f.defaultDriverId),
     defaultTrailerId: trailer || !f.defaultTrailerId ? null : Number(f.defaultTrailerId),
   };
 }
@@ -185,6 +191,7 @@ function NumberField({
 /** Create (/fleet/new) or edit (/fleet/:id/edit) a vehicle in the right panel. */
 export function VehicleForm() {
   const { t, i18n } = useTranslation();
+  const me = useUser();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const params = useParams();
@@ -194,6 +201,8 @@ export function VehicleForm() {
 
   const q = useQuery({ queryKey: [...VEHICLES_KEY, id], queryFn: () => fleetApi.get(id), enabled: !isNew });
   const list = useQuery({ queryKey: VEHICLES_KEY, queryFn: fleetApi.list });
+  const canPickDriver = hasPrivilege(me, PRIV.DRIVER_VIEW);
+  const drivers = useQuery({ queryKey: DRIVERS_KEY, queryFn: driversApi.list, enabled: canPickDriver });
   const current = q.data;
   const backPath = isNew ? '/fleet' : `/fleet/${id}`;
 
@@ -220,15 +229,30 @@ export function VehicleForm() {
     [list.data, id],
   );
 
+  // Active drivers, plus the current one even when he is no longer active. Without driver.driver/view the list
+  // cannot be loaded: the field then shows the current driver and is sent back unchanged.
+  const currentDriver = current?.defaultDriver ?? null;
+  const driverOptions = useMemo(() => {
+    const opts = (drivers.data ?? [])
+      .filter((d) => d.status === 'ACTIVE' || d.id === currentDriver?.id)
+      .map((d) => ({ value: String(d.id), label: d.name }));
+    if (currentDriver && !opts.some((o) => o.value === String(currentDriver.id))) {
+      opts.unshift({ value: String(currentDriver.id), label: currentDriver.name });
+    }
+    return opts;
+  }, [drivers.data, currentDriver]);
+
   const options = <T extends string>(values: readonly T[], prefix: string) =>
     values.map((v) => ({ value: v, label: t(`${prefix}.${v}`) }));
 
   const onSubmit = handleSubmit(async (f) => {
     try {
-      const body = toInput(f, current);
+      const body = toInput(f);
       const saved = isNew ? await fleetApi.create(body) : await fleetApi.update(id, body);
       qc.setQueryData([...VEHICLES_KEY, String(saved.id)], saved);
       await qc.invalidateQueries({ queryKey: VEHICLES_KEY, exact: true });
+      // Driver.defaultVehicle is derived from the vehicle.
+      void qc.invalidateQueries({ queryKey: DRIVERS_KEY });
       notifications.show({ color: 'green', message: t(isNew ? 'fleet.created' : 'fleet.updated') });
       await navigate(`/fleet/${saved.id}`, { replace: true });
     } catch (e) {
@@ -379,25 +403,44 @@ export function VehicleForm() {
                   />
                   <NumberField control={control} name="odometerKm" label={t('fleet.odometer_km')} separator={separator} />
                 </Group>
-                <Controller
-                  name="defaultTrailerId"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <Select
-                      label={t('fleet.default_trailer')}
-                      placeholder={trailerOptions.length === 0 ? t('fleet.no_trailers') : undefined}
-                      data={trailerOptions}
-                      value={field.value}
-                      onChange={(v) => field.onChange(v)}
-                      clearable
-                      searchable
-                      disabled={trailerOptions.length === 0 && !field.value}
-                      classNames={{ input: classes.mono }}
-                      error={fieldState.error?.message && t(fieldState.error.message)}
-                    />
-                  )}
-                />
-                {tachoGen === 'NONE' && <div className={classes.docSub}>{t('fleet.no_tacho_hint')}</div>}
+                <Group grow align="flex-start">
+                  <Controller
+                    name="defaultDriverId"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <Select
+                        label={t('fleet.default_driver')}
+                        placeholder={driverOptions.length === 0 ? t('drivers.empty') : t('fleet.no_driver')}
+                        data={driverOptions}
+                        value={field.value}
+                        onChange={(v) => field.onChange(v)}
+                        clearable
+                        searchable
+                        disabled={!canPickDriver || (driverOptions.length === 0 && !field.value)}
+                        error={fieldState.error?.message && t(fieldState.error.message)}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="defaultTrailerId"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <Select
+                        label={t('fleet.default_trailer')}
+                        placeholder={trailerOptions.length === 0 ? t('fleet.no_trailers') : undefined}
+                        data={trailerOptions}
+                        value={field.value}
+                        onChange={(v) => field.onChange(v)}
+                        clearable
+                        searchable
+                        disabled={trailerOptions.length === 0 && !field.value}
+                        classNames={{ input: classes.mono }}
+                        error={fieldState.error?.message && t(fieldState.error.message)}
+                      />
+                    )}
+                  />
+                </Group>
+                {tachoGen === 'NONE' && <div className={classes.hint}>{t('fleet.no_tacho_hint')}</div>}
               </section>
             )}
 

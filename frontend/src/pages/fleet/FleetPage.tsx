@@ -15,7 +15,8 @@ import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { PageHeader } from '@/components/PageHeader';
 import { Plate } from '@/components/Plate';
 import { cx } from '@/utils/cx';
-import { NextDeadline, VehicleStatusChip } from './VehicleStatusChip';
+import { NextDeadline } from '@/components/DeadlineChip';
+import { VehicleStatusChip } from './VehicleStatusChip';
 import classes from './FleetPage.module.css';
 
 type KindFilter = 'all' | 'vehicles' | 'trailers';
@@ -104,7 +105,7 @@ export function FleetPage() {
                     <Table.Th>{t('fleet.make_model')}</Table.Th>
                     <Table.Th>{t('fleet.status')}</Table.Th>
                     <Table.Th>{t('fleet.driver')}</Table.Th>
-                    <Table.Th>{t('fleet.next_deadline')}</Table.Th>
+                    <Table.Th>{t('deadline.next')}</Table.Th>
                     <Table.Th className={classes.num}>{t('fleet.odometer')}</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
@@ -145,7 +146,7 @@ export function FleetPage() {
                           )}
                         </Table.Td>
                         <Table.Td>
-                          {v.nextDocument ? <NextDeadline deadline={v.nextDocument} /> : <Text span c="dimmed">—</Text>}
+                          {v.nextDocument ? <NextDeadline label={t(`vehicle.document.${v.nextDocument.kind}`)} validTo={v.nextDocument.validTo} /> : <Text span c="dimmed">—</Text>}
                         </Table.Td>
                         <Table.Td className={cx(classes.num, classes.mono)}>
                           {v.odometerKm != null ? `${km.format(v.odometerKm)} km` : <Text span c="dimmed">—</Text>}

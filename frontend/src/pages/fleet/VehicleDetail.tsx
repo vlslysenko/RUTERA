@@ -6,15 +6,24 @@ import { notifications } from '@mantine/notifications';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
-import { fleetApi, isTrailer, makeModel, VEHICLES_KEY, type Vehicle } from '@/api/fleet';
+import {
+  fleetApi,
+  isTrailer,
+  makeModel,
+  VEHICLE_DOCUMENT_KINDS,
+  VEHICLES_KEY,
+  type Vehicle,
+  type VehicleDocumentInput,
+} from '@/api/fleet';
 import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
+import { DeadlineChip } from '@/components/DeadlineChip';
+import { DeadlineDocuments } from '@/components/DeadlineDocuments';
 import { DetailDrawer } from '@/components/DetailDrawer';
 import { ErrorState } from '@/components/ErrorState';
 import { KeyValueList, type KeyValueItem } from '@/components/KeyValueList';
 import { Plate } from '@/components/Plate';
-import { VehicleDocuments } from './VehicleDocuments';
-import { DeadlineChip, VehicleStatusChip } from './VehicleStatusChip';
+import { VehicleStatusChip } from './VehicleStatusChip';
 import classes from './VehicleDetail.module.css';
 
 const DASH = '—';
@@ -74,7 +83,16 @@ function Overview({ v }: { v: Vehicle }) {
       vehicle.push({ label: t('fleet.last_vu_download'), value: instant(v.lastVuDownloadAt) });
     }
     vehicle.push(
-      { label: t('fleet.default_driver'), value: v.defaultDriver?.name ?? t('fleet.no_driver') },
+      {
+        label: t('fleet.default_driver'),
+        value: v.defaultDriver ? (
+          <Anchor component={Link} to={`/drivers/${v.defaultDriver.id}`}>
+            {v.defaultDriver.name}
+          </Anchor>
+        ) : (
+          t('fleet.no_driver')
+        ),
+      },
       {
         label: t('fleet.default_trailer'),
         value: v.defaultTrailer ? (
@@ -145,7 +163,7 @@ export function VehicleDetail({ mode }: { mode: 'drawer' | 'page' }) {
           onClick={() => setConfirmDelete(true)}
           disabled={busy}
         >
-          {t('fleet.delete')}
+          {t('common.delete')}
         </Button>
       </>
     ) : undefined;
@@ -183,7 +201,7 @@ export function VehicleDetail({ mode }: { mode: 'drawer' | 'page' }) {
           {v.nextDocument && (
             <Group gap={6} wrap="wrap">
               <Text size="sm" c="dimmed">
-                {t('fleet.next_deadline')}:
+                {t('deadline.next')}:
               </Text>
               <Text size="sm">{t(`vehicle.document.${v.nextDocument.kind}`)}</Text>
               <DeadlineChip validTo={v.nextDocument.validTo} />
@@ -198,7 +216,20 @@ export function VehicleDetail({ mode }: { mode: 'drawer' | 'page' }) {
               <Overview v={v} />
             </Tabs.Panel>
             <Tabs.Panel value="documents" pt="md">
-              <VehicleDocuments vehicleId={id} />
+              <DeadlineDocuments
+                queryKey={[...VEHICLES_KEY, id, 'documents']}
+                invalidateKey={VEHICLES_KEY}
+                api={{
+                  list: () => fleetApi.documents(id),
+                  create: (body) => fleetApi.createDocument(id, body as VehicleDocumentInput),
+                  update: (docId, body) => fleetApi.updateDocument(id, docId, body as VehicleDocumentInput),
+                  remove: (docId) => fleetApi.removeDocument(id, docId),
+                }}
+                kinds={VEHICLE_DOCUMENT_KINDS}
+                kindLabelPrefix="vehicle.document"
+                withCost
+                canManage={hasPrivilege(me, PRIV.FLEET_DOCUMENT_MANAGE)}
+              />
             </Tabs.Panel>
           </Tabs>
         </Stack>

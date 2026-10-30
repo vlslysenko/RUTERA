@@ -41,6 +41,7 @@ export const VEHICLE_DOCUMENT_KINDS = [
 ] as const;
 export type VehicleDocumentKind = (typeof VEHICLE_DOCUMENT_KINDS)[number];
 
+/** The default driver as the vehicle shows it (chosen in the vehicle form from /app/drivers). */
 export interface DriverRef {
   id: number;
   name: string;

@@ -8,6 +8,9 @@ import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { OverviewPage } from '@/pages/OverviewPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
+import { DriverDetail } from '@/pages/drivers/DriverDetail';
+import { DriverForm } from '@/pages/drivers/DriverForm';
+import { DriversPage } from '@/pages/drivers/DriversPage';
 import { FleetPage } from '@/pages/fleet/FleetPage';
 import { VehicleDetail } from '@/pages/fleet/VehicleDetail';
 import { VehicleForm } from '@/pages/fleet/VehicleForm';
@@ -63,7 +66,23 @@ export const router = createBrowserRouter([
             },
             { path: `${SCREENS.fleet.path}/:id/page`, element: <VehicleDetail mode="page" /> },
           ]),
-          placeholder('drivers'),
+          screen('drivers', [
+            {
+              path: SCREENS.drivers.path,
+              element: <DriversPage />,
+              children: [
+                { path: ':id', element: <DriverDetail mode="drawer" /> },
+                {
+                  element: <PrivilegeGuard privilege={PRIV.DRIVER_MANAGE} />,
+                  children: [
+                    { path: 'new', element: <DriverForm /> },
+                    { path: ':id/edit', element: <DriverForm /> },
+                  ],
+                },
+              ],
+            },
+            { path: `${SCREENS.drivers.path}/:id/page`, element: <DriverDetail mode="page" /> },
+          ]),
           placeholder('tacho'),
           placeholder('documents'),
           placeholder('finance'),

@@ -2,6 +2,7 @@ import type { AdminUser, AdminUserCreate, AdminUserUpdate, PasswordChange, Role,
 import { ASSIGNABLE_ROLES } from '@/app/types';
 import { isLanguageCode, type LanguageCode } from '@/i18n/languages';
 import type { Dictionary } from '@/api/i18n';
+import type { DriverDocumentInput, DriverInput } from '@/api/drivers';
 import type { VehicleDocumentInput, VehicleInput } from '@/api/fleet';
 import { MOCK_FIRMA, MOCK_USERS, ROLE_PRIVILEGES, type MockUser } from './data';
 import {
@@ -13,6 +14,15 @@ import {
   validateVehicle,
   type MockVehicle,
 } from './fleet';
+import {
+  applyDriverInput,
+  MOCK_DRIVERS,
+  toDriver,
+  toDriverDocument,
+  validateDriver,
+  validateDriverDocument,
+  type MockDriver,
+} from './drivers';
 
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
@@ -186,6 +196,14 @@ route('GET', '/app/i18n/:lang', async ({ params }) => {
 // --- fleet ---------------------------------------------------------------------------------------
 
 const vehicles: MockVehicle[] = MOCK_VEHICLES.map((v) => ({ ...v, documents: [...v.documents] }));
+const drivers: MockDriver[] = MOCK_DRIVERS.map((d) => ({ ...d, documents: [...d.documents] }));
+
+const liveDriver = (id: number) => drivers.find((d) => d.id === id && !d.deleted);
+const driverName = (id: number) => {
+  const d = liveDriver(id);
+  return d ? `${d.firstName} ${d.lastName}`.trim() : null;
+};
+const driverExists = (id: number) => liveDriver(id) !== undefined;
 
 function findVehicle(id: string): MockVehicle | undefined {
   return vehicles.find((x) => String(x.id) === id && !x.deleted);
@@ -195,13 +213,13 @@ route('GET', '/app/fleet/vehicles', withPrivilege('fleet.vehicle/view', () => ({
   status: 200,
   body: vehicles
     .filter((v) => !v.deleted)
-    .map((v) => toVehicle(v, vehicles))
+    .map((v) => toVehicle(v, vehicles, driverName))
     .sort((a, b) => a.plate.localeCompare(b.plate)),
 })));
 
 route('GET', '/app/fleet/vehicles/:id', withPrivilege('fleet.vehicle/view', (_u, req) => {
   const v = findVehicle(req.params.id);
-  return v ? { status: 200, body: toVehicle(v, vehicles) } : error(404, 'error.not_found');
+  return v ? { status: 200, body: toVehicle(v, vehicles, driverName) } : error(404, 'error.not_found');
 }));
 
 route('GET', '/app/fleet/vehicles/:id/documents', withPrivilege('fleet.vehicle/view', (_u, req) => {
@@ -243,7 +261,7 @@ route('DELETE', '/app/fleet/vehicles/:id/documents/:docId', withPrivilege('fleet
 
 route('POST', '/app/fleet/vehicles', withPrivilege('fleet.vehicle/manage', (_u, { body }) => {
   const b = (body ?? {}) as VehicleInput;
-  const details = validateVehicle(b, vehicles, null);
+  const details = validateVehicle(b, vehicles, null, driverExists);
   if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
   const now = new Date().toISOString();
   const created: MockVehicle = {
@@ -257,17 +275,17 @@ route('POST', '/app/fleet/vehicles', withPrivilege('fleet.vehicle/manage', (_u, 
   };
   applyVehicleInput(created, b);
   vehicles.push(created);
-  return { status: 201, body: toVehicle(created, vehicles) };
+  return { status: 201, body: toVehicle(created, vehicles, driverName) };
 }));
 
 route('PUT', '/app/fleet/vehicles/:id', withPrivilege('fleet.vehicle/manage', (_u, req) => {
   const target = findVehicle(req.params.id);
   if (!target) return error(404, 'error.not_found');
   const b = (req.body ?? {}) as VehicleInput;
-  const details = validateVehicle(b, vehicles, target.id);
+  const details = validateVehicle(b, vehicles, target.id, driverExists);
   if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
   applyVehicleInput(target, b);
-  return { status: 200, body: toVehicle(target, vehicles) };
+  return { status: 200, body: toVehicle(target, vehicles, driverName) };
 }));
 
 route('DELETE', '/app/fleet/vehicles/:id', withPrivilege('fleet.vehicle/manage', (_u, req) => {
@@ -277,6 +295,102 @@ route('DELETE', '/app/fleet/vehicles/:id', withPrivilege('fleet.vehicle/manage',
   for (const v of vehicles) {
     if (v.defaultTrailerId === target.id) v.defaultTrailerId = null;
   }
+  return { status: 204 };
+}));
+
+// --- drivers -------------------------------------------------------------------------------------
+
+function findDriver(id: string): MockDriver | undefined {
+  return drivers.find((x) => String(x.id) === id && !x.deleted);
+}
+
+route('GET', '/app/drivers', withPrivilege('driver.driver/view', () => ({
+  status: 200,
+  body: drivers
+    .filter((d) => !d.deleted)
+    .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName))
+    .map((d) => toDriver(d, vehicles)),
+})));
+
+route('GET', '/app/drivers/:id', withPrivilege('driver.driver/view', (_u, req) => {
+  const d = findDriver(req.params.id);
+  return d ? { status: 200, body: toDriver(d, vehicles) } : error(404, 'error.not_found');
+}));
+
+route('POST', '/app/drivers', withPrivilege('driver.driver/manage', (_u, { body }) => {
+  const b = (body ?? {}) as DriverInput;
+  const details = validateDriver(b, drivers, null);
+  if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
+  const now = new Date().toISOString();
+  const created: MockDriver = {
+    ...b,
+    id: Math.max(...drivers.map((x) => x.id)) + 1,
+    user: null,
+    card: null,
+    deleted: false,
+    documents: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+  applyDriverInput(created, b);
+  drivers.push(created);
+  return { status: 201, body: toDriver(created, vehicles) };
+}));
+
+route('PUT', '/app/drivers/:id', withPrivilege('driver.driver/manage', (_u, req) => {
+  const target = findDriver(req.params.id);
+  if (!target) return error(404, 'error.not_found');
+  const b = (req.body ?? {}) as DriverInput;
+  const details = validateDriver(b, drivers, target.id);
+  if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
+  applyDriverInput(target, b);
+  return { status: 200, body: toDriver(target, vehicles) };
+}));
+
+route('DELETE', '/app/drivers/:id', withPrivilege('driver.driver/manage', (_u, req) => {
+  const target = findDriver(req.params.id);
+  if (!target) return error(404, 'error.not_found');
+  target.deleted = true;
+  for (const v of vehicles) {
+    if (v.defaultDriverId === target.id) v.defaultDriverId = null;
+  }
+  return { status: 204 };
+}));
+
+route('GET', '/app/drivers/:id/documents', withPrivilege('driver.driver/view', (_u, req) => {
+  const d = findDriver(req.params.id);
+  if (!d) return error(404, 'error.not_found');
+  const sorted = [...d.documents].sort((a, b) => (a.validTo ?? '9999').localeCompare(b.validTo ?? '9999'));
+  return { status: 200, body: sorted };
+}));
+
+route('POST', '/app/drivers/:id/documents', withPrivilege('driver.driver/manage', (_u, req) => {
+  const d = findDriver(req.params.id);
+  if (!d) return error(404, 'error.not_found');
+  const b = (req.body ?? {}) as DriverDocumentInput;
+  const details = validateDriverDocument(b);
+  if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
+  const created = toDriverDocument(b, Math.max(0, ...drivers.flatMap((x) => x.documents.map((y) => y.id))) + 1);
+  d.documents.push(created);
+  return { status: 201, body: created };
+}));
+
+route('PUT', '/app/drivers/:id/documents/:docId', withPrivilege('driver.driver/manage', (_u, req) => {
+  const d = findDriver(req.params.id);
+  const i = d ? d.documents.findIndex((x) => String(x.id) === req.params.docId) : -1;
+  if (!d || i < 0) return error(404, 'error.not_found');
+  const b = (req.body ?? {}) as DriverDocumentInput;
+  const details = validateDriverDocument(b);
+  if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
+  d.documents[i] = toDriverDocument(b, d.documents[i].id);
+  return { status: 200, body: d.documents[i] };
+}));
+
+route('DELETE', '/app/drivers/:id/documents/:docId', withPrivilege('driver.driver/manage', (_u, req) => {
+  const d = findDriver(req.params.id);
+  const i = d ? d.documents.findIndex((x) => String(x.id) === req.params.docId) : -1;
+  if (!d || i < 0) return error(404, 'error.not_found');
+  d.documents.splice(i, 1);
   return { status: 204 };
 }));
 

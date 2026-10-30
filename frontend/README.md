@@ -41,6 +41,12 @@ the backend clears the cookie on logout, the client fetches a new one with `GET 
 | GET/PUT/DELETE | `/app/fleet/vehicles/{id}` | card / full update (`VehicleInput`) / soft delete; 422 `plate: fleet.vehicle.plate_taken` |
 | GET/POST | `/app/fleet/vehicles/{id}/documents` | `VehicleDocument[]` ordered by `validTo` / create (`fleet.document/manage`) |
 | PUT/DELETE | `/app/fleet/vehicles/{id}/documents/{docId}` | full update / hard delete |
+| GET/POST | `/app/drivers` | `Driver[]` sorted by last name / create (`driver.driver/view`, `driver.driver/manage`) |
+| GET/PUT/DELETE | `/app/drivers/{id}` | card / full update (`DriverInput`, current tachograph card inline) / soft delete |
+| GET/POST, PUT/DELETE | `/app/drivers/{id}/documents`, `.../{docId}` | driver documents with deadlines |
+
+The vehicle–driver link lives on the vehicle (`defaultDriverId` in the vehicle form); `Driver.defaultVehicle` is
+derived from it. Documents of vehicles and drivers share `components/DeadlineDocuments`.
 
 `User = { id, login, name, role, firma: { id, name } | null, language, startScreen, privileges: string[] }`.
 Menu items and screens are shown by `privileges` (`module.entity/action`, see `src/app/navigation.ts` and
@@ -62,7 +68,7 @@ src/api        fetch wrapper (/app, CSRF), auth, i18n, fleet; mock/ = in-browser
 src/auth       session hooks (TanStack Query), RequireAuth, ScreenGuard (role -> screen)
 src/layout     AppLayout (AppShell), TopBar, Sidebar, LanguageMenu, UserMenu
 src/components DetailDrawer (card in the right panel + "open as page"), PageHeader, StatusChip, Plate, ...
-src/pages      Login, Overview, Settings (profile, password, users), Fleet (list, card, form), placeholders
+src/pages      Login, Overview, Settings (profile, password, users), Fleet, Drivers (list, card, form), placeholders
 src/i18n       i18next setup, language list, locales/
 ```
 

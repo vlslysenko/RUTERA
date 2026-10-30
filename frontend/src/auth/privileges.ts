@@ -9,6 +9,7 @@ export const PRIV = {
   FLEET_DOCUMENT_MANAGE: 'fleet.document/manage',
   MAP_POSITION_VIEW: 'map.position/view',
   DRIVER_VIEW: 'driver.driver/view',
+  DRIVER_MANAGE: 'driver.driver/manage',
   TACHO_HOS_VIEW: 'tacho.hos/view',
   TRIP_TRIP_VIEW: 'trip.trip/view',
   TRIP_CMR_MANAGE: 'trip.cmr/manage',

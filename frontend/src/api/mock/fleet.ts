@@ -19,14 +19,6 @@ export interface MockVehicle extends Omit<Vehicle, 'defaultTrailer' | 'nextDocum
   documents: VehicleDocument[];
 }
 
-/** Drivers module does not exist yet; names for the default-driver column. */
-const DRIVERS: Record<number, string> = {
-  1: 'Kowalski Jan',
-  2: 'Nowak Piotr',
-  3: 'Shevchenko Oleh',
-  4: 'Wiśniewski Marek',
-};
-
 function inDays(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() + days);
@@ -116,7 +108,8 @@ export const MOCK_VEHICLES: MockVehicle[] = [
 /** Same as vehicle.plate_key on the backend: case, spaces and hyphens do not make a plate different. */
 const plateKey = (plate: string) => plate.replace(/[\s-]+/g, '').toUpperCase();
 
-export function toVehicle(v: MockVehicle, all: MockVehicle[]): Vehicle {
+/** driverName resolves a default driver id to "First Last" (null when the driver no longer exists). */
+export function toVehicle(v: MockVehicle, all: MockVehicle[], driverName: (id: number) => string | null): Vehicle {
   const { defaultDriverId, defaultTrailerId, deleted: _deleted, documents, ...rest } = v;
   const trailer = defaultTrailerId == null ? undefined : all.find((x) => x.id === defaultTrailerId && !x.deleted);
   const next = documents
@@ -124,14 +117,19 @@ export function toVehicle(v: MockVehicle, all: MockVehicle[]): Vehicle {
     .sort((a, b) => a.validTo.localeCompare(b.validTo))[0];
   return {
     ...rest,
-    defaultDriver: defaultDriverId == null ? null : { id: defaultDriverId, name: DRIVERS[defaultDriverId] ?? `#${defaultDriverId}` },
+    defaultDriver: defaultDriverId == null ? null : { id: defaultDriverId, name: driverName(defaultDriverId) ?? `#${defaultDriverId}` },
     defaultTrailer: trailer ? { id: trailer.id, plate: trailer.plate } : null,
     nextDocument: next ? { kind: next.kind, validTo: next.validTo } : null,
   };
 }
 
 /** Same checks as the backend should make; returns per-field codes. */
-export function validateVehicle(b: Partial<VehicleInput>, all: MockVehicle[], selfId: number | null): Record<string, string> {
+export function validateVehicle(
+  b: Partial<VehicleInput>,
+  all: MockVehicle[],
+  selfId: number | null,
+  driverExists: (id: number) => boolean,
+): Record<string, string> {
   const details: Record<string, string> = {};
   const plate = String(b.plate ?? '').trim();
   if (!plate) details.plate = 'validation.required';
@@ -143,6 +141,9 @@ export function validateVehicle(b: Partial<VehicleInput>, all: MockVehicle[], se
   if (!b.kind || !VEHICLE_KINDS.includes(b.kind)) details.kind = 'validation.invalid_value';
   if (!b.status || !VEHICLE_STATUSES.includes(b.status)) details.status = 'validation.invalid_value';
   if (b.vin && !/^[A-Z0-9]{1,17}$/.test(b.vin)) details.vin = 'validation.invalid_format';
+  if (b.defaultDriverId != null && !isTrailer(b.kind ?? 'TRACTOR') && !driverExists(b.defaultDriverId)) {
+    details.defaultDriverId = 'validation.invalid_value';
+  }
   if (b.defaultTrailerId != null) {
     const trailer = all.find((x) => x.id === b.defaultTrailerId && !x.deleted);
     if (!trailer || !isTrailer(trailer.kind) || trailer.id === selfId) details.defaultTrailerId = 'validation.invalid_value';

@@ -9,29 +9,62 @@ import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
-import {
-  fleetApi,
-  VEHICLE_DOCUMENT_KINDS,
-  VEHICLES_KEY,
-  type VehicleDocument,
-  type VehicleDocumentInput,
-} from '@/api/fleet';
-import { hasPrivilege, PRIV } from '@/auth/privileges';
-import { useUser } from '@/auth/useAuth';
-import { EmptyState } from '@/components/EmptyState';
-import { ErrorState } from '@/components/ErrorState';
 import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { DEFAULT_REMIND_DAYS, formatDate } from '@/utils/deadline';
-import { DeadlineChip } from './VehicleStatusChip';
-import classes from './VehicleDetail.module.css';
+import { DeadlineChip } from './DeadlineChip';
+import { EmptyState } from './EmptyState';
+import { ErrorState } from './ErrorState';
+import classes from './DeadlineDocuments.module.css';
+
+/** A document with a validity period: vehicle_document, driver_document. Cost only where the module has it. */
+export interface DeadlineDocument {
+  id: number;
+  kind: string;
+  number: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  remindDays: number;
+  cost?: number | null;
+  currency?: string | null;
+}
+
+export interface DeadlineDocumentInput {
+  kind: string;
+  number: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  remindDays: number | null;
+  cost?: number | null;
+  currency?: string | null;
+}
+
+export interface DeadlineDocumentsApi {
+  list: () => Promise<DeadlineDocument[]>;
+  create: (body: DeadlineDocumentInput) => Promise<unknown>;
+  update: (id: number, body: DeadlineDocumentInput) => Promise<unknown>;
+  remove: (id: number) => Promise<void>;
+}
+
+export interface DeadlineDocumentsProps {
+  queryKey: readonly unknown[];
+  /** Prefix of the queries to refresh after a change: the list, the card and the documents themselves. */
+  invalidateKey: readonly unknown[];
+  api: DeadlineDocumentsApi;
+  kinds: readonly string[];
+  /** i18n prefix of the kind labels, e.g. vehicle.document -> vehicle.document.INSPECTION */
+  kindLabelPrefix: string;
+  /** Cost and currency (vehicle documents). */
+  withCost?: boolean;
+  canManage: boolean;
+}
 
 const DASH = '—';
 
-/* Same rules as VehicleService: validTo not before validFrom, currency (3 letters) required together with cost. */
+/* Same rules as the backend: validTo not before validFrom, currency (3 letters) required together with cost. */
 const schema = z
   .object({
-    kind: z.enum(VEHICLE_DOCUMENT_KINDS),
+    kind: z.string().min(1, 'validation.required'),
     number: z.string().trim().max(64, 'validation.too_long'),
     validFrom: z.string(),
     validTo: z.string(),
@@ -55,9 +88,9 @@ type FormValues = z.output<typeof schema>;
 
 const FIELDS: readonly FieldPath<FormInput>[] = ['kind', 'number', 'validFrom', 'validTo', 'cost', 'currency', 'remindDays'];
 
-function toFormValues(d: VehicleDocument | null): FormInput {
+function toFormValues(d: DeadlineDocument | null, defaultKind: string): FormInput {
   return {
-    kind: d?.kind ?? 'INSPECTION',
+    kind: d?.kind ?? defaultKind,
     number: d?.number ?? '',
     validFrom: d?.validFrom ?? '',
     validTo: d?.validTo ?? '',
@@ -67,20 +100,28 @@ function toFormValues(d: VehicleDocument | null): FormInput {
   };
 }
 
-function toInput(f: FormValues): VehicleDocumentInput {
-  return {
+function toInput(f: FormValues, withCost: boolean): DeadlineDocumentInput {
+  const input: DeadlineDocumentInput = {
     kind: f.kind,
     number: f.number.trim() || null,
     validFrom: f.validFrom || null,
     validTo: f.validTo || null,
-    cost: f.cost,
-    currency: f.cost == null ? null : f.currency.trim().toUpperCase(),
     remindDays: f.remindDays,
   };
+  if (withCost) {
+    input.cost = f.cost;
+    input.currency = f.cost == null ? null : f.currency.trim().toUpperCase();
+  }
+  return input;
 }
 
-/** Add or edit one document; the vehicle list, card and document list are refreshed after saving. */
-function DocumentForm({ vehicleId, doc, onDone }: { vehicleId: string; doc: VehicleDocument | null; onDone: () => void }) {
+interface FormProps extends Pick<DeadlineDocumentsProps, 'api' | 'invalidateKey' | 'kinds' | 'kindLabelPrefix' | 'withCost'> {
+  doc: DeadlineDocument | null;
+  onDone: () => void;
+}
+
+/** Add or edit one document. */
+function DocumentForm({ api, invalidateKey, kinds, kindLabelPrefix, withCost = false, doc, onDone }: FormProps) {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const separator = decimalSeparator(i18n.resolvedLanguage ?? 'en');
@@ -90,15 +131,15 @@ function DocumentForm({ vehicleId, doc, onDone }: { vehicleId: string; doc: Vehi
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<FormInput, unknown, FormValues>({ resolver: zodResolver(schema), defaultValues: toFormValues(doc) });
+  } = useForm<FormInput, unknown, FormValues>({ resolver: zodResolver(schema), defaultValues: toFormValues(doc, kinds[0]) });
 
   const onSubmit = handleSubmit(async (f) => {
     try {
-      const body = toInput(f);
-      if (doc) await fleetApi.updateDocument(vehicleId, doc.id, body);
-      else await fleetApi.createDocument(vehicleId, body);
-      await qc.invalidateQueries({ queryKey: VEHICLES_KEY });
-      notifications.show({ color: 'green', message: t('fleet.documents.saved') });
+      const body = toInput(f, withCost);
+      if (doc) await api.update(doc.id, body);
+      else await api.create(body);
+      await qc.invalidateQueries({ queryKey: invalidateKey });
+      notifications.show({ color: 'green', message: t('document.saved') });
       onDone();
     } catch (e) {
       if (!applyServerErrors(e, setError, FIELDS)) notifications.show({ color: 'red', message: t(errorCode(e)) });
@@ -114,59 +155,63 @@ function DocumentForm({ vehicleId, doc, onDone }: { vehicleId: string; doc: Vehi
     <Paper withBorder p="sm">
       <form onSubmit={(e) => void onSubmit(e)} noValidate>
         <Stack gap="sm">
-          <Text fw={600}>{doc ? t(`vehicle.document.${doc.kind}`) : t('fleet.documents.new')}</Text>
+          <Text fw={600}>{doc ? t(`${kindLabelPrefix}.${doc.kind}`) : t('document.new')}</Text>
           <Group grow align="flex-start">
             <Controller
               name="kind"
               control={control}
               render={({ field }) => (
                 <Select
-                  label={t('fleet.documents.kind')}
-                  data={VEHICLE_DOCUMENT_KINDS.map((k) => ({ value: k, label: t(`vehicle.document.${k}`) }))}
+                  label={t('document.kind')}
+                  data={kinds.map((k) => ({ value: k, label: t(`${kindLabelPrefix}.${k}`) }))}
                   value={field.value}
                   onChange={(v) => v && field.onChange(v)}
                   allowDeselect={false}
                 />
               )}
             />
-            <TextInput label={t('fleet.documents.number')} autoComplete="off" error={err('number')} {...register('number')} />
+            <TextInput label={t('document.number')} autoComplete="off" error={err('number')} {...register('number')} />
           </Group>
           <Group grow align="flex-start">
-            <TextInput type="date" label={t('fleet.documents.valid_from')} error={err('validFrom')} {...register('validFrom')} />
-            <TextInput type="date" label={t('fleet.documents.valid_to')} error={err('validTo')} {...register('validTo')} />
+            <TextInput type="date" label={t('document.valid_from')} error={err('validFrom')} {...register('validFrom')} />
+            <TextInput type="date" label={t('document.valid_to')} error={err('validTo')} {...register('validTo')} />
           </Group>
           <Group grow align="flex-start">
-            <Controller
-              name="cost"
-              control={control}
-              render={({ field }) => (
-                <NumberInput
-                  label={t('fleet.documents.cost')}
-                  value={field.value ?? ''}
-                  onChange={(v) => field.onChange(toNumberInputValue(v))}
-                  allowNegative={false}
-                  decimalScale={2}
-                  decimalSeparator={separator}
-                  hideControls
-                  error={err('cost')}
+            {withCost && (
+              <>
+                <Controller
+                  name="cost"
+                  control={control}
+                  render={({ field }) => (
+                    <NumberInput
+                      label={t('document.cost')}
+                      value={field.value ?? ''}
+                      onChange={(v) => field.onChange(toNumberInputValue(v))}
+                      allowNegative={false}
+                      decimalScale={2}
+                      decimalSeparator={separator}
+                      hideControls
+                      error={err('cost')}
+                    />
+                  )}
                 />
-              )}
-            />
-            <TextInput
-              label={t('fleet.documents.currency')}
-              placeholder="PLN"
-              maxLength={3}
-              autoComplete="off"
-              classNames={{ input: classes.mono }}
-              error={err('currency')}
-              {...register('currency')}
-            />
+                <TextInput
+                  label={t('document.currency')}
+                  placeholder="PLN"
+                  maxLength={3}
+                  autoComplete="off"
+                  classNames={{ input: classes.mono }}
+                  error={err('currency')}
+                  {...register('currency')}
+                />
+              </>
+            )}
             <Controller
               name="remindDays"
               control={control}
               render={({ field }) => (
                 <NumberInput
-                  label={t('fleet.documents.remind_days')}
+                  label={t('document.remind_days')}
                   value={field.value ?? ''}
                   onChange={(v) => field.onChange(toNumberInputValue(v))}
                   allowNegative={false}
@@ -191,24 +236,26 @@ function DocumentForm({ vehicleId, doc, onDone }: { vehicleId: string; doc: Vehi
   );
 }
 
-/** "Documents and deadlines" tab of the vehicle card: list for fleet.vehicle/view, changes for fleet.document/manage. */
-export function VehicleDocuments({ vehicleId }: { vehicleId: string }) {
+/**
+ * "Documents and deadlines" tab of a card (vehicle, driver): the list with deadline chips, and add / edit / delete
+ * for users who may manage them.
+ */
+export function DeadlineDocuments(props: DeadlineDocumentsProps) {
+  const { queryKey, invalidateKey, api, kindLabelPrefix, canManage } = props;
   const { t, i18n } = useTranslation();
-  const me = useUser();
   const qc = useQueryClient();
   const lang = i18n.resolvedLanguage ?? 'en';
-  const canManage = hasPrivilege(me, PRIV.FLEET_DOCUMENT_MANAGE);
-  const q = useQuery({ queryKey: [...VEHICLES_KEY, vehicleId, 'documents'], queryFn: () => fleetApi.documents(vehicleId) });
-  const [editing, setEditing] = useState<VehicleDocument | 'new' | null>(null);
+  const q = useQuery({ queryKey, queryFn: api.list });
+  const [editing, setEditing] = useState<DeadlineDocument | 'new' | null>(null);
   const [confirmId, setConfirmId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const remove = async (doc: VehicleDocument) => {
+  const remove = async (doc: DeadlineDocument) => {
     setBusy(true);
     try {
-      await fleetApi.removeDocument(vehicleId, doc.id);
-      await qc.invalidateQueries({ queryKey: VEHICLES_KEY });
-      notifications.show({ color: 'green', message: t('fleet.documents.deleted') });
+      await api.remove(doc.id);
+      await qc.invalidateQueries({ queryKey: invalidateKey });
+      notifications.show({ color: 'green', message: t('document.deleted') });
     } catch (e) {
       notifications.show({ color: 'red', message: t(errorCode(e)) });
     } finally {
@@ -223,36 +270,36 @@ export function VehicleDocuments({ vehicleId }: { vehicleId: string }) {
   }
   if (q.isError) return <ErrorState message={t(errorCode(q.error))} onRetry={() => void q.refetch()} />;
 
+  const form = (doc: DeadlineDocument | null) => <DocumentForm {...props} doc={doc} onDone={() => setEditing(null)} />;
+
   return (
     <Stack gap="sm">
       {canManage && editing === null && (
         <Group justify="flex-end">
           <Button size="xs" variant="default" leftSection={<IconPlus size={14} />} onClick={() => setEditing('new')}>
-            {t('fleet.documents.add')}
+            {t('document.add')}
           </Button>
         </Group>
       )}
-      {editing === 'new' && <DocumentForm vehicleId={vehicleId} doc={null} onDone={() => setEditing(null)} />}
-      {q.data.length === 0 && editing === null && <EmptyState text={t('fleet.documents.empty')} />}
+      {editing === 'new' && form(null)}
+      {q.data.length === 0 && editing === null && <EmptyState text={t('document.empty')} />}
       <ul className={classes.docs}>
         {q.data.map((d) =>
           editing !== null && editing !== 'new' && editing.id === d.id ? (
-            <li key={d.id}>
-              <DocumentForm vehicleId={vehicleId} doc={d} onDone={() => setEditing(null)} />
-            </li>
+            <li key={d.id}>{form(d)}</li>
           ) : (
             <li key={d.id} className={classes.doc}>
               <div className={classes.docText}>
-                <div className={classes.docTitle}>{t(`vehicle.document.${d.kind}`)}</div>
+                <div className={classes.docTitle}>{t(`${kindLabelPrefix}.${d.kind}`)}</div>
                 <div className={classes.docSub}>
-                  {[d.number, d.validTo && t('fleet.deadline.until', { date: formatDate(d.validTo, lang) })]
+                  {[d.number, d.validTo && t('deadline.until', { date: formatDate(d.validTo, lang) })]
                     .filter(Boolean)
                     .join(' · ') || DASH}
                 </div>
                 {confirmId === d.id && (
                   <Alert color="red" variant="light" p="xs" mt={6}>
                     <Group gap="xs" justify="space-between">
-                      <Text size="sm">{t('fleet.documents.delete_confirm')}</Text>
+                      <Text size="sm">{t('document.delete_confirm')}</Text>
                       <Group gap={6}>
                         <Button size="xs" color="red" onClick={() => void remove(d)} loading={busy}>
                           {t('common.confirm')}
@@ -273,11 +320,11 @@ export function VehicleDocuments({ vehicleId }: { vehicleId: string }) {
                       <IconPencil size={16} />
                     </ActionIcon>
                   </Tooltip>
-                  <Tooltip label={t('fleet.delete')}>
+                  <Tooltip label={t('common.delete')}>
                     <ActionIcon
                       variant="subtle"
                       color="red"
-                      aria-label={t('fleet.delete')}
+                      aria-label={t('common.delete')}
                       onClick={() => setConfirmId(d.id)}
                       disabled={busy}
                     >
