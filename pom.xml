@@ -27,6 +27,8 @@
         <module>common</module>
         <!-- core: the Spring Boot application (web, security, internal frontend API) -->
         <module>core</module>
+        <!-- tacho: DDD parser for tachograph driver cards and vehicle units (plain Java, no Spring) -->
+        <module>tacho</module>
         <!-- later: ai-access (public API + MCP, paid module), cloud (registration, billing) -->
     </modules>
 
@@ -41,6 +43,11 @@
             <dependency>
                 <groupId>com.rutera</groupId>
                 <artifactId>rutera-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rutera</groupId>
+                <artifactId>rutera-tacho</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

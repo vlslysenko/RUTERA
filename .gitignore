@@ -20,3 +20,15 @@ conf/*.local.properties
 # Node (frontend, later)
 node_modules/
 dist/
+
+# Tachograph downloads hold personal data: never commit them (tests read them from ../tacho-samples)
+*.ddd
+*.DDD
+*.esm
+*.ESM
+*.tgd
+*.TGD
+*.c1b
+*.C1B
+*.v1b
+*.V1B

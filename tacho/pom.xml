@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.rutera</groupId>
+        <artifactId>rutera-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>rutera-tacho</artifactId>
+    <name>RUTERA tacho</name>
+    <description>Parser of tachograph DDD files: driver cards and vehicle units, generations 1, 2 and 2 version 2
+        (Regulation (EU) 2016/799, Annex IB and IC). Plain Java without Spring, used by core for the import.</description>
+
+    <properties>
+        <!-- Real DDD files hold personal data and never go into the repository. RealSamplesTest reads every file
+             of this directory if it exists (by default next to the clone, outside the working tree) and is skipped
+             otherwise: mvn -pl tacho test -Drutera.tacho.samples=/path/to/files -->
+        <rutera.tacho.samples>${project.basedir}/../../tacho-samples</rutera.tacho.samples>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <rutera.tacho.samples>${rutera.tacho.samples}</rutera.tacho.samples>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
