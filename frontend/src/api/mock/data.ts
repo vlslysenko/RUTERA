@@ -28,8 +28,8 @@ const T0 = '2026-10-01T08:00:00Z';
 export const MOCK_USERS: MockUser[] = [
   { id: 1, login: 'owner', password: 'owner', firstName: 'Anna', lastName: 'Kowalska', role: 'OWNER', language: 'pl', phone: '+48 600 100 100', active: true, locked: false, failedLogins: 0, deleted: false, createdAt: T0, updatedAt: T0 },
   { id: 2, login: 'dispatcher', password: 'dispatcher', firstName: 'Piotr', lastName: 'Nowak', role: 'DISPATCHER', language: 'pl', phone: '+48 600 100 200', active: true, locked: false, failedLogins: 0, deleted: false, createdAt: T0, updatedAt: T0 },
-  { id: 3, login: 'logistician', password: 'logistician', firstName: 'Oleh', lastName: 'Shevchenko', role: 'LOGISTICIAN', language: 'uk', phone: null, active: true, locked: false, failedLogins: 0, deleted: false, createdAt: T0, updatedAt: T0 },
-  { id: 4, login: 'accountant', password: 'accountant', firstName: 'Ewa', lastName: 'Zielinska', role: 'ACCOUNTANT', language: 'pl', phone: null, active: true, locked: true, failedLogins: 5, deleted: false, createdAt: T0, updatedAt: T0 },
+  { id: 3, login: 'logistician', password: 'logistician', firstName: 'Oleh', lastName: 'Shevchenko', role: 'LOGISTICIAN', language: 'uk', phone: null, active: true, locked: false, failedLogins: 2, deleted: false, createdAt: T0, updatedAt: T0 },
+  { id: 4, login: 'accountant', password: 'accountant', firstName: 'Ewa', lastName: 'Zielinska', role: 'ACCOUNTANT', language: 'pl', phone: null, active: true, locked: true, failedLogins: 0, deleted: false, createdAt: T0, updatedAt: T0 },
   { id: 5, login: 'driver', password: 'driver', firstName: 'Jan', lastName: 'Kowalski', role: 'DRIVER', language: 'pl', phone: '+48 600 100 500', active: false, locked: false, failedLogins: 0, deleted: false, createdAt: T0, updatedAt: T0 },
 ];
 

@@ -63,15 +63,16 @@ export interface AdminUser {
   id: number;
   login: string;
   firstName: string;
+  /** Empty string when not set (the backend never sends null here). */
   lastName: string | null;
-  /** "Last First" as shown in lists. */
+  /** "First Last" as shown in lists; the list itself is sorted by last name. */
   name: string;
   role: Role;
   customRoleId: number | null;
   phone: string | null;
   language: LanguageCode;
   active: boolean;
-  /** Temporarily locked after too many failed sign-ins. */
+  /** Temporarily locked after too many failed sign-ins (the lock resets failedLogins to 0). */
   locked: boolean;
   failedLogins: number;
   createdAt: string;

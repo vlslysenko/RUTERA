@@ -58,8 +58,9 @@ function readSettings(): Record<string, UserSettingsPatch> {
   }
 }
 
+/** Same as AppUser.getFullName on the backend: "First Last". */
 function fullName(u: MockUser): string {
-  return `${u.lastName} ${u.firstName}`.trim();
+  return `${u.firstName} ${u.lastName}`.trim();
 }
 
 function toUser(u: MockUser): User {
@@ -81,7 +82,7 @@ function toAdminUser(u: MockUser): AdminUser {
     id: u.id,
     login: u.login,
     firstName: u.firstName,
-    lastName: u.lastName || null,
+    lastName: u.lastName,
     name: fullName(u),
     role: u.role,
     customRoleId: null,
@@ -189,7 +190,10 @@ function findUser(id: string): MockUser | undefined {
 
 route('GET', '/app/admin/users', withPrivilege('admin.user/view', () => ({
   status: 200,
-  body: users.filter((u) => !u.deleted).map(toAdminUser).sort((a, b) => a.name.localeCompare(b.name)),
+  body: users
+    .filter((u) => !u.deleted)
+    .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName))
+    .map(toAdminUser),
 })));
 
 route('GET', '/app/admin/users/:id', withPrivilege('admin.user/view', (_u, req) => {

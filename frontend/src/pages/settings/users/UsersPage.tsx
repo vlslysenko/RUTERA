@@ -1,7 +1,7 @@
 import { Outlet, useNavigate, useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Group, Paper, Table, Text, Title } from '@mantine/core';
-import { IconBan, IconCheck, IconLock, IconPlus } from '@tabler/icons-react';
+import { IconAlertTriangle, IconBan, IconCheck, IconLock, IconPlus } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ADMIN_USERS_KEY, adminUsersApi } from '@/api/admin';
 import { errorCode } from '@/api/errors';
@@ -16,7 +16,10 @@ import { languageName } from '@/i18n/languages';
 import { cx } from '@/utils/cx';
 import classes from './UsersPage.module.css';
 
-/** Status = shape + color + word: active / inactive, plus a lock chip with the failed sign-in count. */
+/**
+ * Status = shape + color + word: active / inactive, plus a lock chip. The backend resets the failure counter when
+ * it locks an account, so the count is shown only for unlocked users who have failed sign-ins.
+ */
 export function UserStatusChips({ user }: { user: AdminUser }) {
   const { t } = useTranslation();
   return (
@@ -30,11 +33,16 @@ export function UserStatusChips({ user }: { user: AdminUser }) {
           {t('users.inactive')}
         </StatusChip>
       )}
-      {user.locked && (
+      {user.locked ? (
         <StatusChip tone="warn" icon={<IconLock stroke={2.2} />}>
           {t('users.locked')}
-          {user.failedLogins > 0 ? ` · ${user.failedLogins}` : ''}
         </StatusChip>
+      ) : (
+        user.failedLogins > 0 && (
+          <StatusChip tone="neutral" icon={<IconAlertTriangle stroke={2.2} />}>
+            {t('users.failed_logins')}: {user.failedLogins}
+          </StatusChip>
+        )
       )}
     </Group>
   );
