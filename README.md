@@ -145,8 +145,39 @@ and is unique among the firma's non-deleted vehicles regardless of case, spaces 
 fleet.vehicle.plate_taken`). The VIN loses its spaces and is upper-cased (letters and digits, up to 17). Trailers
 have no engine: the server stores `tachoGen` NONE and drops fuel, consumption, odometer, driver and trailer. A
 default trailer must be a non-deleted trailer of the firma; deleting a trailer detaches it from its tractors.
-`defaultDriverId` must be null until the driver module exists. `nextDocument` is the document with the earliest
-`validTo`, expired ones included. Changes are written to `audit_log` (module `fleet`).
+`defaultDriverId` must be a non-deleted driver of the firma (`defaultDriver: {id, name}`); this link is the only
+place where a driver's usual vehicle is stored. `nextDocument` is the document with the earliest `validTo`, expired
+ones included. Changes are written to `audit_log` (module `fleet`).
+
+### Drivers (`/app/drivers`, privileges `driver.driver/view` and `driver.driver/manage`)
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/drivers` | `Driver[]` of the own firma, sorted by last and first name; deleted drivers excluded |
+| GET | `/app/drivers/{id}` | `Driver`; 404 for unknown ids and drivers of other firmas |
+| POST | `/app/drivers` | `DriverInput` -> 201 `Driver` (manage) |
+| PUT | `/app/drivers/{id}` | `DriverInput` (full replacement, card included) -> `Driver` (manage) |
+| DELETE | `/app/drivers/{id}` | 204: soft delete; detached from vehicles, card number freed, login unlinked (manage) |
+| GET | `/app/drivers/{id}/documents` | `DriverDocument[]`, nearest `validTo` first, without deadline last (view) |
+| POST | `/app/drivers/{id}/documents` | `DriverDocumentInput` -> 201 `DriverDocument` (manage) |
+| PUT | `/app/drivers/{id}/documents/{docId}` | `DriverDocumentInput` (full replacement) -> `DriverDocument` (manage) |
+| DELETE | `/app/drivers/{id}/documents/{docId}` | 204 (physical delete, manage) |
+
+`Driver = {id, firstName, lastName, name, birthDate, phone, email, country, employmentFrom, employmentTo,
+status: ACTIVE | INACTIVE, defaultVehicle: {id, plate} | null, card: {cardNumber, issuingCountry, validTo,
+lastDownloadAt} | null, user: {id, login} | null, notes, nextDocument: {kind, validTo} | null, createdAt,
+updatedAt}`. `DriverInput = {firstName, lastName, birthDate?, phone?, email?, country?, employmentFrom?,
+employmentTo?, status?, notes?, cardNumber?, cardIssuingCountry?, cardValidTo?}`. `DriverDocument = {id, kind,
+number, validFrom, validTo, remindDays}` with `kind` one of `LICENSE, CPC_CODE95, MEDICAL, PSYCHO, ADR, PASSPORT,
+VISA, WORK_PERMIT, OTHER`; input `{kind, number?, validFrom?, validTo?, remindDays?}` (0..365, default 30).
+
+Rules: first and last name are required (up to 100); `country` and `cardIssuingCountry` are ISO alpha-2,
+upper-cased; `email` must look like an address; `employmentTo` / `validTo` may not lie before their start. The
+card is edited with the driver: an empty `cardNumber` removes it, a new number overwrites it and resets
+`lastDownloadAt` (written by the DDD import later); the number loses spaces and hyphens, is upper-cased, and is
+unique in the firma (`cardNumber: driver.card.number_taken`). `defaultVehicle` is the first vehicle (by plate)
+whose `defaultDriverId` is this driver. `nextDocument` is the earliest `validTo` among the documents and the card
+(`kind: DRIVER_CARD`). Changes are written to `audit_log` (module `driver`).
 
 Service and controller methods are guarded with `@RequiresPrivilege("module.entity/action")` (AOP, module
 `core.security`); the effective set = role defaults + custom role + per-user overrides, computed at login. Every

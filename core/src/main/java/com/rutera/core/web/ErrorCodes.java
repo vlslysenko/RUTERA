@@ -35,6 +35,8 @@ public final class ErrorCodes {
 
     /** Fleet (per-field): another non-deleted vehicle of the firma has this plate. */
     public static final String VEHICLE_PLATE_TAKEN = "fleet.vehicle.plate_taken";
+    /** Drivers (per-field): another driver of the firma has this tachograph card. */
+    public static final String DRIVER_CARD_TAKEN = "driver.card.number_taken";
 
     private ErrorCodes() {
     }

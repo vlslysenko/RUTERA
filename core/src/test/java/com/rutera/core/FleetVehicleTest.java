@@ -117,7 +117,7 @@ class FleetVehicleTest extends AbstractIntegrationTest {
         Map<String, Object> bad = vehicle("SPACESHIP", "KR 1001");
         bad.put("euroClass", "EURO_9");
         bad.put("axles", 0);
-        bad.put("defaultDriverId", 1);
+        bad.put("defaultDriverId", 999_999);
         bad.put("defaultTrailerId", truck);
         bad.put("vin", "VIN!");
         MvcResult res = c.post("/app/fleet/vehicles", bad);

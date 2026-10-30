@@ -18,6 +18,14 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     List<Vehicle> findByIdInAndDeletedFalse(Iterable<Long> ids);
 
+    /** Non-deleted vehicles whose default driver is one of the given drivers, by plate. */
+    List<Vehicle> findByDefaultDriverIdInAndDeletedFalseOrderByPlateAsc(Iterable<Long> driverIds);
+
+    /** Detaches a driver who is being deleted from the vehicles that have them as default driver. */
+    @Modifying
+    @Query("update Vehicle v set v.defaultDriverId = null where v.defaultDriverId = :driverId")
+    int clearDefaultDriver(@Param("driverId") Long driverId);
+
     /** Detaches a trailer that is being deleted from the vehicles that use it by default. */
     @Modifying
     @Query("update Vehicle v set v.defaultTrailerId = null where v.defaultTrailerId = :trailerId")

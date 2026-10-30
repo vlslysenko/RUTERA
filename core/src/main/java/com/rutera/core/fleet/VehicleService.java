@@ -1,16 +1,18 @@
 package com.rutera.core.fleet;
 
+import com.rutera.common.domain.Driver;
 import com.rutera.common.domain.Vehicle;
 import com.rutera.common.domain.VehicleDocument;
+import com.rutera.common.repository.DriverRepository;
 import com.rutera.common.repository.VehicleDocumentRepository;
 import com.rutera.common.repository.VehicleRepository;
 import com.rutera.common.security.Privileges;
 import com.rutera.common.security.RequiresPrivilege;
 import com.rutera.core.audit.AuditEvent;
 import com.rutera.core.audit.AuditService;
-import com.rutera.core.security.CurrentUser;
 import com.rutera.core.web.ApiException;
 import com.rutera.core.web.ErrorCodes;
+import com.rutera.core.web.InputFields;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,11 +54,14 @@ public class VehicleService {
 
     private final VehicleRepository vehicles;
     private final VehicleDocumentRepository documents;
+    private final DriverRepository drivers;
     private final AuditService audit;
 
-    public VehicleService(VehicleRepository vehicles, VehicleDocumentRepository documents, AuditService audit) {
+    public VehicleService(VehicleRepository vehicles, VehicleDocumentRepository documents, DriverRepository drivers,
+                          AuditService audit) {
         this.vehicles = vehicles;
         this.documents = documents;
+        this.drivers = drivers;
         this.audit = audit;
     }
 
@@ -76,8 +81,12 @@ public class VehicleService {
                 next.putIfAbsent(d.getVehicleId(), d);
             }
         }
+        List<Long> driverIds = all.stream().map(Vehicle::getDefaultDriverId).filter(Objects::nonNull).toList();
+        Map<Long, Driver> driverOf = driverIds.isEmpty() ? Map.of() : drivers.findByIdInAndDeletedFalse(driverIds)
+                .stream().collect(Collectors.toMap(Driver::getId, Function.identity()));
         return all.stream()
                 .map(v -> VehicleDto.of(v, v.getDefaultTrailerId() == null ? null : byId.get(v.getDefaultTrailerId()),
+                        v.getDefaultDriverId() == null ? null : driverOf.get(v.getDefaultDriverId()),
                         next.get(v.getId())))
                 .toList();
     }
@@ -206,19 +215,17 @@ public class VehicleService {
 
     /** The fleet is firma-scoped; the service superuser has no firma and therefore no fleet. */
     private static Long actorFirmaId() {
-        Long firmaId = CurrentUser.require().firmaId();
-        if (firmaId == null) {
-            throw ApiException.forbidden(ErrorCodes.ACCESS_DENIED);
-        }
-        return firmaId;
+        return InputFields.requireFirmaId();
     }
 
     private VehicleDto toDto(Vehicle vehicle) {
         Vehicle trailer = vehicle.getDefaultTrailerId() == null ? null
                 : vehicles.findByIdAndDeletedFalse(vehicle.getDefaultTrailerId()).orElse(null);
+        Driver driver = vehicle.getDefaultDriverId() == null ? null
+                : drivers.findByIdAndDeletedFalse(vehicle.getDefaultDriverId()).orElse(null);
         VehicleDocument next = documents.findByVehicleIdInAndValidToNotNullOrderByValidToAscIdAsc(
                 List.of(vehicle.getId())).stream().findFirst().orElse(null);
-        return VehicleDto.of(vehicle, trailer, next);
+        return VehicleDto.of(vehicle, trailer, driver, next);
     }
 
     /** Validates the input and copies it onto the vehicle; 422 with per-field codes on the first problem per field. */
@@ -233,10 +240,7 @@ public class VehicleService {
         Vehicle.Status status = parse(Vehicle.Status.class, "status", in.status(), false, errors);
         boolean trailer = kind != null && kind.isTrailer();
         Long trailerId = trailer ? null : checkTrailer(vehicle, in.defaultTrailerId(), errors);
-        if (!trailer && in.defaultDriverId() != null) {
-            // No driver can be chosen yet: the driver module (group 3) comes later.
-            errors.put("defaultDriverId", ErrorCodes.FIELD_INVALID_VALUE);
-        }
+        Long driverId = trailer ? null : checkDriver(in.defaultDriverId(), errors);
         if (plate != null && plateTaken(plate, vehicle.getId())) {
             errors.put("plate", ErrorCodes.VEHICLE_PLATE_TAKEN);
         }
@@ -258,7 +262,7 @@ public class VehicleService {
         vehicle.setFuelType(trailer ? null : fuelType);
         vehicle.setAvgL100km(trailer ? null : scale2(in.avgL100km()));
         vehicle.setOdometerKm(trailer ? null : in.odometerKm());
-        vehicle.setDefaultDriverId(null);
+        vehicle.setDefaultDriverId(driverId);
         vehicle.setDefaultTrailerId(trailerId);
     }
 
@@ -302,6 +306,21 @@ public class VehicleService {
             return null;
         }
         return trailerId;
+    }
+
+    /** A default driver must be a non-deleted driver of the same firma. */
+    private Long checkDriver(Long driverId, Map<String, String> errors) {
+        if (driverId == null) {
+            return null;
+        }
+        boolean ok = drivers.findByIdAndDeletedFalse(driverId)
+                .filter(d -> d.getFirmaId().equals(actorFirmaId()))
+                .isPresent();
+        if (!ok) {
+            errors.put("defaultDriverId", ErrorCodes.FIELD_INVALID_VALUE);
+            return null;
+        }
+        return driverId;
     }
 
     private boolean plateTaken(String plate, Long ownId) {

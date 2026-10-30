@@ -1,5 +1,6 @@
 package com.rutera.core.fleet;
 
+import com.rutera.common.domain.Driver;
 import com.rutera.common.domain.Vehicle;
 import com.rutera.common.domain.VehicleDocument;
 
@@ -43,14 +44,14 @@ public record VehicleDto(
 
     /**
      * @param trailer       the default trailer, already loaded (or null)
+     * @param driver        the default driver, already loaded (or null)
      * @param nextDocument  the document with the nearest {@code validTo} (or null)
      */
-    public static VehicleDto of(Vehicle v, Vehicle trailer, VehicleDocument nextDocument) {
-        // defaultDriver stays null until the driver module (group 3) exists.
+    public static VehicleDto of(Vehicle v, Vehicle trailer, Driver driver, VehicleDocument nextDocument) {
         return new VehicleDto(v.getId(), v.getKind(), v.getPlate(), v.getVin(), v.getMake(), v.getModel(),
                 v.getEuroClass(), v.getAxles(), v.getGrossWeightKg(), v.getHeightMm(), v.getAvgL100km(),
                 v.getFuelType(), v.getTachoGen(), v.getOdometerKm(), v.getStatus(),
-                null,
+                driver == null ? null : new DriverRef(driver.getId(), driver.getFullName()),
                 trailer == null ? null : new VehicleRef(trailer.getId(), trailer.getPlate()),
                 v.getLastVuDownloadAt(),
                 nextDocument == null ? null : new Deadline(nextDocument.getKind(), nextDocument.getValidTo()),
