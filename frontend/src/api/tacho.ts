@@ -21,9 +21,13 @@ export type TachoGeneration = 'GEN1' | 'GEN2' | 'GEN2V2';
 export type TachoMatch = 'CARD_NUMBER' | 'DRIVER_IDENTIFICATION' | 'VIN' | 'PLATE' | 'MANUAL' | 'NONE';
 export type TachoImportStatus = 'IMPORTED' | 'DUPLICATE' | 'REJECTED';
 
-/** Limits of one upload request (the backend checks them too). */
+/**
+ * Limits the backend checks: 50 files per request, 20 MB per file, and a request over 25 MB is refused as a whole
+ * (413 tacho.file.too_large). The client splits larger selections into several requests of at most 24 MB.
+ */
 export const TACHO_MAX_FILES = 50;
 export const TACHO_MAX_BYTES = 20 * 1024 * 1024;
+export const TACHO_MAX_REQUEST_BYTES = 24 * 1024 * 1024;
 
 /** How often files must be downloaded: driver cards every 28 days, vehicle units every 90 days. */
 export const CARD_DOWNLOAD_DAYS = 28;
@@ -54,9 +58,10 @@ export interface TachoFile {
   uploadedAt: string;
 }
 
+/** Holder of the card as written in the file; names may be missing in damaged files. */
 export interface TachoCardSuggestion {
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
   birthDate: string | null;
   cardNumber: string;
   cardIssuingCountry: string;
@@ -101,7 +106,7 @@ export interface TachoFileFilter {
   driverId?: number;
   vehicleId?: number;
   unassigned?: boolean;
-  /** YYYY-MM-DD, upload date */
+  /** YYYY-MM-DD: files whose period overlaps from..to */
   from?: string;
   to?: string;
   page?: number;

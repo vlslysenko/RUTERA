@@ -12,6 +12,7 @@ import {
   TACHO_FILES_KEY,
   TACHO_MAX_BYTES,
   TACHO_MAX_FILES,
+  TACHO_MAX_REQUEST_BYTES,
   tachoApi,
   type TachoFile,
   type TachoImportStatus,
@@ -32,6 +33,27 @@ interface ResultRow {
 let rowSeq = 0;
 
 /**
+ * Splits a selection into requests the backend accepts: at most TACHO_MAX_FILES files and TACHO_MAX_REQUEST_BYTES
+ * per request (a larger request is refused as a whole), so any number of files can be dropped at once.
+ */
+function toRequests<T extends { file: File }>(items: T[]): T[][] {
+  const out: T[][] = [];
+  let cur: T[] = [];
+  let bytes = 0;
+  for (const it of items) {
+    if (cur.length > 0 && (cur.length >= TACHO_MAX_FILES || bytes + it.file.size > TACHO_MAX_REQUEST_BYTES)) {
+      out.push(cur);
+      cur = [];
+      bytes = 0;
+    }
+    cur.push(it);
+    bytes += it.file.size;
+  }
+  if (cur.length > 0) out.push(cur);
+  return out;
+}
+
+/**
  * Drop zone for many card and vehicle unit files at once, then one result row per file (imported, already
  * uploaded, rejected with the reason). The rows of earlier batches stay until "Clear".
  */
@@ -47,40 +69,39 @@ export function TachoUpload() {
 
   const upload = async (list: File[]) => {
     if (list.length === 0) return;
-    if (list.length > TACHO_MAX_FILES) {
-      notifications.show({ color: 'red', message: t('tacho.file.too_many') });
-      return;
-    }
     // Files over the limit are not sent at all; the backend would reject them anyway.
-    const batch: ResultRow[] = list.map((f) => ({
-      key: `r${++rowSeq}`,
-      fileName: f.name,
-      status: f.size > TACHO_MAX_BYTES ? 'REJECTED' : 'UPLOADING',
-      file: null,
-      errorCode: f.size > TACHO_MAX_BYTES ? 'tacho.file.too_large' : null,
-    }));
-    setRows((prev) => [...batch, ...prev]);
-    const toSend = list.filter((f) => f.size <= TACHO_MAX_BYTES);
-    const sentKeys = batch.filter((r) => r.status === 'UPLOADING').map((r) => r.key);
-    if (toSend.length === 0) return;
-    try {
-      const results = await tachoApi.upload(toSend);
-      const byKey = new Map(sentKeys.map((k, i) => [k, results[i]]));
-      setRows((prev) =>
-        prev.map((r) => {
-          const res = byKey.get(r.key);
-          return res ? { ...r, status: res.status, file: res.file, errorCode: res.error?.code ?? null } : r;
-        }),
-      );
-      await qc.invalidateQueries({ queryKey: TACHO_FILES_KEY });
-      // Imports move lastDownloadAt of driver cards and vehicles.
-      void qc.invalidateQueries({ queryKey: DRIVERS_KEY });
-      void qc.invalidateQueries({ queryKey: VEHICLES_KEY });
-    } catch (e) {
-      const code = errorCode(e);
-      setRows((prev) => prev.map((r) => (sentKeys.includes(r.key) ? { ...r, status: 'REJECTED', errorCode: code } : r)));
-      notifications.show({ color: 'red', message: t(code) });
+    const items = list.map((file) => ({ file, key: `r${++rowSeq}`, tooBig: file.size > TACHO_MAX_BYTES }));
+    setRows((prev) => [
+      ...items.map<ResultRow>((it) => ({
+        key: it.key,
+        fileName: it.file.name,
+        status: it.tooBig ? 'REJECTED' : 'UPLOADING',
+        file: null,
+        errorCode: it.tooBig ? 'tacho.file.too_large' : null,
+      })),
+      ...prev,
+    ]);
+    for (const request of toRequests(items.filter((it) => !it.tooBig))) {
+      const keys = request.map((it) => it.key);
+      try {
+        const results = await tachoApi.upload(request.map((it) => it.file));
+        const byKey = new Map(keys.map((k, i) => [k, results[i]]));
+        setRows((prev) =>
+          prev.map((r) => {
+            const res = byKey.get(r.key);
+            return res ? { ...r, status: res.status, file: res.file, errorCode: res.error?.code ?? null } : r;
+          }),
+        );
+      } catch (e) {
+        const code = errorCode(e);
+        setRows((prev) => prev.map((r) => (keys.includes(r.key) ? { ...r, status: 'REJECTED', errorCode: code } : r)));
+        notifications.show({ color: 'red', message: t(code) });
+      }
     }
+    await qc.invalidateQueries({ queryKey: TACHO_FILES_KEY });
+    // Imports move lastDownloadAt of driver cards and vehicles.
+    void qc.invalidateQueries({ queryKey: DRIVERS_KEY });
+    void qc.invalidateQueries({ queryKey: VEHICLES_KEY });
   };
 
   const onDrop = (e: DragEvent<HTMLDivElement>) => {

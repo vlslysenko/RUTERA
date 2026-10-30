@@ -190,10 +190,11 @@ export function UserDetail({ mode }: { mode: 'drawer' | 'page' }) {
     setBusy(true);
     try {
       await adminUsersApi.remove(user.id);
-      qc.removeQueries({ queryKey: [...ADMIN_USERS_KEY, id] });
-      await invalidate();
       notifications.show({ color: 'green', message: t('users.deleted') });
+      // Leave the card and refresh everything except the deleted user: its own queries would answer 404 (the cache
+      // entry goes away by itself once the card is unmounted).
       await navigate(LIST_PATH, { replace: true });
+      void qc.invalidateQueries({ queryKey: ADMIN_USERS_KEY, predicate: (q) => q.queryKey[ADMIN_USERS_KEY.length] !== id });
     } catch (e) {
       fail(e);
       setConfirmDelete(false);

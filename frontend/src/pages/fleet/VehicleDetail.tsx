@@ -138,10 +138,11 @@ export function VehicleDetail({ mode }: { mode: 'drawer' | 'page' }) {
     setBusy(true);
     try {
       await fleetApi.remove(id);
-      qc.removeQueries({ queryKey: [...VEHICLES_KEY, id] });
-      await qc.invalidateQueries({ queryKey: VEHICLES_KEY });
       notifications.show({ color: 'green', message: t('fleet.deleted') });
+      // Leave the card and refresh everything except the deleted vehicle: its own queries would answer 404 (the cache
+      // entry goes away by itself once the card is unmounted).
       await navigate('/fleet', { replace: true });
+      void qc.invalidateQueries({ queryKey: VEHICLES_KEY, predicate: (q) => q.queryKey[VEHICLES_KEY.length] !== id });
     } catch (e) {
       notifications.show({ color: 'red', message: t(errorCode(e)) });
       setConfirmDelete(false);

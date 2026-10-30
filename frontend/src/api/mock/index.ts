@@ -517,8 +517,9 @@ route('GET', '/app/tacho/files', withAuth((u, { query }) => {
     .filter((f) => !query.driverId || String(f.driver?.id) === query.driverId)
     .filter((f) => !query.vehicleId || String(f.vehicle?.id) === query.vehicleId)
     .filter((f) => query.unassigned !== 'true' || (!f.driver && !f.vehicle))
-    .filter((f) => !query.from || f.uploadedAt.slice(0, 10) >= query.from)
-    .filter((f) => !query.to || f.uploadedAt.slice(0, 10) <= query.to)
+    // Same as the backend: files whose period overlaps from..to.
+    .filter((f) => !query.from || (f.periodTo ?? f.periodFrom ?? '') >= query.from)
+    .filter((f) => !query.to || (f.periodFrom ?? f.periodTo ?? '9999') <= query.to)
     .sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt) || b.id - a.id);
   return { status: 200, body: { items: items.slice(page * size, (page + 1) * size).map(toTachoFile), total: items.length } };
 }));
@@ -561,8 +562,8 @@ route('POST', '/app/tacho/files/:id/driver', withPrivilege('tacho.file/upload', 
   const now = new Date().toISOString();
   const created: MockDriver = {
     id: Math.max(...drivers.map((x) => x.id)) + 1,
-    firstName: s.firstName,
-    lastName: s.lastName,
+    firstName: s.firstName ?? '',
+    lastName: s.lastName ?? s.cardNumber,
     birthDate: s.birthDate,
     phone: null,
     email: null,

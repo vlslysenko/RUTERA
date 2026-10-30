@@ -102,7 +102,7 @@ function Assignment({ f }: { f: Detail }) {
   const s = f.suggestion;
   const suggestionText = s
     ? isCardSuggestion(s)
-      ? [`${s.firstName} ${s.lastName}`, s.cardNumber].join(' · ')
+      ? [[s.firstName, s.lastName].filter(Boolean).join(' '), s.cardNumber].filter(Boolean).join(' · ')
       : [s.plate, s.vin].filter(Boolean).join(' · ')
     : null;
 
@@ -176,12 +176,14 @@ export function TachoFileDetail({ mode }: { mode: 'drawer' | 'page' }) {
     setBusy(true);
     try {
       await tachoApi.remove(id);
-      qc.removeQueries({ queryKey: [...TACHO_FILES_KEY, id] });
-      await qc.invalidateQueries({ queryKey: TACHO_FILES_KEY });
+      notifications.show({ color: 'green', message: t('tacho.deleted') });
+      // Leave the card and refresh everything except the deleted file: its own queries would answer 404 (the cache
+      // entry goes away by itself once the card is unmounted).
+      await navigate('/tacho', { replace: true });
+      void qc.invalidateQueries({ queryKey: TACHO_FILES_KEY, predicate: (q) => q.queryKey[TACHO_FILES_KEY.length] !== id });
+      // lastDownloadAt is recomputed from the remaining files.
       void qc.invalidateQueries({ queryKey: DRIVERS_KEY });
       void qc.invalidateQueries({ queryKey: VEHICLES_KEY });
-      notifications.show({ color: 'green', message: t('tacho.deleted') });
-      await navigate('/tacho', { replace: true });
     } catch (e) {
       notifications.show({ color: 'red', message: t(errorCode(e)) });
       setConfirmDelete(false);

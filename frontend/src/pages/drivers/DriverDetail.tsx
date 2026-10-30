@@ -108,12 +108,13 @@ export function DriverDetail({ mode }: { mode: 'drawer' | 'page' }) {
     setBusy(true);
     try {
       await driversApi.remove(id);
-      qc.removeQueries({ queryKey: [...DRIVERS_KEY, id] });
-      await qc.invalidateQueries({ queryKey: DRIVERS_KEY });
+      notifications.show({ color: 'green', message: t('drivers.deleted') });
+      // Leave the card and refresh everything except the deleted driver: its own queries would answer 404 (the cache
+      // entry goes away by itself once the card is unmounted).
+      await navigate('/drivers', { replace: true });
+      void qc.invalidateQueries({ queryKey: DRIVERS_KEY, predicate: (q) => q.queryKey[DRIVERS_KEY.length] !== id });
       // Vehicles lose him as their default driver.
       void qc.invalidateQueries({ queryKey: VEHICLES_KEY });
-      notifications.show({ color: 'green', message: t('drivers.deleted') });
-      await navigate('/drivers', { replace: true });
     } catch (e) {
       notifications.show({ color: 'red', message: t(errorCode(e)) });
       setConfirmDelete(false);
