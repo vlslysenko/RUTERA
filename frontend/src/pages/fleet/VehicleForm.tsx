@@ -23,6 +23,7 @@ import {
 import { DetailDrawer } from '@/components/DetailDrawer';
 import { ErrorState } from '@/components/ErrorState';
 import { Plate } from '@/components/Plate';
+import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
 import classes from './VehicleDetail.module.css';
 
@@ -33,8 +34,6 @@ const VIN_RE = /^[A-Z0-9]{1,17}$/;
 const vinOf = (v: string) => v.replace(/\s+/g, '').toUpperCase();
 
 const text = (max: number) => z.string().trim().max(max, 'validation.too_long');
-const amount = (min: number, max: number) =>
-  z.number().min(min, 'validation.invalid_value').max(max, 'validation.invalid_value').nullable();
 
 const schema = z.object({
   kind: z.enum(VEHICLE_KINDS),
@@ -48,20 +47,22 @@ const schema = z.object({
   vin: z.string().refine((v) => vinOf(v) === '' || VIN_RE.test(vinOf(v)), 'validation.invalid_format'),
   make: text(60),
   model: text(60),
-  axles: z.number().int('validation.invalid_value').min(1, 'validation.invalid_value').max(10, 'validation.invalid_value').nullable(),
-  grossWeightKg: amount(1, 100_000),
-  heightM: amount(0.5, 6),
+  axles: numberField(1, 10, { integer: true }),
+  grossWeightKg: numberField(1, 100_000, { integer: true }),
+  heightM: numberField(0.5, 6),
   euroClass: z.enum(EURO_CLASSES).nullable(),
   fuelType: z.enum(FUEL_TYPES).nullable(),
-  avgL100km: amount(0, 999.99),
+  avgL100km: numberField(0, 999.99),
   tachoGen: z.enum(TACHO_GENS),
-  odometerKm: amount(0, 99_999_999),
+  odometerKm: numberField(0, 99_999_999, { integer: true }),
   defaultTrailerId: z.string().nullable(),
 });
 
-type FormValues = z.infer<typeof schema>;
+/** What the inputs hold (numbers may be unfinished strings) and what validation produces. */
+type FormInput = z.input<typeof schema>;
+type FormValues = z.output<typeof schema>;
 
-const FIELDS: readonly FieldPath<FormValues>[] = [
+const FIELDS: readonly FieldPath<FormInput>[] = [
   'kind',
   'status',
   'plate',
@@ -79,7 +80,7 @@ const FIELDS: readonly FieldPath<FormValues>[] = [
   'defaultTrailerId',
 ];
 
-const EMPTY: FormValues = {
+const EMPTY: FormInput = {
   kind: 'TRACTOR',
   status: 'ACTIVE',
   plate: '',
@@ -97,7 +98,7 @@ const EMPTY: FormValues = {
   defaultTrailerId: null,
 };
 
-function toFormValues(v: Vehicle): FormValues {
+function toFormValues(v: Vehicle): FormInput {
   return {
     kind: v.kind,
     status: v.status,
@@ -143,11 +144,6 @@ function toInput(f: FormValues, current: Vehicle | undefined): VehicleInput {
   };
 }
 
-/** Decimal separator of the UI language, so "29,8" can be typed in Polish and "29.8" in English. */
-function decimalSeparator(lang: string): string {
-  return new Intl.NumberFormat(lang).formatToParts(1.5).find((p) => p.type === 'decimal')?.value ?? '.';
-}
-
 type NumberField = 'axles' | 'grossWeightKg' | 'heightM' | 'avgL100km' | 'odometerKm';
 
 function NumberField({
@@ -157,7 +153,7 @@ function NumberField({
   decimals = 0,
   separator,
 }: {
-  control: Control<FormValues>;
+  control: Control<FormInput, unknown, FormValues>;
   name: NumberField;
   label: string;
   decimals?: number;
@@ -172,7 +168,7 @@ function NumberField({
         <NumberInput
           label={label}
           value={field.value ?? ''}
-          onChange={(v) => field.onChange(typeof v === 'number' ? v : null)}
+          onChange={(v) => field.onChange(toNumberInputValue(v))}
           onBlur={field.onBlur}
           allowNegative={false}
           allowDecimal={decimals > 0}
@@ -207,7 +203,7 @@ export function VehicleForm() {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting, isDirty },
-  } = useForm<FormValues>({
+  } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: EMPTY,
     values: current ? toFormValues(current) : undefined,

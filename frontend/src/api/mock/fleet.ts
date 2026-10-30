@@ -1,9 +1,11 @@
 import {
   isTrailer,
+  VEHICLE_DOCUMENT_KINDS,
   VEHICLE_KINDS,
   VEHICLE_STATUSES,
   type Vehicle,
   type VehicleDocument,
+  type VehicleDocumentInput,
   type VehicleInput,
 } from '@/api/fleet';
 
@@ -146,6 +148,29 @@ export function validateVehicle(b: Partial<VehicleInput>, all: MockVehicle[], se
     if (!trailer || !isTrailer(trailer.kind) || trailer.id === selfId) details.defaultTrailerId = 'validation.invalid_value';
   }
   return details;
+}
+
+export function validateDocument(b: Partial<VehicleDocumentInput>): Record<string, string> {
+  const details: Record<string, string> = {};
+  if (!b.kind || !VEHICLE_DOCUMENT_KINDS.includes(b.kind)) details.kind = 'validation.required';
+  if (b.validFrom && b.validTo && b.validTo < b.validFrom) details.validTo = 'validation.invalid_value';
+  if (b.currency && !/^[A-Za-z]{3}$/.test(b.currency)) details.currency = 'validation.invalid_format';
+  else if (b.cost != null && !b.currency) details.currency = 'validation.required';
+  if (b.remindDays != null && (b.remindDays < 0 || b.remindDays > 365)) details.remindDays = 'validation.invalid_value';
+  return details;
+}
+
+export function toDocument(b: VehicleDocumentInput, id: number): VehicleDocument {
+  return {
+    id,
+    kind: b.kind,
+    number: b.number?.trim() || null,
+    validFrom: b.validFrom || null,
+    validTo: b.validTo || null,
+    cost: b.cost,
+    currency: b.cost == null ? null : (b.currency?.toUpperCase() ?? null),
+    remindDays: b.remindDays ?? 30,
+  };
 }
 
 export function applyVehicleInput(target: MockVehicle, b: VehicleInput): void {

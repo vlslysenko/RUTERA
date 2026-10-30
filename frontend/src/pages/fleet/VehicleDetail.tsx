@@ -5,17 +5,15 @@ import { Alert, Anchor, Button, Group, Stack, Tabs, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
 import { fleetApi, isTrailer, makeModel, VEHICLES_KEY, type Vehicle } from '@/api/fleet';
 import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
 import { DetailDrawer } from '@/components/DetailDrawer';
-import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { KeyValueList, type KeyValueItem } from '@/components/KeyValueList';
 import { Plate } from '@/components/Plate';
-import { formatDate } from '@/utils/deadline';
+import { VehicleDocuments } from './VehicleDocuments';
 import { DeadlineChip, VehicleStatusChip } from './VehicleStatusChip';
 import classes from './VehicleDetail.module.css';
 
@@ -95,38 +93,6 @@ function Overview({ v }: { v: Vehicle }) {
       <Section title={t('fleet.section.route')} items={route} />
       <Section title={t('fleet.section.vehicle')} items={vehicle} />
     </Stack>
-  );
-}
-
-function Documents({ id }: { id: string }) {
-  const { t } = useTranslation();
-  const { lang } = useFormat();
-  const q = useQuery({ queryKey: [...VEHICLES_KEY, id, 'documents'], queryFn: () => fleetApi.documents(id) });
-
-  if (q.isPending) return <Text c="dimmed">{t('common.loading')}</Text>;
-  if (q.isError && q.error instanceof ApiError && q.error.status === 404) {
-    return <EmptyState text={t('common.in_development')} />;
-  }
-  if (q.isError) return <ErrorState message={t(errorCode(q.error))} onRetry={() => void q.refetch()} />;
-  if (q.data.length === 0) return <EmptyState text={t('fleet.documents.empty')} />;
-
-  const sorted = [...q.data].sort((a, b) => (a.validTo ?? '9999').localeCompare(b.validTo ?? '9999'));
-  return (
-    <ul className={classes.docs}>
-      {sorted.map((d) => (
-        <li key={d.id} className={classes.doc}>
-          <div className={classes.docText}>
-            <div className={classes.docTitle}>{t(`vehicle.document.${d.kind}`)}</div>
-            <div className={classes.docSub}>
-              {[d.number, d.validTo && t('fleet.deadline.until', { date: formatDate(d.validTo, lang) })]
-                .filter(Boolean)
-                .join(' · ') || DASH}
-            </div>
-          </div>
-          {d.validTo && <DeadlineChip validTo={d.validTo} remindDays={d.remindDays} />}
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -232,7 +198,7 @@ export function VehicleDetail({ mode }: { mode: 'drawer' | 'page' }) {
               <Overview v={v} />
             </Tabs.Panel>
             <Tabs.Panel value="documents" pt="md">
-              <Documents id={id} />
+              <VehicleDocuments vehicleId={id} />
             </Tabs.Panel>
           </Tabs>
         </Stack>

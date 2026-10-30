@@ -39,7 +39,8 @@ the backend clears the cookie on logout, the client fetches a new one with `GET 
 | PUT | `/app/admin/users/{id}/password`, POST `.../unlock` | 204 |
 | GET/POST | `/app/fleet/vehicles` | `Vehicle[]` sorted by plate / create (`fleet.vehicle/view`, `fleet.vehicle/manage`) |
 | GET/PUT/DELETE | `/app/fleet/vehicles/{id}` | card / full update (`VehicleInput`) / soft delete; 422 `plate: fleet.vehicle.plate_taken` |
-| GET | `/app/fleet/vehicles/{id}/documents` | `VehicleDocument[]` ordered by `validTo` (a 404 from an older backend shows the placeholder) |
+| GET/POST | `/app/fleet/vehicles/{id}/documents` | `VehicleDocument[]` ordered by `validTo` / create (`fleet.document/manage`) |
+| PUT/DELETE | `/app/fleet/vehicles/{id}/documents/{docId}` | full update / hard delete |
 
 `User = { id, login, name, role, firma: { id, name } | null, language, startScreen, privileges: string[] }`.
 Menu items and screens are shown by `privileges` (`module.entity/action`, see `src/app/navigation.ts` and

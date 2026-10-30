@@ -8,7 +8,10 @@ import { api } from './client';
  *   POST   /app/fleet/vehicles                 -> 201 Vehicle | 422 details per field (plate: fleet.vehicle.plate_taken)
  *   PUT    /app/fleet/vehicles/{id}            -> Vehicle (full replacement)
  *   DELETE /app/fleet/vehicles/{id}            -> 204 (soft delete, the plate becomes free)
- *   GET    /app/fleet/vehicles/{id}/documents  -> VehicleDocument[]
+ *   GET    /app/fleet/vehicles/{id}/documents  -> VehicleDocument[] ordered by validTo, nulls last
+ *   POST   /app/fleet/vehicles/{id}/documents  -> 201 VehicleDocument (fleet.document/manage)
+ *   PUT    /app/fleet/vehicles/{id}/documents/{docId} -> VehicleDocument (full replacement)
+ *   DELETE /app/fleet/vehicles/{id}/documents/{docId} -> 204 (hard delete)
  */
 
 export const VEHICLE_KINDS = ['TRACTOR', 'TRUCK', 'VAN', 'SEMI_TRAILER', 'TRAILER'] as const;
@@ -114,6 +117,9 @@ export interface VehicleDocument {
   remindDays: number;
 }
 
+/** Body of POST and PUT of a document; currency is required together with cost, remindDays defaults to 30. */
+export type VehicleDocumentInput = Omit<VehicleDocument, 'id' | 'remindDays'> & { remindDays: number | null };
+
 /** Trailers have no engine: no tachograph, fuel, consumption, odometer, driver or trailer of their own. */
 export function isTrailer(kind: VehicleKind): boolean {
   return kind === 'TRAILER' || kind === 'SEMI_TRAILER';
@@ -131,6 +137,12 @@ export const fleetApi = {
   update: (id: number | string, body: VehicleInput) => api<Vehicle>(`/fleet/vehicles/${id}`, { method: 'PUT', body }),
   remove: (id: number | string) => api<void>(`/fleet/vehicles/${id}`, { method: 'DELETE' }),
   documents: (id: number | string) => api<VehicleDocument[]>(`/fleet/vehicles/${id}/documents`),
+  createDocument: (id: number | string, body: VehicleDocumentInput) =>
+    api<VehicleDocument>(`/fleet/vehicles/${id}/documents`, { method: 'POST', body }),
+  updateDocument: (id: number | string, docId: number, body: VehicleDocumentInput) =>
+    api<VehicleDocument>(`/fleet/vehicles/${id}/documents/${docId}`, { method: 'PUT', body }),
+  removeDocument: (id: number | string, docId: number) =>
+    api<void>(`/fleet/vehicles/${id}/documents/${docId}`, { method: 'DELETE' }),
 };
 
 export const VEHICLES_KEY = ['fleet', 'vehicles'] as const;

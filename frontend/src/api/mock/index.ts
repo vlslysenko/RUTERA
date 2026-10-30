@@ -2,9 +2,17 @@ import type { AdminUser, AdminUserCreate, AdminUserUpdate, PasswordChange, Role,
 import { ASSIGNABLE_ROLES } from '@/app/types';
 import { isLanguageCode, type LanguageCode } from '@/i18n/languages';
 import type { Dictionary } from '@/api/i18n';
-import type { VehicleInput } from '@/api/fleet';
+import type { VehicleDocumentInput, VehicleInput } from '@/api/fleet';
 import { MOCK_FIRMA, MOCK_USERS, ROLE_PRIVILEGES, type MockUser } from './data';
-import { applyVehicleInput, MOCK_VEHICLES, toVehicle, validateVehicle, type MockVehicle } from './fleet';
+import {
+  applyVehicleInput,
+  MOCK_VEHICLES,
+  toDocument,
+  toVehicle,
+  validateDocument,
+  validateVehicle,
+  type MockVehicle,
+} from './fleet';
 
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
@@ -198,7 +206,39 @@ route('GET', '/app/fleet/vehicles/:id', withPrivilege('fleet.vehicle/view', (_u,
 
 route('GET', '/app/fleet/vehicles/:id/documents', withPrivilege('fleet.vehicle/view', (_u, req) => {
   const v = findVehicle(req.params.id);
-  return v ? { status: 200, body: v.documents } : error(404, 'error.not_found');
+  if (!v) return error(404, 'error.not_found');
+  const sorted = [...v.documents].sort((a, b) => (a.validTo ?? '9999').localeCompare(b.validTo ?? '9999'));
+  return { status: 200, body: sorted };
+}));
+
+route('POST', '/app/fleet/vehicles/:id/documents', withPrivilege('fleet.document/manage', (_u, req) => {
+  const v = findVehicle(req.params.id);
+  if (!v) return error(404, 'error.not_found');
+  const b = (req.body ?? {}) as VehicleDocumentInput;
+  const details = validateDocument(b);
+  if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
+  const created = toDocument(b, Math.max(0, ...vehicles.flatMap((x) => x.documents.map((d) => d.id))) + 1);
+  v.documents.push(created);
+  return { status: 201, body: created };
+}));
+
+route('PUT', '/app/fleet/vehicles/:id/documents/:docId', withPrivilege('fleet.document/manage', (_u, req) => {
+  const v = findVehicle(req.params.id);
+  const i = v ? v.documents.findIndex((d) => String(d.id) === req.params.docId) : -1;
+  if (!v || i < 0) return error(404, 'error.not_found');
+  const b = (req.body ?? {}) as VehicleDocumentInput;
+  const details = validateDocument(b);
+  if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
+  v.documents[i] = toDocument(b, v.documents[i].id);
+  return { status: 200, body: v.documents[i] };
+}));
+
+route('DELETE', '/app/fleet/vehicles/:id/documents/:docId', withPrivilege('fleet.document/manage', (_u, req) => {
+  const v = findVehicle(req.params.id);
+  const i = v ? v.documents.findIndex((d) => String(d.id) === req.params.docId) : -1;
+  if (!v || i < 0) return error(404, 'error.not_found');
+  v.documents.splice(i, 1);
+  return { status: 204 };
 }));
 
 route('POST', '/app/fleet/vehicles', withPrivilege('fleet.vehicle/manage', (_u, { body }) => {
