@@ -116,6 +116,38 @@ password here or deletes themselves: 403 `admin.user.self_forbidden` (own name, 
 deleting a user ends their session on their next request; a role change takes effect for an open session on its
 next `GET /app/auth/me` (the client calls it on every load).
 
+### Fleet (`/app/fleet/vehicles`, privileges `fleet.vehicle/view`, `fleet.vehicle/manage`, `fleet.document/manage`)
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/fleet/vehicles` | `Vehicle[]` of the own firma, sorted by plate; deleted vehicles excluded |
+| GET | `/app/fleet/vehicles/{id}` | `Vehicle`; 404 for unknown ids and vehicles of other firmas |
+| POST | `/app/fleet/vehicles` | `VehicleInput` -> 201 `Vehicle` (manage) |
+| PUT | `/app/fleet/vehicles/{id}` | `VehicleInput` (full replacement) -> `Vehicle` (manage) |
+| DELETE | `/app/fleet/vehicles/{id}` | 204: soft delete, the plate becomes free (manage) |
+| GET | `/app/fleet/vehicles/{id}/documents` | `VehicleDocument[]`, nearest `validTo` first, without deadline last (view) |
+| POST | `/app/fleet/vehicles/{id}/documents` | `VehicleDocumentInput` -> 201 `VehicleDocument` (document manage) |
+| PUT | `/app/fleet/vehicles/{id}/documents/{docId}` | `VehicleDocumentInput` (full replacement) -> `VehicleDocument` |
+| DELETE | `/app/fleet/vehicles/{id}/documents/{docId}` | 204 (physical delete) |
+
+`Vehicle = {id, kind, plate, vin, make, model, euroClass, axles, grossWeightKg, heightMm, avgL100km, fuelType,
+tachoGen, odometerKm, status, defaultDriver: {id, name} | null, defaultTrailer: {id, plate} | null,
+lastVuDownloadAt, nextDocument: {kind, validTo} | null, createdAt, updatedAt}`; `VehicleInput` = the editable
+fields plus `defaultDriverId`, `defaultTrailerId`. `kind` is one of `TRUCK, TRACTOR, VAN, TRAILER, SEMI_TRAILER`,
+`euroClass` `EURO_3..EURO_6`, `fuelType` `DIESEL, HVO, LNG, CNG, PETROL, ELECTRIC`, `tachoGen` `NONE, GEN1, GEN2`
+(default NONE), `status` `ACTIVE, SERVICE, INACTIVE` (default ACTIVE); an unknown value is a per-field
+`validation.invalid_value`. `VehicleDocument = {id, kind, number, validFrom, validTo, cost, currency, remindDays}`
+with `kind` one of `REGISTRATION, INSURANCE_OC, INSURANCE_AC, INSPECTION, TACHO_CALIBRATION, LICENSE_COPY,
+TOLL_DEVICE, OTHER`, dates `YYYY-MM-DD`, `currency` required with `cost`, `remindDays` 0..365 (default 30).
+
+Rules: the plate is stored trimmed, upper-cased and with single spaces (letters, digits, space, hyphen; up to 20)
+and is unique among the firma's non-deleted vehicles regardless of case, spaces and hyphens (`plate:
+fleet.vehicle.plate_taken`). The VIN loses its spaces and is upper-cased (letters and digits, up to 17). Trailers
+have no engine: the server stores `tachoGen` NONE and drops fuel, consumption, odometer, driver and trailer. A
+default trailer must be a non-deleted trailer of the firma; deleting a trailer detaches it from its tractors.
+`defaultDriverId` must be null until the driver module exists. `nextDocument` is the document with the earliest
+`validTo`, expired ones included. Changes are written to `audit_log` (module `fleet`).
+
 Service and controller methods are guarded with `@RequiresPrivilege("module.entity/action")` (AOP, module
 `core.security`); the effective set = role defaults + custom role + per-user overrides, computed at login. Every
 request carries `requestId`, `firmaId` and `userId` in the MDC (log lines) and the same `requestId` in `audit_log`.

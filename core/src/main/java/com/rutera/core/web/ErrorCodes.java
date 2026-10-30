@@ -33,6 +33,9 @@ public final class ErrorCodes {
     /** Top-level 403: a user may not change their own role or status, nor delete themselves. */
     public static final String USER_SELF_FORBIDDEN = "admin.user.self_forbidden";
 
+    /** Fleet (per-field): another non-deleted vehicle of the firma has this plate. */
+    public static final String VEHICLE_PLATE_TAKEN = "fleet.vehicle.plate_taken";
+
     private ErrorCodes() {
     }
 }
