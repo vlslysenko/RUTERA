@@ -151,6 +151,18 @@ class TachoImportTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void emptyCardExpiryIsFilledFromTheFile() throws Exception {
+        Client c = newFirmaOwner();
+        long driverId = createDriver(c, TachoTestFiles.CARD_NUMBER, null);
+        assertThat(body(c.get("/app/drivers/" + driverId)).get("card").get("validTo").isNull()).isTrue();
+        JsonNode result = body(upload(c, new Part("card.ddd", TachoTestFiles.gen1DriverCard()))).get(0);
+        assertThat(result.get("file").get("match").asString()).isEqualTo("CARD_NUMBER");
+        assertThat(result.get("file").get("cardValidTo").isNull()).isFalse();
+        assertThat(body(c.get("/app/drivers/" + driverId)).get("card").get("validTo").asString())
+                .isEqualTo(result.get("file").get("cardValidTo").asString());
+    }
+
+    @Test
     void renewedCardIsFoundByDriverIdentificationAndTakesOverTheCard() throws Exception {
         Client c = newFirmaOwner();
         // Same first 14 characters, other replacement/renewal index, older expiry.

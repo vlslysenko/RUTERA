@@ -223,6 +223,7 @@ public class TachoImportService {
         }
         DriverCard card = cards.findByCardNumber(number).orElse(null);
         if (card != null) {
+            completeCard(card, f);
             assignToDriver(f, card.getDriverId(), TachoFileRecord.Match.CARD_NUMBER);
             return;
         }
@@ -254,6 +255,28 @@ public class TachoImportService {
                     .detail("card", number));
         }
         assignToDriver(f, card.getDriverId(), TachoFileRecord.Match.DRIVER_IDENTIFICATION);
+    }
+
+    /**
+     * The same card as on record: what the driver form left empty comes from the file. A missing expiry counts as
+     * earlier than any date, so the file's date fills it; the issuing country and generation only fill blanks.
+     */
+    private void completeCard(DriverCard card, TachoFileRecord f) {
+        if (!card.getCardNumber().equals(f.getCardNumber())) {
+            return;
+        }
+        boolean changed = false;
+        if (f.getCardValidTo() != null && (card.getValidTo() == null || f.getCardValidTo().isAfter(card.getValidTo()))) {
+            card.setValidTo(f.getCardValidTo());
+            changed = true;
+        }
+        if (card.getGeneration() == null) {
+            card.setGeneration(cardGeneration(f.getGeneration()));
+            changed = true;
+        }
+        if (changed) {
+            cards.save(card);
+        }
     }
 
     private void matchVehicle(TachoFileRecord f) {
@@ -429,7 +452,12 @@ public class TachoImportService {
 
     /** A driver without a card gets the card of the file; another driver's card number is a 422. */
     private void ensureCard(Driver driver, TachoFileRecord f) {
-        if (f.getCardNumber() == null || !cards.findByDriverIdOrderByIdDesc(driver.getId()).isEmpty()) {
+        if (f.getCardNumber() == null) {
+            return;
+        }
+        List<DriverCard> own = cards.findByDriverIdOrderByIdDesc(driver.getId());
+        if (!own.isEmpty()) {
+            completeCard(own.getFirst(), f);
             return;
         }
         if (cards.findByCardNumber(f.getCardNumber()).isPresent()) {
