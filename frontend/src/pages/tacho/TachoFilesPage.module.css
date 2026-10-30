@@ -1,0 +1,105 @@
+.dropzone {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1.5px dashed var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-body);
+  transition: border-color 120ms, background-color 120ms;
+}
+
+.dropzoneActive {
+  border-color: var(--mantine-color-blue-6);
+  background: var(--mantine-color-blue-0);
+}
+
+.dropIcon {
+  flex: none;
+  color: var(--mantine-color-dimmed);
+}
+
+.dropText {
+  flex: 1;
+  min-width: 0;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table th {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+}
+
+.row {
+  height: var(--rutera-row-height);
+}
+
+.row td {
+  white-space: nowrap;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:focus-visible {
+  outline-offset: -2px;
+}
+
+.selected,
+.selected:hover {
+  background: var(--mantine-color-blue-0);
+}
+
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.fileName {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+}
+
+.hash {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.warnings {
+  margin: 0;
+  padding-left: 18px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}

@@ -10,7 +10,8 @@ import { errorCode } from '@/api/errors';
 import { VEHICLES_KEY } from '@/api/fleet';
 import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
-import { DeadlineChip } from '@/components/DeadlineChip';
+import { CARD_DOWNLOAD_DAYS } from '@/api/tacho';
+import { DeadlineChip, NextDownloadChip } from '@/components/DeadlineChip';
 import { DeadlineDocuments } from '@/components/DeadlineDocuments';
 import { DetailDrawer } from '@/components/DetailDrawer';
 import { ErrorState } from '@/components/ErrorState';
@@ -66,6 +67,10 @@ function Overview({ d }: { d: Driver }) {
         { label: t('drivers.card_country'), value: countryName(d.card.issuingCountry, lang) },
         { label: t('drivers.card_valid_to'), value: d.card.validTo ? <DeadlineChip validTo={d.card.validTo} /> : DASH },
         { label: t('drivers.card_last_download'), value: instant(d.card.lastDownloadAt) },
+        {
+          label: t('tacho.next_download'),
+          value: <NextDownloadChip lastDownloadAt={d.card.lastDownloadAt} everyDays={CARD_DOWNLOAD_DAYS} remindDays={7} />,
+        },
       ]
     : [{ label: t('drivers.card'), value: t('drivers.no_card') }];
 

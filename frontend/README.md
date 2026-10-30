@@ -44,6 +44,10 @@ the backend clears the cookie on logout, the client fetches a new one with `GET 
 | GET/POST | `/app/drivers` | `Driver[]` sorted by last name / create (`driver.driver/view`, `driver.driver/manage`) |
 | GET/PUT/DELETE | `/app/drivers/{id}` | card / full update (`DriverInput`, current tachograph card inline) / soft delete |
 | GET/POST, PUT/DELETE | `/app/drivers/{id}/documents`, `.../{docId}` | driver documents with deadlines |
+| POST | `/app/tacho/files` | multipart `files` (1..50, 20 MB each) -> `TachoImportResult[]` (IMPORTED / DUPLICATE / REJECTED) |
+| GET | `/app/tacho/files`, `/app/tacho/files/{id}` | journal `{items, total}` with filters / `TachoFileDetail` (`tacho.hos/view` or `tacho.file/upload`) |
+| GET | `/app/tacho/files/{id}/content` | original bytes (download) |
+| PUT, POST, POST, DELETE | `.../{id}/assignment`, `.../{id}/driver`, `.../{id}/vehicle`, `.../{id}` | assign by hand, create a driver / vehicle from the file, delete |
 
 The vehicle–driver link lives on the vehicle (`defaultDriverId` in the vehicle form); `Driver.defaultVehicle` is
 derived from it. Documents of vehicles and drivers share `components/DeadlineDocuments`.
@@ -68,7 +72,7 @@ src/api        fetch wrapper (/app, CSRF), auth, i18n, fleet; mock/ = in-browser
 src/auth       session hooks (TanStack Query), RequireAuth, ScreenGuard (role -> screen)
 src/layout     AppLayout (AppShell), TopBar, Sidebar, LanguageMenu, UserMenu
 src/components DetailDrawer (card in the right panel + "open as page"), PageHeader, StatusChip, Plate, ...
-src/pages      Login, Overview, Settings (profile, password, users), Fleet, Drivers (list, card, form), placeholders
+src/pages      Login, Overview, Settings (profile, password, users), Fleet, Drivers, Tachograph files, placeholders
 src/i18n       i18next setup, language list, locales/
 ```
 

@@ -41,7 +41,7 @@ export const SCREENS: Record<ScreenKey, NavItem> = {
   trips: { key: 'trips', path: '/trips', icon: IconRoute, labelKey: 'nav.trips', privileges: [PRIV.TRIP_TRIP_VIEW] },
   fleet: { key: 'fleet', path: '/fleet', icon: IconTruck, labelKey: 'nav.fleet', privileges: [PRIV.FLEET_VEHICLE_VIEW] },
   drivers: { key: 'drivers', path: '/drivers', icon: IconUsers, labelKey: 'nav.drivers', privileges: [PRIV.DRIVER_VIEW] },
-  tacho: { key: 'tacho', path: '/tacho', icon: IconClockHour4, labelKey: 'nav.tacho', privileges: [PRIV.TACHO_HOS_VIEW] },
+  tacho: { key: 'tacho', path: '/tacho', icon: IconClockHour4, labelKey: 'nav.tacho', privileges: [PRIV.TACHO_HOS_VIEW, PRIV.TACHO_FILE_UPLOAD] },
   documents: {
     key: 'documents',
     path: '/documents',

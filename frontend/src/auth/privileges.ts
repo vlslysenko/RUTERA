@@ -11,6 +11,7 @@ export const PRIV = {
   DRIVER_VIEW: 'driver.driver/view',
   DRIVER_MANAGE: 'driver.driver/manage',
   TACHO_HOS_VIEW: 'tacho.hos/view',
+  TACHO_FILE_UPLOAD: 'tacho.file/upload',
   TRIP_TRIP_VIEW: 'trip.trip/view',
   TRIP_CMR_MANAGE: 'trip.cmr/manage',
   FINANCE_INVOICE_VIEW: 'finance.invoice/view',

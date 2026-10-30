@@ -23,7 +23,18 @@ import {
   validateDriverDocument,
   type MockDriver,
 } from './drivers';
-
+import {
+  buildFile,
+  rejectReason,
+  sha256Hex,
+  toTachoDetail,
+  toTachoFile,
+  type MockCardOwner,
+  type MockTachoFile,
+  type MockUnitOwner,
+} from './tacho';
+import { TACHO_MAX_FILES, type TachoMatch } from '@/api/tacho';
+import { isTrailer } from '@/api/fleet';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
  * The session lives in sessionStorage, per-user settings in localStorage; users live in memory per page load.
@@ -33,12 +44,16 @@ interface MockRequest {
   method: string;
   path: string;
   params: Record<string, string>;
+  /** Query string parameters. */
+  query: Record<string, string>;
   body: unknown;
 }
 
 interface MockResponse {
   status: number;
+  /** JSON-serialisable value, or a Blob sent as is (file downloads). */
   body?: unknown;
+  headers?: Record<string, string>;
 }
 
 type Handler = (req: MockRequest) => MockResponse | Promise<MockResponse>;
@@ -394,6 +409,225 @@ route('DELETE', '/app/drivers/:id/documents/:docId', withPrivilege('driver.drive
   return { status: 204 };
 }));
 
+// --- tachograph files ---------------------------------------------------------------------------
+
+const cardOwners = (): MockCardOwner[] =>
+  drivers
+    .filter((d) => !d.deleted && d.card)
+    .map((d) => ({
+      driverId: d.id,
+      name: `${d.firstName} ${d.lastName}`,
+      cardNumber: d.card!.cardNumber,
+      issuingCountry: d.card!.issuingCountry,
+    }));
+
+const unitOwners = (): MockUnitOwner[] =>
+  vehicles
+    .filter((v) => !v.deleted && !isTrailer(v.kind) && v.tachoGen !== 'NONE')
+    .map((v) => ({ vehicleId: v.id, plate: v.plate, vin: v.vin }));
+
+const later = (a: string | null, b: string | null) => (a && b ? (a > b ? a : b) : (a ?? b));
+
+/** lastDownloadAt of the driver card / vehicle unit = the newest download among the files assigned to it. */
+function recomputeDownloads(): void {
+  for (const d of drivers) {
+    if (!d.card) continue;
+    const newest = tachoFiles
+      .filter((f) => f.driver?.id === d.id)
+      .reduce<string | null>((acc, f) => later(acc, f.downloadedAt), null);
+    d.card = { ...d.card, lastDownloadAt: newest };
+  }
+  for (const v of vehicles) {
+    v.lastVuDownloadAt = tachoFiles
+      .filter((f) => f.vehicle?.id === v.id)
+      .reduce<string | null>((acc, f) => later(acc, f.downloadedAt), null);
+  }
+}
+
+function assignFile(f: MockTachoFile, target: { driverId?: number; vehicleId?: number }, match: TachoMatch): string | null {
+  if (f.kind === 'DRIVER_CARD') {
+    const d = target.driverId == null ? undefined : liveDriver(target.driverId);
+    if (!d) return 'driverId';
+    f.driver = { id: d.id, name: `${d.firstName} ${d.lastName}` };
+    if (!d.card && f.cardNumber) {
+      // Assigning a card file to a driver without a card gives him the card from the file.
+      d.card = { cardNumber: f.cardNumber, issuingCountry: f.cardIssuingCountry ?? 'PL', validTo: f.cardValidTo, lastDownloadAt: null };
+    }
+  } else {
+    const v = target.vehicleId == null ? undefined : vehicles.find((x) => x.id === target.vehicleId && !x.deleted);
+    if (!v || isTrailer(v.kind)) return 'vehicleId';
+    f.vehicle = { id: v.id, plate: v.plate };
+    if (v.tachoGen === 'NONE') v.tachoGen = f.generation === 'GEN1' ? 'GEN1' : 'GEN2';
+  }
+  f.match = match;
+  recomputeDownloads();
+  return null;
+}
+
+const MOCK_UPLOADER = { id: 1, name: 'Anna Kowalska' };
+const tachoFiles: MockTachoFile[] = [
+  ['C_20261012_1102_J_KOWALSKI_PL00000012345600.ddd', 'a1f3c0d2e4b5a6978877665544332211aabbccddeeff00112233445566778899'],
+  ['M_20261001_0830_DW4471F_WMA06XZZ7NP123456.ddd', 'b2e4d1c3a5f6071829304152637485960a1b2c3d4e5f60718293a4b5c6d7e8f9'],
+  ['card_unknown_driver.ddd', '0c11d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8091a2b'],
+  ['V_unit_old_truck.v1b', 'd5c4b3a29180f7e6d5c4b3a291807f6e5d4c3b2a19087f6e5d4c3b2a1908f7e6'],
+].map(([name, hash], i) => {
+  const f = buildFile(i + 1, name, 25_000 + i * 7_000, hash, MOCK_UPLOADER, cardOwners(), unitOwners());
+  f.uploadedAt = new Date(Date.now() - (4 - i) * 3_600_000).toISOString();
+  return f;
+});
+recomputeDownloads();
+
+const canReadTacho = (u: MockUser) =>
+  u.role === 'SUPERUSER' || ['tacho.hos/view', 'tacho.file/upload'].some((k) => ROLE_PRIVILEGES[u.role].includes(k));
+
+route('POST', '/app/tacho/files', withPrivilege('tacho.file/upload', async (u, { body }) => {
+  const files = body instanceof FormData ? (body.getAll('files').filter((x) => x instanceof File) as File[]) : [];
+  if (files.length === 0) return error(422, 'error.validation', { files: 'validation.required' });
+  if (files.length > TACHO_MAX_FILES) return error(413, 'tacho.file.too_many');
+  const uploader = { id: u.id, name: `${u.firstName} ${u.lastName}` };
+  const results = [];
+  for (const file of files) {
+    const reason = rejectReason(file);
+    if (reason) {
+      results.push({ fileName: file.name, status: 'REJECTED', file: null, error: { code: reason } });
+      continue;
+    }
+    const hash = await sha256Hex(file);
+    const existing = tachoFiles.find((f) => f.sha256 === hash);
+    if (existing) {
+      results.push({ fileName: file.name, status: 'DUPLICATE', file: toTachoFile(existing), error: null });
+      continue;
+    }
+    const id = Math.max(0, ...tachoFiles.map((f) => f.id)) + 1;
+    const created = buildFile(id, file.name, file.size, hash, uploader, cardOwners(), unitOwners());
+    created.bytes = file;
+    tachoFiles.push(created);
+    recomputeDownloads();
+    results.push({ fileName: file.name, status: 'IMPORTED', file: toTachoFile(created), error: null });
+  }
+  return { status: 200, body: results };
+}));
+
+route('GET', '/app/tacho/files', withAuth((u, { query }) => {
+  if (!canReadTacho(u)) return error(403, 'auth.access_denied');
+  const page = Number(query.page ?? 0);
+  const size = Number(query.size ?? 50);
+  const items = tachoFiles
+    .filter((f) => !query.kind || f.kind === query.kind)
+    .filter((f) => !query.driverId || String(f.driver?.id) === query.driverId)
+    .filter((f) => !query.vehicleId || String(f.vehicle?.id) === query.vehicleId)
+    .filter((f) => query.unassigned !== 'true' || (!f.driver && !f.vehicle))
+    .filter((f) => !query.from || f.uploadedAt.slice(0, 10) >= query.from)
+    .filter((f) => !query.to || f.uploadedAt.slice(0, 10) <= query.to)
+    .sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt) || b.id - a.id);
+  return { status: 200, body: { items: items.slice(page * size, (page + 1) * size).map(toTachoFile), total: items.length } };
+}));
+
+const findTachoFile = (id: string) => tachoFiles.find((f) => String(f.id) === id);
+
+route('GET', '/app/tacho/files/:id', withAuth((u, req) => {
+  if (!canReadTacho(u)) return error(403, 'auth.access_denied');
+  const f = findTachoFile(req.params.id);
+  return f ? { status: 200, body: toTachoDetail(f) } : error(404, 'error.not_found');
+}));
+
+route('GET', '/app/tacho/files/:id/content', withPrivilege('tacho.file/upload', (_u, req) => {
+  const f = findTachoFile(req.params.id);
+  if (!f) return error(404, 'error.not_found');
+  return {
+    status: 200,
+    body: f.bytes ?? new Blob([`mock DDD ${f.sha256}`], { type: 'application/octet-stream' }),
+    headers: {
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(f.originalName)}`,
+    },
+  };
+}));
+
+route('PUT', '/app/tacho/files/:id/assignment', withPrivilege('tacho.file/upload', (_u, req) => {
+  const f = findTachoFile(req.params.id);
+  if (!f) return error(404, 'error.not_found');
+  const b = (req.body ?? {}) as { driverId?: number; vehicleId?: number };
+  const bad = assignFile(f, b, 'MANUAL');
+  return bad ? error(422, 'error.validation', { [bad]: 'validation.invalid_value' }) : { status: 200, body: toTachoFile(f) };
+}));
+
+route('POST', '/app/tacho/files/:id/driver', withPrivilege('tacho.file/upload', (u, req) => {
+  if (u.role !== 'SUPERUSER' && !ROLE_PRIVILEGES[u.role].includes('driver.driver/manage')) return error(403, 'auth.access_denied');
+  const f = findTachoFile(req.params.id);
+  if (!f) return error(404, 'error.not_found');
+  const s = f.suggestion;
+  if (f.kind !== 'DRIVER_CARD' || f.match !== 'NONE' || !s || !('cardNumber' in s)) return error(409, 'error.conflict');
+  const now = new Date().toISOString();
+  const created: MockDriver = {
+    id: Math.max(...drivers.map((x) => x.id)) + 1,
+    firstName: s.firstName,
+    lastName: s.lastName,
+    birthDate: s.birthDate,
+    phone: null,
+    email: null,
+    country: s.cardIssuingCountry,
+    employmentFrom: null,
+    employmentTo: null,
+    status: 'ACTIVE',
+    notes: null,
+    user: null,
+    card: { cardNumber: s.cardNumber, issuingCountry: s.cardIssuingCountry, validTo: s.cardValidTo, lastDownloadAt: null },
+    deleted: false,
+    documents: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+  drivers.push(created);
+  assignFile(f, { driverId: created.id }, 'MANUAL');
+  return { status: 201, body: { driver: toDriver(created, vehicles), file: toTachoFile(f) } };
+}));
+
+route('POST', '/app/tacho/files/:id/vehicle', withPrivilege('tacho.file/upload', (u, req) => {
+  if (u.role !== 'SUPERUSER' && !ROLE_PRIVILEGES[u.role].includes('fleet.vehicle/manage')) return error(403, 'auth.access_denied');
+  const f = findTachoFile(req.params.id);
+  if (!f) return error(404, 'error.not_found');
+  const s = f.suggestion;
+  if (f.kind !== 'VEHICLE_UNIT' || f.match !== 'NONE' || !s || !('tachoGen' in s)) return error(409, 'error.conflict');
+  const now = new Date().toISOString();
+  const created: MockVehicle = {
+    ...MOCK_VEHICLES[0],
+    id: Math.max(...vehicles.map((x) => x.id)) + 1,
+    kind: 'TRACTOR',
+    plate: s.plate ?? s.vin ?? `NEW ${f.id}`,
+    vin: s.vin,
+    make: null,
+    model: null,
+    euroClass: null,
+    axles: null,
+    grossWeightKg: null,
+    heightMm: null,
+    avgL100km: null,
+    fuelType: null,
+    tachoGen: s.tachoGen,
+    odometerKm: null,
+    status: 'ACTIVE',
+    defaultDriverId: null,
+    defaultTrailerId: null,
+    lastVuDownloadAt: null,
+    deleted: false,
+    documents: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+  vehicles.push(created);
+  assignFile(f, { vehicleId: created.id }, 'MANUAL');
+  return { status: 201, body: { vehicle: toVehicle(created, vehicles, driverName), file: toTachoFile(f) } };
+}));
+
+route('DELETE', '/app/tacho/files/:id', withPrivilege('tacho.file/upload', (_u, req) => {
+  const i = tachoFiles.findIndex((f) => String(f.id) === req.params.id);
+  if (i < 0) return error(404, 'error.not_found');
+  tachoFiles.splice(i, 1);
+  recomputeDownloads();
+  return { status: 204 };
+}));
+
 // --- user administration -------------------------------------------------------------------------
 
 const LOGIN_RE = /^[\p{L}\p{N}._@+-]{3,254}$/u;
@@ -504,6 +738,7 @@ route('DELETE', '/app/admin/users/:id', withPrivilege('admin.user/manage', (me, 
 
 function toResponse(r: MockResponse): Response {
   if (r.body === undefined) return new Response(null, { status: r.status });
+  if (r.body instanceof Blob) return new Response(r.body, { status: r.status, headers: r.headers });
   return new Response(JSON.stringify(r.body), {
     status: r.status,
     headers: { 'Content-Type': 'application/json' },
@@ -514,6 +749,7 @@ const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 
 export async function mockFetch(input: string, init: RequestInit = {}): Promise<Response> {
   const path = input.replace(/^https?:\/\/[^/]+/, '').split('?')[0];
+  const query = Object.fromEntries(new URL(input, 'http://mock').searchParams);
   const method = (init.method ?? 'GET').toUpperCase();
   await delay(120 + Math.random() * 180);
   for (const r of routes) {
@@ -524,8 +760,13 @@ export async function mockFetch(input: string, init: RequestInit = {}): Promise<
     r.keys.forEach((k, i) => {
       params[k] = decodeURIComponent(m[i + 1]);
     });
-    const body = typeof init.body === 'string' && init.body ? (JSON.parse(init.body) as unknown) : undefined;
-    return toResponse(await r.handler({ method, path, params, body }));
+    const body =
+      init.body instanceof FormData
+        ? init.body
+        : typeof init.body === 'string' && init.body
+          ? (JSON.parse(init.body) as unknown)
+          : undefined;
+    return toResponse(await r.handler({ method, path, params, query, body }));
   }
   return toResponse(error(404, 'error.not_found'));
 }

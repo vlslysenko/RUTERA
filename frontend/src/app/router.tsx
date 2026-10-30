@@ -18,6 +18,8 @@ import { PasswordTab } from '@/pages/settings/PasswordTab';
 import { ProfileTab } from '@/pages/settings/ProfileTab';
 import { SettingsLayout } from '@/pages/settings/SettingsLayout';
 import { UserDetail } from '@/pages/settings/users/UserDetail';
+import { TachoFileDetail } from '@/pages/tacho/TachoFileDetail';
+import { TachoFilesPage } from '@/pages/tacho/TachoFilesPage';
 import { UsersPage } from '@/pages/settings/users/UsersPage';
 import { SCREENS, startScreenPath } from './navigation';
 import type { ScreenKey } from './types';
@@ -83,7 +85,14 @@ export const router = createBrowserRouter([
             },
             { path: `${SCREENS.drivers.path}/:id/page`, element: <DriverDetail mode="page" /> },
           ]),
-          placeholder('tacho'),
+          screen('tacho', [
+            {
+              path: SCREENS.tacho.path,
+              element: <TachoFilesPage />,
+              children: [{ path: ':id', element: <TachoFileDetail mode="drawer" /> }],
+            },
+            { path: `${SCREENS.tacho.path}/:id/page`, element: <TachoFileDetail mode="page" /> },
+          ]),
           placeholder('documents'),
           placeholder('finance'),
           placeholder('fuel'),

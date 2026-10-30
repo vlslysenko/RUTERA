@@ -17,7 +17,8 @@ import {
 } from '@/api/fleet';
 import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
-import { DeadlineChip } from '@/components/DeadlineChip';
+import { UNIT_DOWNLOAD_DAYS } from '@/api/tacho';
+import { DeadlineChip, NextDownloadChip } from '@/components/DeadlineChip';
 import { DeadlineDocuments } from '@/components/DeadlineDocuments';
 import { DetailDrawer } from '@/components/DetailDrawer';
 import { ErrorState } from '@/components/ErrorState';
@@ -80,7 +81,13 @@ function Overview({ v }: { v: Vehicle }) {
       { label: t('fleet.tacho'), value: t(`vehicle.tacho.${v.tachoGen}`) },
     );
     if (v.tachoGen !== 'NONE') {
-      vehicle.push({ label: t('fleet.last_vu_download'), value: instant(v.lastVuDownloadAt) });
+      vehicle.push(
+        { label: t('fleet.last_vu_download'), value: instant(v.lastVuDownloadAt) },
+        {
+          label: t('tacho.next_download'),
+          value: <NextDownloadChip lastDownloadAt={v.lastVuDownloadAt} everyDays={UNIT_DOWNLOAD_DAYS} remindDays={14} />,
+        },
+      );
     }
     vehicle.push(
       {

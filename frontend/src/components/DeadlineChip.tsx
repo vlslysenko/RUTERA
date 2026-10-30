@@ -26,6 +26,32 @@ export function DeadlineChip({ validTo, remindDays = DEFAULT_REMIND_DAYS }: { va
   );
 }
 
+/**
+ * When the next tachograph download is due: the last download + `everyDays` (cards 28, vehicle units 90).
+ * Never downloaded is shown as a warning.
+ */
+export function NextDownloadChip({
+  lastDownloadAt,
+  everyDays,
+  remindDays,
+}: {
+  lastDownloadAt: string | null;
+  everyDays: number;
+  remindDays: number;
+}) {
+  const { t } = useTranslation();
+  if (!lastDownloadAt) {
+    return (
+      <StatusChip tone="warn" icon={<IconClock stroke={2.2} />}>
+        {t('tacho.never_downloaded')}
+      </StatusChip>
+    );
+  }
+  const due = new Date(new Date(lastDownloadAt).getTime() + everyDays * 86_400_000);
+  const dueDate = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(due.getDate()).padStart(2, '0')}`;
+  return <DeadlineChip validTo={dueDate} remindDays={remindDays} />;
+}
+
 /** Nearest deadline in a list row: what expires + chip. */
 export function NextDeadline({ label, validTo }: { label: string; validTo: string }) {
   return (

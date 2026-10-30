@@ -103,7 +103,9 @@ export async function api<T>(path: string, opts: RequestOptions = {}, csrfRetrie
   const method = opts.method ?? 'GET';
   const url = `${API_BASE}${path}${opts.query ? toQuery(opts.query) : ''}`;
   const headers: Record<string, string> = { Accept: 'application/json' };
-  if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+  // FormData (file uploads) goes as multipart: the browser sets Content-Type with the boundary itself.
+  const multipart = opts.body instanceof FormData;
+  if (opts.body !== undefined && !multipart) headers['Content-Type'] = 'application/json';
 
   const doFetch = await transport();
   if (method !== 'GET') {
@@ -117,7 +119,7 @@ export async function api<T>(path: string, opts: RequestOptions = {}, csrfRetrie
     res = await doFetch(url, {
       method,
       headers,
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      body: multipart ? (opts.body as FormData) : opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
       credentials: 'same-origin',
       signal: opts.signal,
     });
@@ -146,4 +148,43 @@ export async function api<T>(path: string, opts: RequestOptions = {}, csrfRetrie
     throw error;
   }
   return data as T;
+}
+
+/**
+ * GET of a binary resource (file download) through the same transport, so it works with the mock too.
+ * Returns the bytes and the file name from Content-Disposition.
+ */
+export async function apiDownload(path: string): Promise<{ blob: Blob; fileName: string | null }> {
+  const doFetch = await transport();
+  let res: Response;
+  try {
+    res = await doFetch(`${API_BASE}${path}`, { method: 'GET', credentials: 'same-origin' });
+  } catch {
+    throw new ApiError(0, { code: 'error.network' });
+  }
+  if (!res.ok) {
+    let body: Partial<ApiErrorBody> | null = null;
+    try {
+      body = (await res.json()) as Partial<ApiErrorBody>;
+    } catch {
+      body = null;
+    }
+    throw new ApiError(res.status, body);
+  }
+  const disposition = res.headers.get('Content-Disposition') ?? '';
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1];
+  const plain = /filename="?([^";]+)"?/i.exec(disposition)?.[1];
+  return { blob: await res.blob(), fileName: encoded ? decodeURIComponent(encoded) : (plain ?? null) };
+}
+
+/** Lets the browser save a blob under the given name. */
+export function saveBlob(blob: Blob, fileName: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
