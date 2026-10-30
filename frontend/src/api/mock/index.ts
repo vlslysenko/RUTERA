@@ -2,7 +2,9 @@ import type { AdminUser, AdminUserCreate, AdminUserUpdate, PasswordChange, Role,
 import { ASSIGNABLE_ROLES } from '@/app/types';
 import { isLanguageCode, type LanguageCode } from '@/i18n/languages';
 import type { Dictionary } from '@/api/i18n';
-import { MOCK_FIRMA, MOCK_USERS, MOCK_VEHICLES, ROLE_PRIVILEGES, type MockUser } from './data';
+import type { VehicleInput } from '@/api/fleet';
+import { MOCK_FIRMA, MOCK_USERS, ROLE_PRIVILEGES, type MockUser } from './data';
+import { applyVehicleInput, MOCK_VEHICLES, toVehicle, validateVehicle, type MockVehicle } from './fleet';
 
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
@@ -173,11 +175,69 @@ route('GET', '/app/i18n/:lang', async ({ params }) => {
   return { status: 200, body: mod.default };
 });
 
-route('GET', '/app/fleet/vehicles', withAuth(() => ({ status: 200, body: MOCK_VEHICLES })));
+// --- fleet ---------------------------------------------------------------------------------------
 
-route('GET', '/app/fleet/vehicles/:id', withAuth((_u, req) => {
-  const v = MOCK_VEHICLES.find((x) => String(x.id) === req.params.id);
-  return v ? { status: 200, body: v } : error(404, 'error.not_found');
+const vehicles: MockVehicle[] = MOCK_VEHICLES.map((v) => ({ ...v, documents: [...v.documents] }));
+
+function findVehicle(id: string): MockVehicle | undefined {
+  return vehicles.find((x) => String(x.id) === id && !x.deleted);
+}
+
+route('GET', '/app/fleet/vehicles', withPrivilege('fleet.vehicle/view', () => ({
+  status: 200,
+  body: vehicles
+    .filter((v) => !v.deleted)
+    .map((v) => toVehicle(v, vehicles))
+    .sort((a, b) => a.plate.localeCompare(b.plate)),
+})));
+
+route('GET', '/app/fleet/vehicles/:id', withPrivilege('fleet.vehicle/view', (_u, req) => {
+  const v = findVehicle(req.params.id);
+  return v ? { status: 200, body: toVehicle(v, vehicles) } : error(404, 'error.not_found');
+}));
+
+route('GET', '/app/fleet/vehicles/:id/documents', withPrivilege('fleet.vehicle/view', (_u, req) => {
+  const v = findVehicle(req.params.id);
+  return v ? { status: 200, body: v.documents } : error(404, 'error.not_found');
+}));
+
+route('POST', '/app/fleet/vehicles', withPrivilege('fleet.vehicle/manage', (_u, { body }) => {
+  const b = (body ?? {}) as VehicleInput;
+  const details = validateVehicle(b, vehicles, null);
+  if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
+  const now = new Date().toISOString();
+  const created: MockVehicle = {
+    ...b,
+    id: Math.max(...vehicles.map((x) => x.id)) + 1,
+    lastVuDownloadAt: null,
+    deleted: false,
+    documents: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+  applyVehicleInput(created, b);
+  vehicles.push(created);
+  return { status: 201, body: toVehicle(created, vehicles) };
+}));
+
+route('PUT', '/app/fleet/vehicles/:id', withPrivilege('fleet.vehicle/manage', (_u, req) => {
+  const target = findVehicle(req.params.id);
+  if (!target) return error(404, 'error.not_found');
+  const b = (req.body ?? {}) as VehicleInput;
+  const details = validateVehicle(b, vehicles, target.id);
+  if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
+  applyVehicleInput(target, b);
+  return { status: 200, body: toVehicle(target, vehicles) };
+}));
+
+route('DELETE', '/app/fleet/vehicles/:id', withPrivilege('fleet.vehicle/manage', (_u, req) => {
+  const target = findVehicle(req.params.id);
+  if (!target) return error(404, 'error.not_found');
+  target.deleted = true;
+  for (const v of vehicles) {
+    if (v.defaultTrailerId === target.id) v.defaultTrailerId = null;
+  }
+  return { status: 204 };
 }));
 
 // --- user administration -------------------------------------------------------------------------

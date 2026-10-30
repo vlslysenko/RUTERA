@@ -2,6 +2,11 @@
   overflow-x: auto;
 }
 
+.search {
+  flex: 1 1 220px;
+  max-width: 320px;
+}
+
 .table th {
   font-size: var(--mantine-font-size-xs);
   font-weight: 600;

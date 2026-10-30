@@ -5,6 +5,7 @@ export const PRIV = {
   ADMIN_USER_VIEW: 'admin.user/view',
   ADMIN_USER_MANAGE: 'admin.user/manage',
   FLEET_VEHICLE_VIEW: 'fleet.vehicle/view',
+  FLEET_VEHICLE_MANAGE: 'fleet.vehicle/manage',
   FLEET_DOCUMENT_MANAGE: 'fleet.document/manage',
   MAP_POSITION_VIEW: 'map.position/view',
   DRIVER_VIEW: 'driver.driver/view',

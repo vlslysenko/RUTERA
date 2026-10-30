@@ -10,6 +10,7 @@ import { OverviewPage } from '@/pages/OverviewPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { FleetPage } from '@/pages/fleet/FleetPage';
 import { VehicleDetail } from '@/pages/fleet/VehicleDetail';
+import { VehicleForm } from '@/pages/fleet/VehicleForm';
 import { PasswordTab } from '@/pages/settings/PasswordTab';
 import { ProfileTab } from '@/pages/settings/ProfileTab';
 import { SettingsLayout } from '@/pages/settings/SettingsLayout';
@@ -49,7 +50,16 @@ export const router = createBrowserRouter([
             {
               path: SCREENS.fleet.path,
               element: <FleetPage />,
-              children: [{ path: ':id', element: <VehicleDetail mode="drawer" /> }],
+              children: [
+                { path: ':id', element: <VehicleDetail mode="drawer" /> },
+                {
+                  element: <PrivilegeGuard privilege={PRIV.FLEET_VEHICLE_MANAGE} />,
+                  children: [
+                    { path: 'new', element: <VehicleForm /> },
+                    { path: ':id/edit', element: <VehicleForm /> },
+                  ],
+                },
+              ],
             },
             { path: `${SCREENS.fleet.path}/:id/page`, element: <VehicleDetail mode="page" /> },
           ]),

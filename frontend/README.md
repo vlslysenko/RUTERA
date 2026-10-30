@@ -37,7 +37,9 @@ the backend clears the cookie on logout, the client fetches a new one with `GET 
 | GET/POST | `/app/admin/users` | `AdminUser[]` / create (`admin.user/view`, `admin.user/manage`) |
 | GET/PUT/DELETE | `/app/admin/users/{id}` | card / full update / soft delete |
 | PUT | `/app/admin/users/{id}/password`, POST `.../unlock` | 204 |
-| GET | `/app/fleet/vehicles`, `/app/fleet/vehicles/{id}` | demo list / card (mock only for now; 404 shows the placeholder) |
+| GET/POST | `/app/fleet/vehicles` | `Vehicle[]` sorted by plate / create (`fleet.vehicle/view`, `fleet.vehicle/manage`) |
+| GET/PUT/DELETE | `/app/fleet/vehicles/{id}` | card / full update (`VehicleInput`) / soft delete; 422 `plate: fleet.vehicle.plate_taken` |
+| GET | `/app/fleet/vehicles/{id}/documents` | `VehicleDocument[]` ordered by `validTo` (a 404 from an older backend shows the placeholder) |
 
 `User = { id, login, name, role, firma: { id, name } | null, language, startScreen, privileges: string[] }`.
 Menu items and screens are shown by `privileges` (`module.entity/action`, see `src/app/navigation.ts` and
@@ -59,7 +61,7 @@ src/api        fetch wrapper (/app, CSRF), auth, i18n, fleet; mock/ = in-browser
 src/auth       session hooks (TanStack Query), RequireAuth, ScreenGuard (role -> screen)
 src/layout     AppLayout (AppShell), TopBar, Sidebar, LanguageMenu, UserMenu
 src/components DetailDrawer (card in the right panel + "open as page"), PageHeader, StatusChip, Plate, ...
-src/pages      Login, Overview, Settings (language, start screen), Fleet (list + card demo), placeholders
+src/pages      Login, Overview, Settings (profile, password, users), Fleet (list, card, form), placeholders
 src/i18n       i18next setup, language list, locales/
 ```
 

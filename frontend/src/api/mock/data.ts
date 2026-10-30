@@ -1,4 +1,3 @@
-import type { Vehicle } from '@/api/fleet';
 import type { Firma, Role } from '@/app/types';
 import type { LanguageCode } from '@/i18n/languages';
 
@@ -73,11 +72,3 @@ export const ROLE_PRIVILEGES: Record<Role, string[]> = {
   API: ['fleet.vehicle/view', 'map.position/view', 'driver.driver/view', 'tacho.hos/view', 'trip.order/view', 'trip.trip/view', 'finance.invoice/view', 'fuel.transaction/view', 'report.report/view'],
   CUSTOM: [],
 };
-
-export const MOCK_VEHICLES: Vehicle[] = [
-  { id: 1, plate: 'DW 4471F', model: 'MAN TGX 18.470', status: 'ON_ROUTE', driver: 'Kowalski Jan', odometerKm: 412_380 },
-  { id: 2, plate: 'DW 8821K', model: 'DAF XF 480', status: 'ON_ROUTE', driver: 'Nowak Piotr', odometerKm: 287_915 },
-  { id: 3, plate: 'DW 2210P', model: 'Volvo FH 460', status: 'REST', driver: 'Shevchenko Oleh', odometerKm: 356_204 },
-  { id: 4, plate: 'DW 5120C', model: 'Scania R 450', status: 'BASE', driver: 'Wisniewski Marek', odometerKm: 198_770 },
-  { id: 5, plate: 'DW 3390H', model: 'Mercedes-Benz Actros 1845', status: 'SERVICE', driver: null, odometerKm: 521_043 },
-];
