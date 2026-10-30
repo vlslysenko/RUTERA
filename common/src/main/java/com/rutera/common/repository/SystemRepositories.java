@@ -7,7 +7,6 @@ import com.rutera.common.domain.EmailOutbox;
 import com.rutera.common.domain.FirmaSetting;
 import com.rutera.common.domain.Notification;
 import com.rutera.common.domain.RememberMeToken;
-import com.rutera.common.domain.StoredFile;
 import com.rutera.common.domain.TotpRecoveryCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -39,10 +38,6 @@ public final class SystemRepositories {
         Optional<ApiToken> findByTokenHash(String tokenHash);
 
         List<ApiToken> findByUserIdAndRevokedAtIsNull(Long userId);
-    }
-
-    public interface StoredFileRepository extends JpaRepository<StoredFile, Long> {
-        Optional<StoredFile> findByStorageKey(String storageKey);
     }
 
     public interface EmailOutboxRepository extends JpaRepository<EmailOutbox, Long> {

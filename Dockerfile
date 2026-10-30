@@ -2,7 +2,7 @@
 # Usually built through compose (docker compose up -d --build); alone: docker build -t rutera .
 #   1. frontend: npm ci + npm run build (frontend/dist)
 #   2. backend:  mvn -Pfrontend -Dexec.skip=true package, which puts that dist into the jar as classpath:/static/
-#   3. runtime:  JRE only, unprivileged user, /opt/rutera/{conf,logs} as in an installation without Docker
+#   3. runtime:  JRE only, unprivileged user, /opt/rutera/{conf,logs,data} as in an installation without Docker
 # JVM options: JAVA_TOOL_OPTIONS (e.g. -Xmx1g); application settings: RUTERA_* variables, see .env.example.
 
 FROM node:22-alpine AS frontend
@@ -19,8 +19,10 @@ WORKDIR /build
 COPY pom.xml ./
 COPY common/pom.xml common/
 COPY core/pom.xml core/
+COPY tacho/pom.xml tacho/
 COPY common/src common/src
 COPY core/src core/src
+COPY tacho/src tacho/src
 COPY --from=frontend /build/frontend/dist frontend/dist
 RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp -Pfrontend -Dexec.skip=true -DskipTests package
 
@@ -29,7 +31,7 @@ RUN groupadd --system rutera \
     && useradd --system --gid rutera --home-dir /opt/rutera --no-create-home --shell /usr/sbin/nologin rutera
 WORKDIR /opt/rutera
 COPY --from=backend /build/core/target/rutera.jar rutera.jar
-RUN mkdir conf logs && chown rutera:rutera logs
+RUN mkdir conf logs data && chown rutera:rutera logs data
 USER rutera
 ENV RUTERA_PORT=8080
 EXPOSE 8080

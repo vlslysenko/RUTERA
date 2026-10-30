@@ -38,6 +38,15 @@ public final class ErrorCodes {
     /** Drivers (per-field): another driver of the firma has this tachograph card. */
     public static final String DRIVER_CARD_TAKEN = "driver.card.number_taken";
 
+    /** Tachograph import: per-file codes of a rejected upload, and the request limits. */
+    public static final String TACHO_NOT_TACHOGRAPH = "tacho.file.not_tachograph";
+    public static final String TACHO_TRUNCATED = "tacho.file.truncated";
+    public static final String TACHO_UNSUPPORTED = "tacho.file.unsupported";
+    public static final String TACHO_CORRUPT = "tacho.file.corrupt";
+    public static final String TACHO_TOO_LARGE = "tacho.file.too_large";
+    /** Top-level 413: more files in one upload than allowed. */
+    public static final String TACHO_TOO_MANY = "tacho.file.too_many";
+
     private ErrorCodes() {
     }
 }

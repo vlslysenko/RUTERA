@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.LinkedHashMap;
@@ -93,6 +95,17 @@ public class ApiExceptionHandler {
     @ExceptionHandler({HttpMessageNotReadableException.class, MissingServletRequestParameterException.class,
             MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ErrorBody> badRequest(Exception ex) {
+        return respond(HttpStatus.BAD_REQUEST, ErrorCodes.BAD_REQUEST, null);
+    }
+
+    /** An upload over spring.servlet.multipart limits (the tachograph import checks each file itself first). */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorBody> uploadTooLarge(MaxUploadSizeExceededException ex) {
+        return respond(HttpStatus.valueOf(413), ErrorCodes.TACHO_TOO_LARGE, null);
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ErrorBody> badMultipart(MultipartException ex) {
         return respond(HttpStatus.BAD_REQUEST, ErrorCodes.BAD_REQUEST, null);
     }
 

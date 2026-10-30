@@ -16,6 +16,9 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     Optional<Vehicle> findByIdAndDeletedFalse(Long id);
 
+    /** VINs are stored upper-case. */
+    List<Vehicle> findByVinAndDeletedFalse(String vin);
+
     List<Vehicle> findByIdInAndDeletedFalse(Iterable<Long> ids);
 
     /** Non-deleted vehicles whose default driver is one of the given drivers, by plate. */

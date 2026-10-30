@@ -352,7 +352,7 @@ public class VehicleService {
     }
 
     /** Same rule as the generated column {@code vehicle.plate_key} in V2__fleet_vehicles.sql. */
-    static String plateKey(String plate) {
+    public static String plateKey(String plate) {
         return plate.toUpperCase(Locale.ROOT).replace(" ", "").replace("-", "");
     }
 

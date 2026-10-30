@@ -19,6 +19,11 @@
             <groupId>com.rutera</groupId>
             <artifactId>rutera-common</artifactId>
         </dependency>
+        <!-- DDD parser for the tachograph import -->
+        <dependency>
+            <groupId>com.rutera</groupId>
+            <artifactId>rutera-tacho</artifactId>
+        </dependency>
 
         <!-- Web MVC on Jetty (Tomcat starter excluded, as in SMDP) -->
         <dependency>
@@ -83,6 +88,14 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-mysql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Synthetic DDD files (TachoTestFiles); real downloads never enter the repository -->
+        <dependency>
+            <groupId>com.rutera</groupId>
+            <artifactId>rutera-tacho</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>

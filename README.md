@@ -179,6 +179,42 @@ unique in the firma (`cardNumber: driver.card.number_taken`). `defaultVehicle` i
 whose `defaultDriverId` is this driver. `nextDocument` is the earliest `validTo` among the documents and the card
 (`kind: DRIVER_CARD`). Changes are written to `audit_log` (module `driver`).
 
+### Tachograph files (`/app/tacho/files`, privileges `tacho.file/upload` and `tacho.hos/view`)
+
+Step A of `docs/TACHO_IMPORT_API.md` (project files): the uploaded DDD file, its summary, the driver or vehicle it
+belongs to and `lastDownloadAt`; facts (activities, places, events) and 561/2006 come in later steps. The parser is
+module `tacho/` (plain Java). Real downloads hold personal data: they never go into the repository (`.gitignore`,
+`.dockerignore`); the tests use the synthetic files of the tacho test-jar (`TachoTestFiles`).
+
+| Method | Path | Body / result |
+|---|---|---|
+| POST | `/app/tacho/files` | `multipart/form-data`, part `files` (1..50) -> `TachoImportResult[]` in the order of the files (upload) |
+| GET | `/app/tacho/files` | `?kind=&driverId=&vehicleId=&unassigned=true&from=&to=&page=0&size=50` -> `{items: TachoFile[], total}`, newest upload first (view or upload) |
+| GET | `/app/tacho/files/{id}` | `TachoFileDetail` = `TachoFile` + `{warnings, counts, suggestion, drivers}` (view or upload) |
+| GET | `/app/tacho/files/{id}/content` | the original bytes as an attachment (upload) |
+| PUT | `/app/tacho/files/{id}/assignment` | `{driverId}` for a card, `{vehicleId}` for a vehicle unit -> `TachoFile`, `match: MANUAL` (upload) |
+| POST | `/app/tacho/files/{id}/driver` | 201 `{driver, file}`: driver created from the card (upload + `driver.driver/manage`) |
+| POST | `/app/tacho/files/{id}/vehicle` | 201 `{vehicle, file}`: vehicle (kind TRUCK) created from the unit (upload + `fleet.vehicle/manage`) |
+| DELETE | `/app/tacho/files/{id}` | 204: the file and what was derived from it; `lastDownloadAt` recalculated; audit entry (upload) |
+
+`TachoImportResult = {fileName, status: IMPORTED | DUPLICATE | REJECTED, file: TachoFile | null, error: {code,
+message} | null}`; rejection codes `tacho.file.not_tachograph | truncated | unsupported | corrupt | too_large`
+(20 MB per file); more than 50 files is 413 `tacho.file.too_many`, none is 422 `files: validation.required`.
+`TachoFile = {id, kind: DRIVER_CARD | VEHICLE_UNIT, generation: GEN1 | GEN2 | GEN2V2, originalName, sizeBytes,
+sha256, cardNumber, cardIssuingCountry, cardValidTo, vin, plate, plateCountry, periodFrom, periodTo, downloadedAt,
+warningsCount, driver: {id, name} | null, vehicle: {id, plate} | null, match: CARD_NUMBER | DRIVER_IDENTIFICATION |
+VIN | PLATE | MANUAL | NONE, uploadedBy: {id, name}, uploadedAt}`. `from`/`to` select files whose period overlaps.
+
+Rules: every file is imported in its own transaction; the same bytes (sha256 per firma) are a `DUPLICATE` and
+change nothing; rejected files are not stored. A card is matched by its 16-character number, otherwise by the first
+14 (driver identification: a renewed or replaced card, which then replaces the driver's card when its expiry is
+later); a vehicle unit by VIN, otherwise by plate (filling an empty VIN), and a vehicle with `tachoGen` NONE takes
+the generation of the file. Manual assignment of a card to a driver without a card creates the card.
+`driver.card.lastDownloadAt` / `vehicle.lastVuDownloadAt` are the newest `downloadedAt` among the files of that card
+or vehicle. Accepted files are stored by `core.storage.FileStorage` under `rutera.storage.dir`
+(`RUTERA_STORAGE_DIR`, default `data/files` next to the working directory; volume `rutera-data` in Docker). Names
+and card numbers from the files never go to the log files.
+
 Service and controller methods are guarded with `@RequiresPrivilege("module.entity/action")` (AOP, module
 `core.security`); the effective set = role defaults + custom role + per-user overrides, computed at login. Every
 request carries `requestId`, `firmaId` and `userId` in the MDC (log lines) and the same `requestId` in `audit_log`.

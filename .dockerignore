@@ -18,3 +18,16 @@ docs
 **/.env
 **/.env.*
 !.env.example
+# Tachograph downloads and uploaded files hold personal data: never part of a build context
+**/*.ddd
+**/*.DDD
+**/*.esm
+**/*.ESM
+**/*.tgd
+**/*.TGD
+**/*.c1b
+**/*.C1B
+**/*.v1b
+**/*.V1B
+tacho/samples-private
+data

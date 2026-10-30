@@ -60,6 +60,8 @@ services:
       # conf/application.properties and conf/logback.xml, when present, override the built-in settings.
       - rutera-conf:/opt/rutera/conf
       - rutera-logs:/opt/rutera/logs
+      # Uploaded files (tachograph downloads), see rutera.storage.dir
+      - rutera-data:/opt/rutera/data
     healthcheck:
       # The JRE image has neither curl nor wget: bash sends the request through /dev/tcp.
       test: ["CMD", "bash", "-c", 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf "GET /actuator/health HTTP/1.0\r\nHost: localhost\r\n\r\n" >&3 && grep -q "\"status\":\"UP\"" <&3']
@@ -73,3 +75,4 @@ volumes:
   rutera-mysql-data:
   rutera-conf:
   rutera-logs:
+  rutera-data:

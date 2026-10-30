@@ -32,3 +32,6 @@ dist/
 *.C1B
 *.v1b
 *.V1B
+
+# Uploaded files of a local run (core.storage.FileStorage, may hold real tachograph data)
+data/

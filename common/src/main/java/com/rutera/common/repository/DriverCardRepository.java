@@ -15,4 +15,7 @@ public interface DriverCardRepository extends JpaRepository<DriverCard, Long> {
     List<DriverCard> findByDriverIdIn(Collection<Long> driverIds);
 
     Optional<DriverCard> findByCardNumber(String cardNumber);
+
+    /** Cards of the same driver identification (the first 14 characters; replacement and renewal differ). */
+    List<DriverCard> findByCardNumberStartingWith(String driverIdentification);
 }
