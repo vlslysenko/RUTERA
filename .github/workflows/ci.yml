@@ -1,7 +1,7 @@
 # Build and test on every push and pull request to main; release.yml calls it before publishing an image.
 #   backend:  mvn verify (common, core, tacho); the integration tests start MySQL 8.4 with Testcontainers
 #             on the runner's Docker. The private tachograph samples are absent here, RealSamplesTest skips.
-#   frontend: npm ci, type check and production build of the React client.
+#   frontend: npm ci, lint, type check and production build of the React client.
 # Actions are pinned to commit SHAs of releases older than 30 days (project rule for dependencies).
 name: CI
 
@@ -56,6 +56,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci --no-audit --no-fund
+      - run: npm run lint
       - run: npm run typecheck
       - name: Production build
         run: npm run build

@@ -46,7 +46,8 @@ in `.env.standalone.example`; lines left commented out keep the built-in default
 Volumes are named `rutera-standalone_<volume>`; `docker compose ... down` keeps them, `down -v` deletes all data.
 
 **HTTPS.** Put a reverse proxy (Caddy, nginx, Traefik) in front, publish RUTERA only to it
-(`RUTERA_BIND_ADDRESS=127.0.0.1` when it runs on the same host) and set `RUTERA_COOKIE_SECURE=true`. The proxy has
+(`RUTERA_BIND_ADDRESS=127.0.0.1` when it runs on the same host), set `RUTERA_COOKIE_SECURE=true` and
+`RUTERA_PUBLIC_URL=https://<host>` (the OAuth issuer of the claude.ai connector). The proxy has
 to allow request bodies of 200 MB (tachograph import).
 
 **E-mail.** Payment reminders go out once `SPRING_MAIL_HOST` (and port, user, password, STARTTLS or SSL) is set;
@@ -655,20 +656,22 @@ request carries `requestId`, `firmaId` and `userId` in the MDC (log lines) and t
 The same resources as the web application, for scripts and integrations, available while the firma has the AI
 access add-on (`firma.ai_access`). Personal tokens act as their user with the user's current privileges, inside the
 user's firma; auth, profile, administration and the i18n dictionaries are not part of the public API. The MCP
-server for AI assistants (same operations as tools, same tokens) is the next step.
+server for AI assistants offers the same operations as tools, with the same tokens or OAuth (see below).
 
 Tokens (web application, session):
 
 | Method | Path | Body / result |
 |---|---|---|
 | GET | `/app/me/tokens` | `Token[]` of the signed-in user (`profile.self/manage`) |
-| POST | `/app/me/tokens` | `{name, expiresAt?}` -> 201 `Token` with `token` (shown only here); 403 `api.ai_access_required` without the add-on; at most 10 active tokens per user (`name: api.token.limit`) |
-| DELETE | `/app/me/tokens/{id}` | 204: revoked |
+| POST | `/app/me/tokens` | `{name, expiresAt?}` -> 201 `Token` with `token` (shown only here); 403 `api.ai_access_required` without the add-on; at most 10 active personal tokens per user (`name: api.token.limit`) |
+| DELETE | `/app/me/tokens/{id}` | 204: revoked (for an OAuth connection: the client is disconnected) |
 | GET | `/app/me/tokens/{id}/calls?page=&size=` | `{items: [{at, method, path, status, durationMs, ip}], total}`, newest first (own tokens, or any with `admin.api_token/manage`) |
 | GET / DELETE | `/app/admin/tokens[/{id}]` | all tokens of the firma with `user: {id, name}` / revoke (`admin.api_token/manage`) |
 
-`Token = {id, name, prefix, user, createdAt, expiresAt, lastUsedAt, revokedAt, active, token}`. A token is `rtr_` plus
-43 random base64url characters; only its first 12 characters (`prefix`) and its SHA-256 hash are stored.
+`Token = {id, kind, name, prefix, user, createdAt, expiresAt, lastUsedAt, revokedAt, active, token}`. `kind`:
+`PERSONAL` (created here) or `OAUTH` (the connection of an OAuth client such as claude.ai, named after the client,
+`prefix` "OAuth", `expiresAt` = end of its refresh token). A personal token is `rtr_` plus 43 random base64url
+characters; only its first 12 characters (`prefix`) and its SHA-256 hash are stored.
 
 Calls: `Authorization: Bearer rtr_...` on every request; no session, no CSRF. Answers and errors are the ones of the
 web API (`{code, message, details}`): 401 `auth.unauthenticated` (no, unknown, expired or revoked token, or a user or
@@ -720,9 +723,53 @@ Other MCP clients with a JSON configuration:
                            "headers": {"Authorization": "Bearer rtr_..."}}}}
 ```
 
-Custom connectors on claude.ai sign in with OAuth, which RUTERA does not offer yet; clients that send a fixed
-`Authorization` header (Claude Code, Claude Desktop through its configuration, other MCP clients) work now. The
-server is built without Spring AI: its MCP starter needs Spring Boot 4.1, RUTERA runs on 4.0.
+The server is built without Spring AI: its MCP starter needs Spring Boot 4.1, RUTERA runs on 4.0.
+
+### Connect Claude with OAuth (claude.ai connector)
+
+RUTERA is an OAuth 2.1 authorization server for MCP clients, as the MCP authorization specification describes:
+nobody copies a token. On claude.ai: Settings -> Connectors -> Add custom connector, URL `https://<host>/mcp`, then
+Connect: the browser opens the RUTERA page, the user signs in (or an open RUTERA session is reused), sees the
+application, the account and the return address, and allows it. The connection then appears in the profile under
+API tokens (`kind: OAUTH`, named after the client) and is ended there. claude.ai calls RUTERA from Anthropic's
+servers, so the host must be reachable from the internet over HTTPS; set `RUTERA_PUBLIC_URL` to that address (the
+issuer and every published URL derive from it, otherwise from the request). On a LAN or in development Claude Code
+does the same flow from the user's machine:
+
+```
+claude mcp add --transport http rutera http://localhost:18082/mcp      # then /mcp -> rutera -> Authenticate
+```
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/.well-known/oauth-protected-resource[/mcp \| /api/v1]` | Protected resource metadata (RFC 9728): `resource`, `authorization_servers` |
+| GET | `/.well-known/oauth-authorization-server` | Authorization server metadata (RFC 8414) |
+| POST | `/oauth/register` | Dynamic client registration (RFC 7591), JSON; at most 20 per address and hour |
+| GET / POST | `/oauth/authorize` | Sign-in and consent page (session, CSRF), redirect with `code`, `state`, `iss` |
+| POST | `/oauth/token` | Form: `authorization_code` (`code`, `redirect_uri`, `client_id`, `code_verifier`) or `refresh_token` |
+| POST | `/oauth/revoke` | Form: `token` (access or refresh), `client_id` (RFC 7009) |
+
+- A 401 from `/mcp` or `/api/**` carries `WWW-Authenticate: Bearer resource_metadata="<base>/.well-known/
+  oauth-protected-resource/mcp"` (`/api/v1` for the API; with `error="invalid_token"` when a token was sent), where
+  MCP clients discover the authorization server.
+- Registration: `redirect_uris` (1 to 10) must be `https` URIs or `http` on the loopback interface (localhost,
+  127.0.0.1, [::1]), without a fragment; `token_endpoint_auth_method` `none` (default, public client with PKCE),
+  `client_secret_post` or `client_secret_basic` (a secret `rts_...` is returned once); grant types
+  `authorization_code` and `refresh_token`, response type `code`. Registrations never used within 7 days are removed.
+- Authorization: `response_type=code`, PKCE with `code_challenge_method=S256` required, `redirect_uri` exactly as
+  registered, `resource` (RFC 8707) must be on this server, `scope` is ignored: there is one scope, `rutera`, the
+  user's own privileges. An unknown client or redirect URI is shown on the page and never redirected to; other faults
+  return `error=invalid_request | unsupported_response_type | invalid_target`, Deny returns `error=access_denied`.
+  Only users of a firma with the AI access add-on can allow; the page says why otherwise. The page has no scripts,
+  is never framed (CSP `frame-ancestors 'none'`) and speaks the language of the user or the browser (`oauth.*` keys).
+- Tokens: the code lives 60 seconds and works once; a second use revokes the connection made from it. Access token
+  `rta_...` for one hour, refresh token `rtf_...` for 30 days after the last refresh; both rotate on every refresh, the
+  old ones stop working. Errors: `{error, error_description}` with `invalid_request`, `invalid_client` (401),
+  `invalid_grant`, `unsupported_grant_type`. A refresh fails once the user cannot sign in any more or the add-on is
+  off. Authorizing the same client again ends the user's previous connection with it.
+- Storage: `oauth_client` (registrations), `oauth_code` (codes, SHA-256), and the connection is an `api_token` row
+  of kind `OAUTH` (`token_hash` = current access token, `refresh_hash`), so the add-on gate, the rate limit and the
+  call log are those of personal tokens.
 
 ## Conventions
 

@@ -7,6 +7,7 @@ import com.rutera.common.repository.FirmaRepository;
 import com.rutera.core.api.ApiRateLimiter;
 import com.rutera.core.api.ApiTokenFilter;
 import com.rutera.core.auth.AuditLogoutHandler;
+import com.rutera.core.oauth.OAuthUrls;
 import com.rutera.core.security.JsonSecurityErrors;
 import com.rutera.core.security.RuteraSecurityProperties;
 import com.rutera.core.security.SessionUserFilter;
@@ -61,6 +62,27 @@ public class SecurityConfig {
     public static final String SESSION_COOKIE = "RUTERA_SESSION";
 
     /**
+     * The machine-facing OAuth endpoints for MCP clients: metadata ({@code /.well-known/**}), client registration,
+     * token and revocation. Stateless and open (the client authenticates inside the token request); no CSRF, as the
+     * callers are servers and native apps, not pages of this origin. {@code /oauth/authorize} is a page of the
+     * session chain below.
+     */
+    @Bean
+    @Order(0)
+    SecurityFilterChain oauthFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/.well-known/**", "/oauth/token", "/oauth/register", "/oauth/revoke")
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .requestCache(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    /**
      * The public API ({@code /api/**}) and the MCP server ({@code /mcp}): stateless bearer tokens
      * ({@link ApiTokenFilter}), no session, no CSRF; the OpenAPI document is public. Checked before the session
      * chain below.
@@ -69,7 +91,7 @@ public class SecurityConfig {
     @Order(1)
     SecurityFilterChain apiFilterChain(HttpSecurity http, JsonSecurityErrors errors, ApiTokenRepository tokens,
                                        ApiCallRepository calls, AppUserRepository users, FirmaRepository firmas,
-                                       SessionUserService sessionUsers, ApiRateLimiter limiter,
+                                       SessionUserService sessionUsers, ApiRateLimiter limiter, OAuthUrls urls,
                                        PlatformTransactionManager transactionManager) throws Exception {
         http
                 .securityMatcher("/api/**", "/mcp", "/mcp/**")
@@ -80,13 +102,16 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(eh -> eh
-                        .authenticationEntryPoint(errors)
+                        .authenticationEntryPoint((request, response, e) -> {
+                            urls.challenge(request, response, false);
+                            errors.commence(request, response, e);
+                        })
                         .accessDeniedHandler(errors))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/v1/openapi.json").permitAll()
                         .anyRequest().authenticated())
                 .addFilterAfter(new ApiTokenFilter(tokens, calls, users, firmas, sessionUsers, limiter, errors,
-                        transactionManager), SecurityContextHolderFilter.class);
+                        urls, transactionManager), SecurityContextHolderFilter.class);
         return http.build();
     }
 

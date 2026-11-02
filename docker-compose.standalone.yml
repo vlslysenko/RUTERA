@@ -49,6 +49,7 @@ services:
       RUTERA_DB_USER: ${RUTERA_DB_USER:-rutera}
       RUTERA_DB_PASSWORD: ${RUTERA_DB_PASSWORD:?set RUTERA_DB_PASSWORD in .env}
       RUTERA_COOKIE_SECURE: ${RUTERA_COOKIE_SECURE:-false}
+      RUTERA_PUBLIC_URL: ${RUTERA_PUBLIC_URL:-}
       # Passed only when set in .env; otherwise the built-in defaults apply (application.properties).
       RUTERA_BOOTSTRAP_FIRMA_NAME:
       RUTERA_BOOTSTRAP_FIRMA_COUNTRY:

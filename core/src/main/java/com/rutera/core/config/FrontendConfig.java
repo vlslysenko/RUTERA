@@ -26,7 +26,7 @@ import java.util.Map;
  *   <li>SPA fallback: a GET for a client-side route ({@code /fleet}, {@code /settings/users}) has no file of its
  *       own and gets {@code index.html}; the router in the browser takes over. A path whose last segment has an
  *       extension is a file and stays 404 when missing. {@code /app/**}, {@code /api/**}, {@code /mcp/**},
- *       {@code /actuator/**} and {@code /error}
+ *       {@code /actuator/**}, {@code /error}, {@code /oauth/**} and {@code /.well-known/**}
  *       never get the page, so an unknown API path keeps answering the JSON error.</li>
  * </ul>
  * Without a built client (plain {@code mvn package}) there is no {@code index.html} and these paths answer 404.
@@ -63,7 +63,7 @@ public class FrontendConfig implements WebMvcConfigurer {
     static boolean isClientRoute(String path) {
         String first = path.contains("/") ? path.substring(0, path.indexOf('/')) : path;
         if (first.equals("app") || first.equals("api") || first.equals("mcp") || first.equals("actuator")
-                || first.equals("error")) {
+                || first.equals("error") || first.equals("oauth") || first.equals(".well-known")) {
             return false;
         }
         String last = path.substring(path.lastIndexOf('/') + 1);

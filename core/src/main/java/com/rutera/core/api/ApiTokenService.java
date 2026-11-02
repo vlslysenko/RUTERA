@@ -36,9 +36,11 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Personal tokens of the public API ({@code /app/me/tokens}, {@code /app/admin/tokens}). A token is "rtr_" plus 43
+ * Tokens of the public API ({@code /app/me/tokens}, {@code /app/admin/tokens}). A personal token is "rtr_" plus 43
  * random base64url characters; only its SHA-256 hash and the first 12 characters are stored, the token itself is
- * shown once. Tokens can only be created while the firma has the AI access add-on.
+ * shown once. Tokens can only be created while the firma has the AI access add-on. The lists also hold the
+ * connections of OAuth clients (kind OAUTH, named after the client, see {@code OAuthService}); revoking one
+ * disconnects the client.
  */
 @Service
 public class ApiTokenService {
@@ -67,8 +69,8 @@ public class ApiTokenService {
     }
 
     /** {@code token} is set only in the answer of the creation. */
-    public record Token(Long id, String name, String prefix, Ref user, Instant createdAt, Instant expiresAt,
-                        Instant lastUsedAt, Instant revokedAt, boolean active, String token) {
+    public record Token(Long id, String kind, String name, String prefix, Ref user, Instant createdAt,
+                        Instant expiresAt, Instant lastUsedAt, Instant revokedAt, boolean active, String token) {
     }
 
     public record TokenInput(@Size(max = 100) String name, Instant expiresAt) {
@@ -102,7 +104,7 @@ public class ApiTokenService {
         String name = InputFields.blankToNull(input.name());
         if (name == null) {
             errors.put("name", ErrorCodes.FIELD_REQUIRED);
-        } else if (tokens.countByUserIdAndRevokedAtIsNull(userId) >= MAX_ACTIVE_PER_USER) {
+        } else if (tokens.countByUserIdAndKindAndRevokedAtIsNull(userId, ApiToken.Kind.PERSONAL) >= MAX_ACTIVE_PER_USER) {
             errors.put("name", ErrorCodes.API_TOKEN_LIMIT);
         }
         if (input.expiresAt() != null && !input.expiresAt().isAfter(Instant.now())) {
@@ -193,8 +195,8 @@ public class ApiTokenService {
         Ref ref = user == null ? null : new Ref(user.getId(),
                 (Objects.requireNonNullElse(user.getFirstName(), "") + " "
                         + Objects.requireNonNullElse(user.getLastName(), "")).strip());
-        return new Token(t.getId(), t.getName(), t.getTokenPrefix(), ref, t.getCreatedAt(), t.getExpiresAt(),
-                t.getLastUsedAt(), t.getRevokedAt(), active, raw);
+        return new Token(t.getId(), t.getKind().name(), t.getName(), t.getTokenPrefix(), ref, t.getCreatedAt(),
+                t.getExpiresAt(), t.getLastUsedAt(), t.getRevokedAt(), active, raw);
     }
 
     static String newToken() {

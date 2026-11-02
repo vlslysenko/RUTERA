@@ -10,6 +10,8 @@ import com.rutera.common.repository.ApiTokenRepository;
 import com.rutera.common.repository.AppUserRepository;
 import com.rutera.common.repository.FirmaRepository;
 import com.rutera.common.security.Role;
+import com.rutera.core.oauth.OAuthService;
+import com.rutera.core.oauth.OAuthUrls;
 import com.rutera.core.security.AuthenticatedUser;
 import com.rutera.core.security.JsonSecurityErrors;
 import com.rutera.core.security.RequestIdFilter;
@@ -35,9 +37,11 @@ import java.time.Duration;
 import java.time.Instant;
 
 /**
- * Bearer authentication of the public API ({@code /api/**}, stateless): {@code Authorization: Bearer rtr_...}. The
- * token must exist, not be revoked or expired, its user must still be usable and the firma must have the AI access
- * add-on; then the request runs as that user (current privileges) in the firma's scope, like a session request.
+ * Bearer authentication of the public API ({@code /api/**}, stateless): {@code Authorization: Bearer rtr_...} (a
+ * personal token) or {@code rta_...} (the access token of an OAuth connection, valid for an hour). The token must
+ * exist, not be revoked or expired, its user must still be usable and the firma must have the AI access add-on; then
+ * the request runs as that user (current privileges) in the firma's scope, like a session request. A 401 carries
+ * {@code WWW-Authenticate} with the protected resource metadata, where MCP clients start the OAuth flow.
  * Every call with a known token is written to {@code api_call}; the token's {@code lastUsedAt} moves at most once a
  * minute. Not a Spring bean: {@code SecurityConfig} creates it for the API filter chain only.
  */
@@ -53,11 +57,12 @@ public class ApiTokenFilter extends OncePerRequestFilter {
     private final SessionUserService sessionUsers;
     private final ApiRateLimiter limiter;
     private final JsonSecurityErrors errors;
+    private final OAuthUrls urls;
     private final TransactionTemplate tx;
 
     public ApiTokenFilter(ApiTokenRepository tokens, ApiCallRepository calls, AppUserRepository users,
                           FirmaRepository firmas, SessionUserService sessionUsers, ApiRateLimiter limiter,
-                          JsonSecurityErrors errors, PlatformTransactionManager transactionManager) {
+                          JsonSecurityErrors errors, OAuthUrls urls, PlatformTransactionManager transactionManager) {
         this.tokens = tokens;
         this.calls = calls;
         this.users = users;
@@ -65,6 +70,7 @@ public class ApiTokenFilter extends OncePerRequestFilter {
         this.sessionUsers = sessionUsers;
         this.limiter = limiter;
         this.errors = errors;
+        this.urls = urls;
         this.tx = new TransactionTemplate(transactionManager);
     }
 
@@ -83,6 +89,7 @@ public class ApiTokenFilter extends OncePerRequestFilter {
         Instant now = Instant.now();
         Resolved r = resolve(header.substring(BEARER.length()).strip(), now);
         if (r == null) {
+            urls.challenge(request, response, true);
             errors.write(request, response, HttpStatus.UNAUTHORIZED, ErrorCodes.UNAUTHENTICATED);
             return;
         }
@@ -115,14 +122,17 @@ public class ApiTokenFilter extends OncePerRequestFilter {
 
     /** The token, its user and firma, or null when the token cannot be used. */
     private Resolved resolve(String raw, Instant now) {
-        if (!raw.startsWith(ApiTokenService.PREFIX) || raw.length() > 100) {
+        boolean personal = raw.startsWith(ApiTokenService.PREFIX);
+        if ((!personal && !raw.startsWith(OAuthService.ACCESS_PREFIX)) || raw.length() > 100) {
             return null;
         }
         try {
             return RequestContext.runAsRoot(null, () -> tx.execute(s -> {
                 ApiToken t = tokens.findByTokenHash(ApiTokenService.hash(raw)).orElse(null);
                 if (t == null || t.getRevokedAt() != null
-                        || (t.getExpiresAt() != null && !t.getExpiresAt().isAfter(now))) {
+                        || (t.getExpiresAt() != null && !t.getExpiresAt().isAfter(now))
+                        || personal != (t.getKind() == ApiToken.Kind.PERSONAL)
+                        || (!personal && (t.getAccessExpiresAt() == null || !t.getAccessExpiresAt().isAfter(now)))) {
                     return null;
                 }
                 AppUser user = users.findById(t.getUserId()).orElse(null);

@@ -16,7 +16,11 @@ public interface ApiTokenRepository extends JpaRepository<ApiToken, Long> {
 
     List<ApiToken> findByUserIdOrderByIdDesc(Long userId);
 
-    long countByUserIdAndRevokedAtIsNull(Long userId);
+    long countByUserIdAndKindAndRevokedAtIsNull(Long userId, ApiToken.Kind kind);
+
+    Optional<ApiToken> findByRefreshHash(String refreshHash);
+
+    List<ApiToken> findByUserIdAndOauthClientIdAndRevokedAtIsNull(Long userId, Long oauthClientId);
 
     List<ApiToken> findAllByOrderByIdDesc();
 }
