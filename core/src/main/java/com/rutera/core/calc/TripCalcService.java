@@ -116,9 +116,14 @@ public class TripCalcService {
         int dailyRests = 0;
         int weeklyRests = 0;
         List<CalcDto.Event> timeline = new ArrayList<>();
+        Map<Integer, BigDecimal> kmByDriver = new TreeMap<>();
         for (HosPlanner.Event e : result.events()) {
             switch (e.kind()) {
-                case DRIVE -> driving += e.minutes();
+                case DRIVE -> {
+                    driving += e.minutes();
+                    kmByDriver.merge(e.driver() == null ? 1 : e.driver(),
+                            BigDecimal.valueOf(e.kmTo() - e.kmFrom()), BigDecimal::add);
+                }
                 case BREAK -> breaks += e.minutes();
                 case SERVICE -> work += e.minutes();
                 case DAILY_REST, REDUCED_DAILY_REST -> {
@@ -142,7 +147,7 @@ public class TripCalcService {
                 breaks, rests, work, duration, dailyRests, weeklyRests, days);
 
         boolean payHidden = !CurrentUser.require().hasPrivilege(Privileges.DRIVER_PAYMENT_VIEW);
-        CalcDto.Costs costs = costs(input, firma, days, payHidden, missing);
+        CalcDto.Costs costs = costs(input, firma, days, kmByDriver, payHidden, missing);
         return new CalcDto.Plan(input.start(), result.eta(), totals, timeline, stateDtos, costs, payHidden,
                 List.copyOf(new LinkedHashSet<>(warnings)));
     }
@@ -178,7 +183,13 @@ public class TripCalcService {
 
     // --- costs ---------------------------------------------------------------------------------------------
 
-    private CalcDto.Costs costs(Input input, Firma firma, int days, boolean payHidden, List<String> missing) {
+    /**
+     * Fuel, pay, tolls and other costs. Pay per driver of the crew: km of that driver's own DRIVE items (a crew of
+     * two splits the distance), per diem and salary share for the whole trip each; a crew slot without a chosen
+     * driver gets no pay lines and no missing code.
+     */
+    private CalcDto.Costs costs(Input input, Firma firma, int days, Map<Integer, BigDecimal> kmByDriver,
+                                boolean payHidden, List<String> missing) {
         CalcDto.Options o = input.options();
         String base = firma.getBaseCurrency();
         BigDecimal km = input.distance();
@@ -210,16 +221,20 @@ public class TripCalcService {
             LocalDate day = LocalDate.ofInstant(input.start(), zone(firma));
             for (int i = 0; i < input.crewSize(); i++) {
                 Driver d = i < input.crew().size() ? input.crew().get(i) : null;
-                DriverPayRate rate = d == null ? null : payRates.findByDriverIdOrderByValidFromDesc(d.getId()).stream()
+                if (d == null) {
+                    continue;
+                }
+                DriverPayRate rate = payRates.findByDriverIdOrderByValidFromDesc(d.getId()).stream()
                         .filter(r -> !r.getValidFrom().isAfter(day)).findFirst().orElse(null);
                 if (rate == null) {
                     addOnce(missing, "calc.missing.pay_rate");
                     continue;
                 }
                 String label = d.getFullName();
+                BigDecimal driven = kmByDriver.getOrDefault(i + 1, BigDecimal.ZERO).setScale(1, RoundingMode.HALF_UP);
                 if (rate.getPerKm() != null) {
-                    lines.add(new CalcDto.CostLine("DRIVER_KM", label, null, km, "KM", rate.getPerKm(),
-                            money(km.multiply(rate.getPerKm())), rate.getCurrency()));
+                    lines.add(new CalcDto.CostLine("DRIVER_KM", label, null, driven, "KM", rate.getPerKm(),
+                            money(driven.multiply(rate.getPerKm())), rate.getCurrency()));
                 }
                 BigDecimal perDiem = abroad ? rate.getPerDiemAbroad() : rate.getPerDiemHome();
                 if (perDiem != null) {

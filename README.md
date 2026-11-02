@@ -511,7 +511,8 @@ with the pay rate valid on the start day: `perKm` x km, per diem (abroad when an
 country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = km per country x the
 matching tariff (rows whose Euro class, axles and weight conditions hold for the vehicle; a condition on a value
 the vehicle lacks, or without a vehicle, does not hold; the most specific row, then the latest `validFrom`); other
-costs as given. Units of the cost lines: FUEL `L`, DRIVER_KM and TOLL `KM`, DRIVER_PER_DIEM and DRIVER_BASE `DAY`;
+costs as given. A crew of two: DRIVER_KM counts the km of each driver's own DRIVE items; a crew slot without a
+chosen driver gets no pay lines and no missing code. Units of the cost lines: FUEL `L`, DRIVER_KM and TOLL `KM`, DRIVER_PER_DIEM and DRIVER_BASE `DAY`;
 `days` = started 24 h periods from the start to the arrival (at least 1). Loading before the first drive: a first
 leg with `distanceKm: 0` and `serviceMin`. `timeline.driver` and `driverStates` follow the crew order (`driverIds[0]`
 = 1, `driverIds[1]` = 2; a crew slot without an id is planned FRESH). No currency conversion: totals per currency.

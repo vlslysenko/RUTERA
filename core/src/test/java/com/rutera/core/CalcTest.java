@@ -132,8 +132,10 @@ class CalcTest extends AbstractIntegrationTest {
         JsonNode two = body(c.post("/app/calc/trip", crew));
         assertThat(two.get("driverStates")).hasSize(2);
         assertThat(two.get("totals").get("breakMin").asInt()).isZero();
-        assertThat(two.get("costs").get("missing").get(0).asString()).as("the second driver has no rate")
-                .isEqualTo("calc.missing.pay_rate");
+        assertThat(two.get("costs").get("missing")).as("an empty crew slot is no missing rate").isEmpty();
+        JsonNode km = line(two, "DRIVER_KM", null);
+        assertThat(km.get("quantity").asDouble()).as("only the km driver 1 drives (540 of 857 min)").isEqualTo(630.1);
+        assertThat(km.get("amount").asDouble()).isEqualTo(63.01);
 
         AppUser dispatcher = createUser("dispatcher-calc" + firma.getId() + "@test.local", "CalcDisp-1",
                 Role.DISPATCHER, firma.getId(), true);
