@@ -8,9 +8,12 @@ import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { OverviewPage } from '@/pages/OverviewPage';
 import { PlaceholderPage } from '@/pages/PlaceholderPage';
+import { AbsenceCalendarPage } from '@/pages/drivers/AbsenceCalendarPage';
 import { DriverDetail } from '@/pages/drivers/DriverDetail';
 import { DriverForm } from '@/pages/drivers/DriverForm';
+import { DriversLayout } from '@/pages/drivers/DriversLayout';
 import { DriversPage } from '@/pages/drivers/DriversPage';
+import { PaymentsPage } from '@/pages/drivers/PaymentsPage';
 import { FleetPage } from '@/pages/fleet/FleetPage';
 import { VehicleDetail } from '@/pages/fleet/VehicleDetail';
 import { VehicleForm } from '@/pages/fleet/VehicleForm';
@@ -158,15 +161,27 @@ export const router = createBrowserRouter([
           screen('drivers', [
             {
               path: SCREENS.drivers.path,
-              element: <DriversPage />,
+              element: <DriversLayout />,
               children: [
-                { path: ':id', element: <DriverDetail mode="drawer" /> },
                 {
-                  element: <PrivilegeGuard privilege={PRIV.DRIVER_MANAGE} />,
+                  // /drivers and the cards; static "absences" / "payments" rank above ":id".
+                  element: <DriversPage />,
                   children: [
-                    { path: 'new', element: <DriverForm /> },
-                    { path: ':id/edit', element: <DriverForm /> },
+                    { index: true, element: null },
+                    { path: ':id', element: <DriverDetail mode="drawer" /> },
+                    {
+                      element: <PrivilegeGuard privilege={PRIV.DRIVER_MANAGE} />,
+                      children: [
+                        { path: 'new', element: <DriverForm /> },
+                        { path: ':id/edit', element: <DriverForm /> },
+                      ],
+                    },
                   ],
+                },
+                { path: 'absences', element: <AbsenceCalendarPage /> },
+                {
+                  element: <PrivilegeGuard privilege={PRIV.DRIVER_PAYMENT_VIEW} />,
+                  children: [{ path: 'payments', element: <PaymentsPage /> }],
                 },
               ],
             },

@@ -44,6 +44,12 @@ the backend clears the cookie on logout, the client fetches a new one with `GET 
 | GET/POST | `/app/drivers` | `Driver[]` sorted by last name / create (`driver.driver/view`, `driver.driver/manage`) |
 | GET/PUT/DELETE | `/app/drivers/{id}` | card / full update (`DriverInput`, current tachograph card inline) / soft delete |
 | GET/POST, PUT/DELETE | `/app/drivers/{id}/documents`, `.../{docId}` | driver documents with deadlines |
+| GET/POST, PUT/DELETE | `/app/drivers/{id}/absences`, `.../{absenceId}` | `Absence[]` newest first / change (`driver.absence/manage`); 422 `toDate: driver.absence.overlap` |
+| GET | `/app/absences?from&to&kind&driverId` | absences of the firma overlapping the range (always pass one) |
+| GET, PUT/DELETE | `/app/drivers/{id}/days?month=YYYY-MM`, `.../days/{date}` | `{days, summary}` / manual day `{kind, note}` or back to computed (`driver.driver/manage`) |
+| GET/POST, PUT/DELETE | `/app/drivers/{id}/pay-rates`, `.../{rateId}` | pay rates (`driver.payment/view`, `/manage`); 422 `validFrom: driver.pay_rate.date_taken` |
+| GET/POST, PUT/DELETE | `/app/drivers/{id}/payments?from&to`, `.../{paymentId}` | payments of a driver (YYYY-MM months) |
+| GET | `/app/payments?period&driverId&kind` | `{items, totals}` of the firma for a month; advances and deductions count negative |
 | POST | `/app/tacho/files` | multipart `files` (1..50, 20 MB each) -> `TachoImportResult[]` (IMPORTED / DUPLICATE / REJECTED) |
 | GET | `/app/tacho/files`, `/app/tacho/files/{id}` | journal `{items, total}` with filters / `TachoFileDetail` (`tacho.hos/view` or `tacho.file/upload`) |
 | GET | `/app/tacho/files/{id}/content` | original bytes (download) |
@@ -66,6 +72,11 @@ Trips are tabs too: `/trips` (trips; card with stops and quick marks, status but
 of the whole trip), `/trips/orders` (orders; card with "create trip") and `/trips/contractors` (customers and
 carriers). Each tab needs its own privilege; users without `trip.trip/view` land on the first tab they may open.
 Stop errors come as `stops[2].address` and land on the field `stops.2.address` of the trip form.
+
+Drivers are tabs as well: `/drivers` (list and cards), `/drivers/absences` (who is absent, drivers × days of a month)
+and `/drivers/payments` (payroll of a month, `driver.payment/view` only). The driver card has the tabs overview,
+documents, absences, work days (month calendar with manual corrections) and pay (rates and payments of a year);
+`?tab=` in the URL opens a card on a tab.
 
 The vehicle–driver link lives on the vehicle (`defaultDriverId` in the vehicle form); `Driver.defaultVehicle` is
 derived from it. Documents of vehicles and drivers share `components/DeadlineDocuments`.

@@ -1,0 +1,233 @@
+.month {
+  text-transform: capitalize;
+}
+
+.monthNav {
+  min-width: 150px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-dimmed);
+}
+
+.summary b {
+  color: var(--mantine-color-text);
+  font-weight: 600;
+}
+
+/* Month of a driver: 7 columns, Monday first. */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.weekday {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+  text-align: center;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-height: 54px;
+  padding: 3px 5px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-body);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  overflow: hidden;
+}
+
+button.day {
+  cursor: pointer;
+}
+
+button.day:hover {
+  border-color: var(--mantine-color-blue-4);
+}
+
+.dayNum {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+}
+
+.dayKind {
+  font-size: 10px;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dayTime {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 10px;
+  color: var(--mantine-color-dimmed);
+}
+
+.WORK {
+  background: var(--mantine-color-blue-0);
+  border-color: var(--mantine-color-blue-2);
+}
+
+.REST {
+  background: var(--mantine-color-gray-0);
+}
+
+.ABSENCE {
+  background: var(--mantine-color-orange-0);
+  border-color: var(--mantine-color-orange-2);
+}
+
+.HOLIDAY {
+  background: var(--mantine-color-green-0);
+  border-color: var(--mantine-color-green-2);
+}
+
+/* No tachograph data and no entry: shown as rest, but faded so it is not taken for a recorded rest. */
+.noData {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.today {
+  box-shadow: inset 0 0 0 1px var(--mantine-color-blue-6);
+}
+
+.editing {
+  outline: 2px solid var(--mantine-color-blue-6);
+  outline-offset: 1px;
+}
+
+/* Firm-wide absence calendar: drivers × days of the month. */
+.absWrap {
+  overflow-x: auto;
+}
+
+.absGrid {
+  display: grid;
+  align-items: stretch;
+  min-width: max-content;
+  font-size: var(--mantine-font-size-sm);
+}
+
+.absHead {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  color: var(--mantine-color-dimmed);
+  text-align: center;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.absName {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 4px;
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  white-space: nowrap;
+}
+
+.absCell {
+  height: 30px;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  border-left: 1px solid var(--mantine-color-gray-1);
+}
+
+.weekend {
+  background: var(--mantine-color-gray-0);
+}
+
+.absTotal {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 6px;
+  font-family: var(--mantine-font-family-monospace);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  margin: 5px 0;
+  height: 18px;
+}
+
+.SICK {
+  background: var(--mantine-color-red-4);
+}
+
+.VACATION {
+  background: var(--mantine-color-blue-4);
+}
+
+.UNPAID {
+  background: var(--mantine-color-gray-5);
+}
+
+.PARENTAL {
+  background: var(--mantine-color-teal-4);
+}
+
+.OTHER {
+  background: var(--mantine-color-violet-3);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.num {
+  text-align: right;
+  font-family: var(--mantine-font-family-monospace);
+  white-space: nowrap;
+}
+
+.negative {
+  color: var(--mantine-color-red-7);
+}

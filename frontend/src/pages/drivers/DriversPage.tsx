@@ -13,7 +13,6 @@ import { NextDeadline } from '@/components/DeadlineChip';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
-import { PageHeader } from '@/components/PageHeader';
 import { Plate } from '@/components/Plate';
 import { cx } from '@/utils/cx';
 import { DriverStatusChip } from './DriverStatusChip';
@@ -54,18 +53,6 @@ export function DriversPage() {
 
   return (
     <>
-      <PageHeader
-        title={t('drivers.title')}
-        subtitle={q.data?.length}
-        actions={
-          canManage &&
-          !notReady && (
-            <Button leftSection={<IconPlus size={16} />} onClick={() => void navigate('/drivers/new')}>
-              {t('drivers.add')}
-            </Button>
-          )
-        }
-      />
       {q.isPending ? (
         <FullScreenLoader fullScreen={false} />
       ) : notReady ? (
@@ -74,10 +61,20 @@ export function DriversPage() {
       ) : q.isError ? (
         <ErrorState message={t(errorCode(q.error))} onRetry={() => void q.refetch()} />
       ) : q.data.length === 0 ? (
-        <EmptyState text={t('drivers.empty')} />
+        <>
+          <EmptyState text={t('drivers.empty')} />
+          {canManage && (
+            <Group justify="center">
+              <Button leftSection={<IconPlus size={16} />} onClick={() => void navigate('/drivers/new')}>
+                {t('drivers.add')}
+              </Button>
+            </Group>
+          )}
+        </>
       ) : (
         <>
           <Group gap="sm" mb="sm" wrap="wrap">
+            {/* The section header with its tabs is DriversLayout; the count and "add" live in this toolbar. */}
             <TextInput
               className={classes.search}
               leftSection={<IconSearch size={16} />}
@@ -94,6 +91,12 @@ export function DriversPage() {
                 { value: 'all', label: t('drivers.filter.all') },
               ]}
             />
+            <Text c="dimmed">{rows.length}</Text>
+            {canManage && (
+              <Button leftSection={<IconPlus size={16} />} onClick={() => void navigate('/drivers/new')} ml="auto">
+                {t('drivers.add')}
+              </Button>
+            )}
           </Group>
           {rows.length === 0 ? (
             <EmptyState text={t('drivers.nothing_found')} />

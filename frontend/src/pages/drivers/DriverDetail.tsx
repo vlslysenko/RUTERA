@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Anchor, Button, Group, Stack, Tabs, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
@@ -19,6 +19,9 @@ import { KeyValueList, type KeyValueItem } from '@/components/KeyValueList';
 import { Plate } from '@/components/Plate';
 import { countryName } from '@/utils/countries';
 import { formatDate } from '@/utils/deadline';
+import { DriverAbsences } from './DriverAbsences';
+import { DriverDays } from './DriverDays';
+import { DriverPay } from './DriverPay';
 import { DriverStatusChip } from './DriverStatusChip';
 import classes from './DriversPage.module.css';
 
@@ -98,6 +101,17 @@ export function DriverDetail({ mode }: { mode: 'drawer' | 'page' }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { id = '' } = useParams();
+  // The tab is in the URL (?tab=absences) so other screens can open the card on it.
+  const [params, setParams] = useSearchParams();
+  const canSeePay = hasPrivilege(me, PRIV.DRIVER_PAYMENT_VIEW);
+  const tabs = ['overview', 'documents', 'absences', 'days', ...(canSeePay ? ['pay'] : [])];
+  const tab = tabs.includes(params.get('tab') ?? '') ? (params.get('tab') as string) : 'overview';
+  const setTab = (v: string | null) =>
+    setParams((p) => {
+      if (v && v !== 'overview') p.set('tab', v);
+      else p.delete('tab');
+      return p;
+    }, { replace: true });
   const q = useQuery({ queryKey: [...DRIVERS_KEY, id], queryFn: () => driversApi.get(id), enabled: id !== '' });
   const d = q.data;
   const canManage = hasPrivilege(me, PRIV.DRIVER_MANAGE);
@@ -187,10 +201,13 @@ export function DriverDetail({ mode }: { mode: 'drawer' | 'page' }) {
               <DeadlineChip validTo={d.nextDocument.validTo} />
             </Group>
           )}
-          <Tabs defaultValue="overview" keepMounted={false}>
+          <Tabs value={tab} onChange={setTab} keepMounted={false}>
             <Tabs.List>
               <Tabs.Tab value="overview">{t('drivers.tab.overview')}</Tabs.Tab>
               <Tabs.Tab value="documents">{t('drivers.tab.documents')}</Tabs.Tab>
+              <Tabs.Tab value="absences">{t('drivers.tab.absences')}</Tabs.Tab>
+              <Tabs.Tab value="days">{t('drivers.tab.days')}</Tabs.Tab>
+              {canSeePay && <Tabs.Tab value="pay">{t('drivers.tab.pay')}</Tabs.Tab>}
             </Tabs.List>
             <Tabs.Panel value="overview" pt="md">
               <Overview d={d} />
@@ -210,6 +227,17 @@ export function DriverDetail({ mode }: { mode: 'drawer' | 'page' }) {
                 canManage={canManage}
               />
             </Tabs.Panel>
+            <Tabs.Panel value="absences" pt="md">
+              <DriverAbsences driverId={id} canManage={hasPrivilege(me, PRIV.DRIVER_ABSENCE_MANAGE)} />
+            </Tabs.Panel>
+            <Tabs.Panel value="days" pt="md">
+              <DriverDays driverId={id} canManage={canManage} />
+            </Tabs.Panel>
+            {canSeePay && (
+              <Tabs.Panel value="pay" pt="md">
+                <DriverPay driverId={id} canManage={hasPrivilege(me, PRIV.DRIVER_PAYMENT_MANAGE)} />
+              </Tabs.Panel>
+            )}
           </Tabs>
         </Stack>
       ) : null}

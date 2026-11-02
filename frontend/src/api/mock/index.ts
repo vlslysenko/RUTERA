@@ -39,6 +39,8 @@ import { addDays, buildViolations, daysFor, intervalsFor, ymd, type MockShiftDri
 import { isTrailer } from '@/api/fleet';
 import type { ContractorInput, OrderInput, TripFromOrder, TripInput } from '@/api/trips';
 import * as tripMock from './trips';
+import type { AbsenceInput, DriverPaymentInput, PayRateInput } from '@/api/hr';
+import * as hrMock from './hr';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
  * The session lives in sessionStorage, per-user settings in localStorage; users live in memory per page load.
@@ -712,6 +714,40 @@ route('DELETE', '/app/tacho/violations/:id/ack', withPrivilege('tacho.violation/
   v.ack = null;
   return { status: 200, body: v };
 }));
+
+// --- driver HR ----------------------------------------------------------------------------------
+
+const hr: hrMock.HrLookup = { driverName };
+/** The driver of /app/drivers/:id/... must exist; HR handlers get its numeric id. */
+const forDriver = (key: string, fn: (u: MockUser, id: number, req: MockRequest) => MockResponse) =>
+  withPrivilege(key, (u, req) => (liveDriver(Number(req.params.id)) ? fn(u, Number(req.params.id), req) : error(404, 'error.not_found')));
+const me = (u: MockUser) => ({ id: u.id, name: fullName(u) });
+
+route('GET', '/app/drivers/:id/absences', forDriver('driver.driver/view', (_u, id, { query }) => hrMock.listAbsences(id, query, hr)));
+route('POST', '/app/drivers/:id/absences', forDriver('driver.absence/manage', (u, id, { body }) => hrMock.saveAbsence(id, (body ?? {}) as AbsenceInput, null, hr, me(u))));
+route('PUT', '/app/drivers/:id/absences/:absenceId', forDriver('driver.absence/manage', (u, id, req) =>
+  hrMock.saveAbsence(id, (req.body ?? {}) as AbsenceInput, req.params.absenceId, hr, me(u))));
+route('DELETE', '/app/drivers/:id/absences/:absenceId', forDriver('driver.absence/manage', (_u, id, req) => hrMock.removeAbsence(id, req.params.absenceId)));
+route('GET', '/app/absences', withPrivilege('driver.driver/view', (_u, { query }) => hrMock.firmAbsences(query, hr)));
+
+route('GET', '/app/drivers/:id/days', forDriver('driver.driver/view', (_u, id, { query }) => hrMock.month(id, query)));
+route('PUT', '/app/drivers/:id/days/:day', forDriver('driver.driver/manage', (_u, id, req) =>
+  hrMock.setDay(id, req.params.day, (req.body ?? {}) as { kind?: string; note?: string | null })));
+route('DELETE', '/app/drivers/:id/days/:day', forDriver('driver.driver/manage', (_u, id, req) => hrMock.resetDay(id, req.params.day)));
+
+route('GET', '/app/drivers/:id/pay-rates', forDriver('driver.payment/view', (_u, id) => hrMock.listRates(id)));
+route('POST', '/app/drivers/:id/pay-rates', forDriver('driver.payment/manage', (_u, id, { body }) => hrMock.saveRate(id, (body ?? {}) as PayRateInput, null)));
+route('PUT', '/app/drivers/:id/pay-rates/:rateId', forDriver('driver.payment/manage', (_u, id, req) =>
+  hrMock.saveRate(id, (req.body ?? {}) as PayRateInput, req.params.rateId)));
+route('DELETE', '/app/drivers/:id/pay-rates/:rateId', forDriver('driver.payment/manage', (_u, id, req) => hrMock.removeRate(id, req.params.rateId)));
+
+route('GET', '/app/drivers/:id/payments', forDriver('driver.payment/view', (_u, id, { query }) => hrMock.listPayments(id, query, hr)));
+route('POST', '/app/drivers/:id/payments', forDriver('driver.payment/manage', (_u, id, { body }) =>
+  hrMock.savePayment(id, (body ?? {}) as DriverPaymentInput, null, hr)));
+route('PUT', '/app/drivers/:id/payments/:paymentId', forDriver('driver.payment/manage', (_u, id, req) =>
+  hrMock.savePayment(id, (req.body ?? {}) as DriverPaymentInput, req.params.paymentId, hr)));
+route('DELETE', '/app/drivers/:id/payments/:paymentId', forDriver('driver.payment/manage', (_u, id, req) => hrMock.removePayment(id, req.params.paymentId)));
+route('GET', '/app/payments', withPrivilege('driver.payment/view', (_u, { query }) => hrMock.firmPayments(query, hr)));
 
 // --- contractors, orders and trips --------------------------------------------------------------
 
