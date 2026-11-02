@@ -559,6 +559,47 @@ Resources (paths, bodies and privileges as described in the sections above, `/ap
 `/tacho/files`, `/tacho/activity`, `/tacho/violations`. The OpenAPI 3 document of these paths with the bearer scheme
 is public at `GET /api/v1/openapi.json` (springdoc-openapi 3.0.3).
 
+## MCP server for AI assistants (`/mcp`)
+
+RUTERA speaks the Model Context Protocol (Streamable HTTP transport, protocol versions 2025-06-18, 2025-03-26 and
+2024-11-05) at `POST /mcp`, with the same personal tokens, AI access add-on, rate limit and call log as the public
+API. Every JSON operation of `/api/v1` is a tool, generated from the OpenAPI document at startup of the first call:
+new endpoints become tools without code. A tool call runs the same `/api/v1` request with the caller's token, so
+validation, privileges and answers are identical; the result carries the JSON answer as text and as
+`structuredContent` (a list as `{items}`), and `isError` for 4xx/5xx with the `{code, message, details}` body. Left
+out: binary and multipart operations (CMR PDF, tachograph file content, tachograph and fuel uploads).
+
+Tool names: the resource path joined with `_` plus `list`, `get`, `create`, `update`, `patch` or `delete`
+(`vehicles_list`, `drivers_absences_create`, `invoices_payments_delete`), actions by their name (`cmr_issue`,
+`cmr_cancel`, `cmr_from_order`, `cmr_from_trip`, `orders_create_trip`, `calc_trip`, `tacho_violations_ack`,
+`tacho_violations_unack`, `fuel_transactions_assign`, `reminders_schedule_get`, `tacho_activity_get`). The input is
+`{<path parameters>, <query parameters>, body}`; descriptions name the REST operation and the allowed values of the
+coded fields (statuses, VAT codes, products, providers, kinds). Annotations: `readOnlyHint` for GET,
+`destructiveHint` for DELETE, `idempotentHint` for GET, PUT and DELETE.
+
+Protocol: JSON-RPC 2.0, one message or a batch per POST; `initialize`, `ping`, `tools/list`, `tools/call`;
+notifications are answered with 202. No sessions (`Mcp-Session-Id`) and no server-initiated stream: `GET` and
+`DELETE /mcp` answer 405. Errors: -32700 parse error, -32600 invalid request, -32601 unknown method, -32602 unknown
+tool or missing path argument, -32603 internal error.
+
+How to connect (a token from Settings, the firma needs the AI access add-on; the server must be reachable from the
+assistant, in development `http://localhost:18082/mcp`):
+
+```
+claude mcp add --transport http rutera https://rutera.example.com/mcp --header "Authorization: Bearer rtr_..."
+```
+
+Other MCP clients with a JSON configuration:
+
+```json
+{"mcpServers": {"rutera": {"type": "http", "url": "https://rutera.example.com/mcp",
+                           "headers": {"Authorization": "Bearer rtr_..."}}}}
+```
+
+Custom connectors on claude.ai sign in with OAuth, which RUTERA does not offer yet; clients that send a fixed
+`Authorization` header (Claude Code, Claude Desktop through its configuration, other MCP clients) work now. The
+server is built without Spring AI: its MCP starter needs Spring Boot 4.1, RUTERA runs on 4.0.
+
 ## Conventions
 
 - SMDP (`C:\IQ_VSL\GIT\pc-server-new\pc-server`) is a read-only source of ideas and code; nothing is copied 1:1.

@@ -61,8 +61,9 @@ public class SecurityConfig {
     public static final String SESSION_COOKIE = "RUTERA_SESSION";
 
     /**
-     * The public API ({@code /api/**}): stateless bearer tokens ({@link ApiTokenFilter}), no session, no CSRF; the
-     * OpenAPI document is public. Checked before the session chain below.
+     * The public API ({@code /api/**}) and the MCP server ({@code /mcp}): stateless bearer tokens
+     * ({@link ApiTokenFilter}), no session, no CSRF; the OpenAPI document is public. Checked before the session
+     * chain below.
      */
     @Bean
     @Order(1)
@@ -71,7 +72,7 @@ public class SecurityConfig {
                                        SessionUserService sessionUsers, ApiRateLimiter limiter,
                                        PlatformTransactionManager transactionManager) throws Exception {
         http
-                .securityMatcher("/api/**")
+                .securityMatcher("/api/**", "/mcp", "/mcp/**")
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
