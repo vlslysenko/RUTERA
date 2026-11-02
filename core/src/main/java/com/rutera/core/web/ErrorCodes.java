@@ -37,6 +37,8 @@ public final class ErrorCodes {
     public static final String VEHICLE_PLATE_TAKEN = "fleet.vehicle.plate_taken";
     /** Drivers (per-field): another driver of the firma has this tachograph card. */
     public static final String DRIVER_CARD_TAKEN = "driver.card.number_taken";
+    /** Drivers (per-field): the login is already linked to another driver. */
+    public static final String DRIVER_USER_TAKEN = "driver.user.taken";
     /** Driver HR (per-field): an absence overlaps another one of the driver; a pay rate starts on a taken date. */
     public static final String ABSENCE_OVERLAP = "driver.absence.overlap";
     public static final String PAY_RATE_DATE_TAKEN = "driver.pay_rate.date_taken";
@@ -65,6 +67,13 @@ public final class ErrorCodes {
     public static final String API_AI_ACCESS_REQUIRED = "api.ai_access_required";
     public static final String API_RATE_LIMITED = "api.rate_limited";
     public static final String API_TOKEN_LIMIT = "api.token.limit";
+
+    /** Routing: no engine (503), engine or geocoder down (502), no truck route, address not found (per-field). */
+    public static final String CALC_ROUTING_DISABLED = "calc.routing.disabled";
+    public static final String CALC_ROUTING_FAILED = "calc.routing.failed";
+    public static final String CALC_ROUTE_NOT_FOUND = "calc.route.not_found";
+    public static final String CALC_GEOCODE_NOT_FOUND = "calc.geocode.not_found";
+    public static final String CALC_GEOCODE_FAILED = "calc.geocode.failed";
 
     /** Trips and orders (per-field): the VAT id or the number is already used in the firma. */
     public static final String CONTRACTOR_VAT_TAKEN = "trip.contractor.vat_taken";

@@ -63,11 +63,11 @@ public class TripCalcService {
     private final FuelTransactionRepository fuel;
     private final TollTariffRepository tariffs;
     private final HosService hos;
-    private final RouteProvider routes;
+    private final RouteService routes;
 
     public TripCalcService(FirmaRepository firmas, VehicleRepository vehicles, DriverRepository drivers,
                            DriverPayRateRepository payRates, FuelTransactionRepository fuel,
-                           TollTariffRepository tariffs, HosService hos, RouteProvider routes) {
+                           TollTariffRepository tariffs, HosService hos, RouteService routes) {
         this.firmas = firmas;
         this.vehicles = vehicles;
         this.drivers = drivers;
@@ -371,8 +371,11 @@ public class TripCalcService {
             }
         }
         List<CalcDto.LegInput> legInputs = in.legs();
-        if (legInputs == null || legInputs.isEmpty()) {
-            legInputs = routes.route(List.of(), vehicle).orElse(null);
+        if ((legInputs == null || legInputs.isEmpty()) && in.waypoints() != null && !in.waypoints().isEmpty()) {
+            if (!errors.isEmpty()) {
+                throw ApiException.validation(errors);
+            }
+            legInputs = legsOf(in.waypoints(), routes.route("waypoints", in.waypoints(), vehicle, null, false, false));
         }
         List<HosPlanner.Leg> legs = new ArrayList<>();
         Map<String, BigDecimal> kmByCountry = new TreeMap<>();
@@ -431,6 +434,40 @@ public class TripCalcService {
             throw ApiException.validation(errors);
         }
         return new Input(in.start(), vehicle, crew, crewSize, mode, in.manualState(), legs, kmByCountry, distance, o);
+    }
+
+    /** The route's legs as calculator legs: a waypoint's service time follows the leg that ends there. */
+    private static List<CalcDto.LegInput> legsOf(List<CalcDto.PointInput> waypoints, CalcDto.Route route) {
+        List<CalcDto.LegInput> legs = new ArrayList<>();
+        Integer first = waypoints.getFirst().serviceMin();
+        if (first != null && first > 0) {
+            legs.add(new CalcDto.LegInput(route.points().getFirst().label(), BigDecimal.ZERO, 0, null, first));
+        }
+        for (int i = 0; i < route.legs().size(); i++) {
+            CalcDto.RouteLeg l = route.legs().get(i);
+            List<CalcDto.CountryKm> countries = l.countries().isEmpty() ? null : fit(l.countries(), l.distanceKm());
+            legs.add(new CalcDto.LegInput(l.to().label(), l.distanceKm(), l.durationMin(), countries,
+                    waypoints.get(i + 1).serviceMin()));
+        }
+        return legs;
+    }
+
+    /** Country km scaled to add up to the leg distance (rounding and unmatched edges). */
+    private static List<CalcDto.CountryKm> fit(List<CalcDto.CountryKm> countries, BigDecimal distance) {
+        BigDecimal sum = countries.stream().map(CalcDto.CountryKm::km).reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (sum.signum() == 0) {
+            return null;
+        }
+        List<CalcDto.CountryKm> out = new ArrayList<>();
+        BigDecimal used = BigDecimal.ZERO;
+        for (int i = 0; i < countries.size(); i++) {
+            CalcDto.CountryKm c = countries.get(i);
+            BigDecimal km = i == countries.size() - 1 ? distance.subtract(used)
+                    : c.km().multiply(distance).divide(sum, 1, RoundingMode.HALF_UP);
+            used = used.add(km);
+            out.add(new CalcDto.CountryKm(c.country(), km.max(BigDecimal.ZERO)));
+        }
+        return out;
     }
 
     // --- helpers -------------------------------------------------------------------------------------------

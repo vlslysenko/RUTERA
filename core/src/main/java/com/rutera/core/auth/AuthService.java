@@ -3,6 +3,7 @@ package com.rutera.core.auth;
 import com.rutera.common.domain.AppUser;
 import com.rutera.common.domain.Firma;
 import com.rutera.common.repository.AppUserRepository;
+import com.rutera.common.repository.DriverRepository;
 import com.rutera.common.repository.FirmaRepository;
 import com.rutera.core.security.AuthenticatedUser;
 import com.rutera.core.security.CurrentUser;
@@ -50,6 +51,7 @@ public class AuthService {
 
     private final AppUserRepository users;
     private final FirmaRepository firmas;
+    private final DriverRepository drivers;
     private final PasswordEncoder passwordEncoder;
     private final SessionUserService sessionUsers;
     private final LoginAttemptService attempts;
@@ -58,12 +60,14 @@ public class AuthService {
     private final ObjectMapper objectMapper;
     private final String dummyHash;
 
-    public AuthService(AppUserRepository users, FirmaRepository firmas, PasswordEncoder passwordEncoder,
+    public AuthService(AppUserRepository users, FirmaRepository firmas, DriverRepository drivers,
+                       PasswordEncoder passwordEncoder,
                        SessionUserService sessionUsers, LoginAttemptService attempts,
                        SecurityContextRepository securityContextRepository, CsrfTokenRepository csrfTokenRepository,
                        ObjectMapper objectMapper) {
         this.users = users;
         this.firmas = firmas;
+        this.drivers = drivers;
         this.passwordEncoder = passwordEncoder;
         this.sessionUsers = sessionUsers;
         this.attempts = attempts;
@@ -132,7 +136,10 @@ public class AuthService {
 
     public UserDto toDto(AppUser user, AuthenticatedUser principal) {
         Firma firma = user.getFirmaId() == null ? null : firmas.findById(user.getFirmaId()).orElse(null);
-        return UserDto.of(user, firma, UserSettings.parse(objectMapper, user.getSettings()), principal.privileges());
+        UserDto.DriverRef driver = user.getFirmaId() == null ? null : drivers.findByUserIdAndDeletedFalse(user.getId())
+                .map(d -> new UserDto.DriverRef(d.getId(), d.getFullName())).orElse(null);
+        return UserDto.of(user, firma, UserSettings.parse(objectMapper, user.getSettings()), principal.privileges(),
+                driver);
     }
 
     private void establishSession(AuthenticatedUser principal, HttpServletRequest http, HttpServletResponse response) {

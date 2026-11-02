@@ -179,6 +179,17 @@ unique in the firma (`cardNumber: driver.card.number_taken`). `defaultVehicle` i
 whose `defaultDriverId` is this driver. `nextDocument` is the earliest `validTo` among the documents and the card
 (`kind: DRIVER_CARD`). Changes are written to `audit_log` (module `driver`).
 
+### Driver cabinet (logins of drivers)
+
+A login is linked to a driver with `userId` in the driver input (`POST`/`PUT /app/drivers`; a login of the firma,
+linked to one driver only: `userId: driver.user.taken`; null unlinks). `GET /app/auth/me` then carries
+`driver: {id, name}` (null for other logins). With `driver_app.self/use` (role DRIVER) and without the full privilege
+a login reads only its own driver, on the usual endpoints: `GET /app/drivers/{own}` and its `/documents`,
+`/absences`, `/days?month=`; `GET /app/trips?driverId={own}` (driverId required) and `GET /app/trips/{id}` of trips
+where it is MAIN or SECOND driver; `PATCH /app/trips/{id}/stops/{stopId}` with DONE or SKIPPED on those trips;
+`GET /app/tacho/activity` and `/app/tacho/violations` with `driverId={own}`. Anything else answers 403
+`auth.access_denied` (pay data included).
+
 ### Driver HR (absences, working days, pay rates, payments)
 
 | Method | Path | Body / result |
@@ -475,6 +486,7 @@ Privileges: `trip.trip/view` calculates and reads tariffs, `trip.trip/manage` ed
 | Method | Path | Body / result |
 |---|---|---|
 | POST | `/app/calc/trip` | `TripInput` -> `Plan` |
+| POST | `/app/calc/route` | `{points: [{lat, lng} \| {address}] (2-25), vehicleId?, profile?: {heightM, widthM, lengthM, weightT, axleLoadT, axles, hazmat}, avoidTolls?, avoidFerries?}` -> `Route` |
 | GET | `/app/calc/toll-tariffs` | `TollTariff[]` by country, newest `validFrom` first |
 | POST / PUT / DELETE | `/app/calc/toll-tariffs[/{id}]` | `{country, euroClass?, axlesMin?, weightMinKg?, ratePerKm, currency, validFrom?, notes?}` -> `TollTariff` / 204 |
 
@@ -494,6 +506,20 @@ REDUCED_WEEKLY_REST | SERVICE, start, end, minutes, kmFrom, kmTo, legIndex, driv
 fortnightDrivingMin, extensionsLeft, reducedRestsLeft, weeklyRestDueAt}], costs: {lines: [{kind: FUEL | DRIVER_KM |
 DRIVER_PER_DIEM | DRIVER_BASE | TOLL | OTHER, label, country, quantity, unit, rate, amount, currency}], totals:
 [{currency, amount}], missing: [code]}, payHidden, warnings: [code]}`.
+
+`Route = {distanceKm, durationMin, points: [{lat, lng, label}], legs: [{from, to, distanceKm, durationMin, countries:
+[{country, km}], polyline}], polylinePrecision: 6, attribution}`. Truck routes come from a Valhalla server
+(`RUTERA_ROUTING_URL`; MIT licence, OSM data under ODbL: show the `attribution` "© OpenStreetMap contributors" with the
+map), addresses are geocoded with Nominatim (`RUTERA_GEOCODING_URL`, `rutera.geocoding.user-agent`; at most one
+request per second, answers cached; the public instance only for development). The vehicle's height, gross weight
+and axles go to the truck costing unless `profile` overrides them; km per country come from the edges of the route.
+Errors: 503 `calc.routing.disabled` (no routing server configured), 502 `calc.routing.failed` /
+`calc.geocode.failed` (server unreachable), 422 `points[i]: calc.geocode.not_found`, `route: calc.route.not_found`
+(no truck route), `points: validation.required | validation.invalid_value` (fewer than 2 or more than 25 points). In
+`TripInput`, `waypoints: [{lat, lng} | {address}, serviceMin?]` replace `legs`: the route's legs become the legs, a
+waypoint's `serviceMin` the loading or unloading there, its countries the toll km. Development server: `docker
+compose --profile routing up -d valhalla` downloads the OSM extract (`RUTERA_OSM_EXTRACT_URL`, Poland by default)
+and builds the tiles at the first start.
 
 Breaks and rests (`core.calc.plan`, pure Java): the state of each driver comes from the merged tachograph activity
 of the last 35 days (gaps and the time up to the start count as rest), FRESH = just after a regular weekly rest, or

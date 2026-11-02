@@ -9,6 +9,7 @@ import java.time.LocalDate;
  * Body of {@code POST} and {@code PUT /app/drivers[/{id}]}: the whole editable part of a driver including the
  * tachograph card (PUT is a full replacement). An empty {@code cardNumber} removes the card; with a card number,
  * {@code cardIssuingCountry} is required. Dates are {@code YYYY-MM-DD}; {@code status} defaults to ACTIVE.
+ * {@code userId} links a login of the firma (driver cabinet); null unlinks it.
  */
 public record DriverInput(
         @NotBlank @Size(max = 100) String firstName,
@@ -23,5 +24,6 @@ public record DriverInput(
         @Size(max = 2000) String notes,
         @Size(max = 40) String cardNumber,
         @Size(max = 5) String cardIssuingCountry,
-        LocalDate cardValidTo) {
+        LocalDate cardValidTo,
+        Long userId) {
 }

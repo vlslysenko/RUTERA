@@ -501,7 +501,7 @@ public class TachoImportService {
                 firstName == null ? "?" : firstName, lastName == null ? f.getCardNumber() : lastName,
                 holder == null ? null : holder.birthDate(), null, null, f.getCardIssuingCountry(), null, null, null,
                 null, f.getCardNumber(), f.getCardIssuingCountry() == null ? "XX" : f.getCardIssuingCountry(),
-                f.getCardValidTo()));
+                f.getCardValidTo(), null));
         cards.findByDriverIdOrderByIdDesc(created.id()).stream().findFirst().ifPresent(c -> {
             c.setGeneration(cardGeneration(f.getGeneration()));
             cards.save(c);

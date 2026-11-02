@@ -13,5 +13,8 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 
     Optional<Driver> findByIdAndDeletedFalse(Long id);
 
+    /** The driver linked to a login (driver cabinet). */
+    Optional<Driver> findByUserIdAndDeletedFalse(Long userId);
+
     List<Driver> findByIdInAndDeletedFalse(Iterable<Long> ids);
 }

@@ -16,8 +16,9 @@ import java.util.List;
 /**
  * Trip calculator and toll tariffs.
  * <pre>
- * POST   /app/calc/trip               {start, vehicleId?, driverIds?, crewSize?, driverState?, manualState?, legs,
- *                                      options?} -> Plan                                  (trip.trip/view)
+ * POST   /app/calc/trip               {start, vehicleId?, driverIds?, crewSize?, driverState?, manualState?, legs
+ *                                      or waypoints, options?} -> Plan                    (trip.trip/view)
+ * POST   /app/calc/route              {points, vehicleId?, profile?, avoidTolls?, avoidFerries?} -> Route (trip.trip/view)
  * GET    /app/calc/toll-tariffs       -> TollTariff[]                                     (trip.trip/view)
  * POST   /app/calc/toll-tariffs       {input} -> 201 TollTariff                           (trip.trip/manage)
  * PUT    /app/calc/toll-tariffs/{id}  {input} -> TollTariff                               (trip.trip/manage)
@@ -29,10 +30,17 @@ public class CalcController {
 
     private final TripCalcService calc;
     private final TollTariffService tariffs;
+    private final RouteService routes;
 
-    public CalcController(TripCalcService calc, TollTariffService tariffs) {
+    public CalcController(TripCalcService calc, TollTariffService tariffs, RouteService routes) {
         this.calc = calc;
         this.tariffs = tariffs;
+        this.routes = routes;
+    }
+
+    @PostMapping({"/app/calc/route", "/api/v1/calc/route"})
+    public CalcDto.Route route(@Valid @RequestBody CalcDto.RouteInput input) {
+        return routes.plan(input);
     }
 
     @PostMapping({"/app/calc/trip", "/api/v1/calc/trip"})

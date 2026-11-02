@@ -62,10 +62,13 @@ public class DriverService {
     private final VehicleRepository vehicles;
     private final AppUserRepository users;
     private final HosService hos;
+    private final DriverSelf self;
     private final AuditService audit;
 
     public DriverService(DriverRepository drivers, DriverCardRepository cards, DriverDocumentRepository documents,
-                         VehicleRepository vehicles, AppUserRepository users, HosService hos, AuditService audit) {
+                         VehicleRepository vehicles, AppUserRepository users, HosService hos, DriverSelf self,
+                         AuditService audit) {
+        this.self = self;
         this.drivers = drivers;
         this.cards = cards;
         this.documents = documents;
@@ -109,9 +112,10 @@ public class DriverService {
                 .toList();
     }
 
-    @RequiresPrivilege(Privileges.DRIVER_VIEW)
+    @RequiresPrivilege({Privileges.DRIVER_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
     public DriverDto get(Long id) {
+        self.check(Privileges.DRIVER_VIEW, id);
         return toDto(load(id));
     }
 
@@ -170,9 +174,10 @@ public class DriverService {
     // --- documents ---------------------------------------------------------------------------------------
 
     /** Documents of a driver: nearest deadline first, documents without a deadline last. */
-    @RequiresPrivilege(Privileges.DRIVER_VIEW)
+    @RequiresPrivilege({Privileges.DRIVER_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
     public List<DriverDocumentDto> documents(Long driverId) {
+        self.check(Privileges.DRIVER_VIEW, driverId);
         Driver driver = load(driverId);
         return documents.findByDriverId(driver.getId()).stream()
                 .sorted(Comparator.comparing(DriverDocument::getValidTo,
@@ -270,9 +275,21 @@ public class DriverService {
         InputFields.dateOrder("employmentTo", in.employmentFrom(), in.employmentTo(), errors);
         Driver.Status status = InputFields.parseEnum(Driver.Status.class, "status", in.status(), false, errors);
         CardInput card = readCard(driver, in, errors);
+        Long userId = in.userId();
+        if (userId != null) {
+            AppUser user = users.findById(userId)
+                    .filter(u -> !u.isDeleted() && driver.getFirmaId().equals(u.getFirmaId())).orElse(null);
+            if (user == null) {
+                errors.put("userId", ErrorCodes.FIELD_INVALID_VALUE);
+            } else if (drivers.findByUserIdAndDeletedFalse(userId)
+                    .filter(d -> !Objects.equals(d.getId(), driver.getId())).isPresent()) {
+                errors.put("userId", ErrorCodes.DRIVER_USER_TAKEN);
+            }
+        }
         if (!errors.isEmpty()) {
             throw ApiException.validation(errors);
         }
+        driver.setUserId(userId);
         driver.setFirstName(in.firstName().trim());
         driver.setLastName(in.lastName().trim());
         driver.setBirthDate(in.birthDate());

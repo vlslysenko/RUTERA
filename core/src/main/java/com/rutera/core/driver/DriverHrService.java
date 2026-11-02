@@ -67,11 +67,13 @@ public class DriverHrService {
     private final DriverPaymentRepository payments;
     private final AppUserRepository users;
     private final HosService hos;
+    private final DriverSelf self;
     private final AuditService audit;
 
     public DriverHrService(DriverRepository drivers, DriverAbsenceRepository absences, DriverDayRepository days,
                            DriverPayRateRepository rates, DriverPaymentRepository payments, AppUserRepository users,
-                           HosService hos, AuditService audit) {
+                           HosService hos, DriverSelf self, AuditService audit) {
+        this.self = self;
         this.drivers = drivers;
         this.absences = absences;
         this.days = days;
@@ -84,9 +86,10 @@ public class DriverHrService {
 
     // --- absences ------------------------------------------------------------------------------------------
 
-    @RequiresPrivilege(Privileges.DRIVER_VIEW)
+    @RequiresPrivilege({Privileges.DRIVER_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
     public List<HrDto.Absence> absences(Long driverId, LocalDate from, LocalDate to) {
+        self.check(Privileges.DRIVER_VIEW, driverId);
         Driver driver = load(driverId);
         return toAbsences(absences.search(driver.getId(), null, from, to));
     }
@@ -201,9 +204,10 @@ public class DriverHrService {
 
     // --- working days --------------------------------------------------------------------------------------
 
-    @RequiresPrivilege(Privileges.DRIVER_VIEW)
+    @RequiresPrivilege({Privileges.DRIVER_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
     public HrDto.Month month(Long driverId, String month) {
+        self.check(Privileges.DRIVER_VIEW, driverId);
         Driver driver = load(driverId);
         YearMonth ym = parseMonth("month", month);
         List<HrDto.Day> list = calendar(driver, ym.atDay(1), ym.atEndOfMonth());

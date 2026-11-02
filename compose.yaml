@@ -2,6 +2,9 @@
 #   Standalone, one command:   docker compose up -d --build   -> http://localhost:8080 (RUTERA_PORT)
 #   Development database only: docker compose up -d mysql     -> localhost:3307 (RUTERA_DB_PORT)
 #   First start: the owner's generated password: docker compose exec rutera grep "generated password" logs/rutera.log
+#   Routing (optional): docker compose --profile routing up -d valhalla  -> localhost:8002 (RUTERA_ROUTING_PORT);
+#     the first start downloads the OSM extract (RUTERA_OSM_EXTRACT_URL, Poland ~1.9 GB) and builds the tiles
+#     (30-60 min, ~4 GB RAM); then set RUTERA_ROUTING_URL (http://valhalla:8002 inside compose).
 #   Stop: docker compose down        (add -v to drop the data volumes)
 # Settings come from .env next to this file (copy .env.example); every value has a default.
 name: rutera
@@ -54,6 +57,8 @@ services:
       RUTERA_LOCKOUT_ATTEMPTS: ${RUTERA_LOCKOUT_ATTEMPTS:-5}
       RUTERA_LOCKOUT_DURATION: ${RUTERA_LOCKOUT_DURATION:-15m}
       JAVA_TOOL_OPTIONS: ${RUTERA_JAVA_OPTS:-}
+      RUTERA_ROUTING_URL: ${RUTERA_ROUTING_URL:-}
+      RUTERA_GEOCODING_URL: ${RUTERA_GEOCODING_URL:-https://nominatim.openstreetmap.org}
     ports:
       - "${RUTERA_PORT:-8080}:8080"
     volumes:
@@ -71,8 +76,26 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # Truck routing (Valhalla, MIT; OSM data ODbL): tiles are built from the extract at the first start.
+  # 3.9.0 of 2026-09-19: one release behind the newest by the project's library rule.
+  valhalla:
+    profiles: ["routing"]
+    image: ghcr.io/valhalla/valhalla-scripted:3.9.0
+    environment:
+      tile_urls: ${RUTERA_OSM_EXTRACT_URL:-https://download.geofabrik.de/europe/poland-latest.osm.pbf}
+      use_tiles_ignore_pbf: "True"
+      build_admins: "True"
+      build_time_zones: "True"
+      server_threads: ${RUTERA_ROUTING_THREADS:-2}
+    ports:
+      - "${RUTERA_ROUTING_PORT:-8002}:8002"
+    volumes:
+      - rutera-valhalla-data:/custom_files
+    restart: unless-stopped
+
 volumes:
   rutera-mysql-data:
   rutera-conf:
   rutera-logs:
   rutera-data:
+  rutera-valhalla-data:

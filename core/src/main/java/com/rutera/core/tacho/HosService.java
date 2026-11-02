@@ -15,6 +15,7 @@ import com.rutera.common.security.Privileges;
 import com.rutera.common.security.RequiresPrivilege;
 import com.rutera.core.audit.AuditEvent;
 import com.rutera.core.audit.AuditService;
+import com.rutera.core.driver.DriverSelf;
 import com.rutera.core.fleet.VehicleService;
 import com.rutera.core.security.CurrentUser;
 import com.rutera.core.tacho.hos.HosEngine;
@@ -72,11 +73,13 @@ public class HosService {
     private final VehicleRepository vehicles;
     private final FirmaRepository firmas;
     private final AppUserRepository users;
+    private final DriverSelf self;
     private final AuditService audit;
 
     public HosService(NamedParameterJdbcTemplate jdbc, DriverRepository drivers, DriverCardRepository cards,
                       DriverViolationRepository violations, VehicleRepository vehicles, FirmaRepository firmas,
-                      AppUserRepository users, AuditService audit) {
+                      AppUserRepository users, DriverSelf self, AuditService audit) {
+        this.self = self;
         this.jdbc = jdbc;
         this.drivers = drivers;
         this.cards = cards;
@@ -98,10 +101,11 @@ public class HosService {
 
     // --- activity --------------------------------------------------------------------------------------------
 
-    @RequiresPrivilege(Privileges.TACHO_HOS_VIEW)
+    @RequiresPrivilege({Privileges.TACHO_HOS_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
     public HosDto.Activity activity(Long driverId, LocalDate from, LocalDate to) {
         Long firmaId = InputFields.requireFirmaId();
+        self.check(Privileges.TACHO_HOS_VIEW, driverId);
         Map<String, String> errors = new LinkedHashMap<>();
         if (driverId == null) {
             errors.put("driverId", ErrorCodes.FIELD_REQUIRED);
@@ -170,11 +174,12 @@ public class HosService {
 
     // --- violations ------------------------------------------------------------------------------------------
 
-    @RequiresPrivilege(Privileges.TACHO_HOS_VIEW)
+    @RequiresPrivilege({Privileges.TACHO_HOS_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
     public HosDto.Page violations(Long driverId, LocalDate from, LocalDate to, String severity, boolean unacknowledged,
                                   int page, int size) {
         Long firmaId = InputFields.requireFirmaId();
+        self.check(Privileges.TACHO_HOS_VIEW, driverId);
         Map<String, String> errors = new LinkedHashMap<>();
         DriverViolation.Severity s = InputFields.parseEnum(DriverViolation.Severity.class, "severity", severity,
                 false, errors);

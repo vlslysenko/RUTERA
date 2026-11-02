@@ -175,6 +175,11 @@ class CalcTest extends AbstractIntegrationTest {
         assertThat(plan.get("timeline").get(1).get("kind").asString()).isEqualTo("BREAK");
         assertThat(plan.get("costs").get("missing").get(0).asString()).isEqualTo("calc.missing.consumption");
 
+        MvcResult noRouting = c.post("/app/calc/route", Map.of("points",
+                List.of(Map.of("lat", 52.4, "lng", 16.9), Map.of("lat", 52.5, "lng", 13.4))));
+        assertThat(noRouting.getResponse().getStatus()).isEqualTo(503);
+        assertThat(body(noRouting).get("code").asString()).isEqualTo("calc.routing.disabled");
+
         MvcResult bad = c.post("/app/calc/toll-tariffs", tariff("XX1", "EURO_9", 0, 0.1, "EURO"));
         JsonNode details = body(bad).get("details");
         assertThat(details.get("country").asString()).isEqualTo("validation.invalid_format");

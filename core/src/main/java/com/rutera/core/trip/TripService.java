@@ -21,6 +21,7 @@ import com.rutera.common.security.Privileges;
 import com.rutera.common.security.RequiresPrivilege;
 import com.rutera.core.audit.AuditEvent;
 import com.rutera.core.audit.AuditService;
+import com.rutera.core.driver.DriverSelf;
 import com.rutera.core.web.ApiException;
 import com.rutera.core.web.ErrorCodes;
 import com.rutera.core.web.InputFields;
@@ -67,12 +68,14 @@ public class TripService {
     private final CmrDocumentRepository cmrs;
     private final FuelTransactionRepository fuel;
     private final InvoiceRepository invoices;
+    private final DriverSelf self;
     private final AuditService audit;
 
     public TripService(TripRepository trips, TripDriverRepository crew, TripStopRepository stops,
                        TransportOrderRepository orders, ContractorRepository contractors, VehicleRepository vehicles,
                        DriverRepository drivers, CmrDocumentRepository cmrs, FuelTransactionRepository fuel,
-                       InvoiceRepository invoices, AuditService audit) {
+                       InvoiceRepository invoices, DriverSelf self, AuditService audit) {
+        this.self = self;
         this.cmrs = cmrs;
         this.fuel = fuel;
         this.invoices = invoices;
@@ -88,11 +91,12 @@ public class TripService {
 
     // --- read ----------------------------------------------------------------------------------------------
 
-    @RequiresPrivilege(Privileges.TRIP_TRIP_VIEW)
+    @RequiresPrivilege({Privileges.TRIP_TRIP_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
     public TripDto.Page list(String status, Long vehicleId, Long driverId, LocalDate from, LocalDate to, String q,
                              int page, int size) {
         InputFields.requireFirmaId();
+        self.check(Privileges.TRIP_TRIP_VIEW, driverId);
         Map<String, String> errors = new LinkedHashMap<>();
         Trip.Status s = InputFields.parseEnum(Trip.Status.class, "status", status, false, errors);
         pageChecks(page, size, errors);
@@ -106,10 +110,22 @@ public class TripService {
         return new TripDto.Page(toDtos(result.getContent()), result.getTotalElements());
     }
 
-    @RequiresPrivilege(Privileges.TRIP_TRIP_VIEW)
+    @RequiresPrivilege({Privileges.TRIP_TRIP_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
     public TripDto get(Long id) {
-        return toDto(load(id));
+        Trip trip = load(id);
+        if (!self.full(Privileges.TRIP_TRIP_VIEW)) {
+            requireCrew(trip);
+        }
+        return toDto(trip);
+    }
+
+    /** 403 unless the caller's own driver is MAIN or SECOND on the trip (driver cabinet). */
+    private void requireCrew(Trip trip) {
+        Long own = self.ownDriverId();
+        if (crew.findByTripId(trip.getId()).stream().noneMatch(d -> own.equals(d.getDriverId()))) {
+            throw new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.ACCESS_DENIED);
+        }
     }
 
     // --- write ---------------------------------------------------------------------------------------------
@@ -159,17 +175,27 @@ public class TripService {
         audit.record(AuditEvent.of(MODULE, "trip_deleted", "Deleted trip " + trip.getNumber()).entity("trip", trip.getId()));
     }
 
-    /** Marks one stop without a full PUT: DONE sets actualAt (now when not given), PLANNED clears it. */
-    @RequiresPrivilege(Privileges.TRIP_TRIP_MANAGE)
+    /**
+     * Marks one stop without a full PUT: DONE sets actualAt (now when not given), PLANNED clears it. A driver
+     * (driver_app.self/use) marks stops of their own trips as DONE or SKIPPED.
+     */
+    @RequiresPrivilege({Privileges.TRIP_TRIP_MANAGE, Privileges.DRIVER_APP_SELF_USE})
     @Transactional
     public TripDto.Stop patchStop(Long tripId, Long stopId, TripDto.StopStatusInput input) {
         Trip trip = load(tripId);
+        boolean driver = !self.full(Privileges.TRIP_TRIP_MANAGE);
+        if (driver) {
+            requireCrew(trip);
+        }
         TripStop stop = stops.findById(stopId)
                 .filter(s -> s.getTripId().equals(trip.getId()) && trip.getFirmaId().equals(s.getFirmaId()))
                 .orElseThrow(() -> ApiException.notFound(ErrorCodes.NOT_FOUND));
         Map<String, String> errors = new LinkedHashMap<>();
         TripStop.Status status = InputFields.parseEnum(TripStop.Status.class, "status",
                 input == null ? null : input.status(), true, errors);
+        if (driver && status == TripStop.Status.PLANNED) {
+            errors.put("status", ErrorCodes.FIELD_INVALID_VALUE);
+        }
         if (!errors.isEmpty()) {
             throw ApiException.validation(errors);
         }

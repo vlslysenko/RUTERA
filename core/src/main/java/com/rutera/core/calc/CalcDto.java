@@ -42,10 +42,39 @@ public final class CalcDto {
                           String fuelCurrency, String country, @Valid @Size(max = 20) List<OtherCost> otherCosts) {
     }
 
-    /** Body of {@code POST /app/calc/trip}. */
+    /**
+     * Body of {@code POST /app/calc/trip}: the legs, or (when a routing engine is configured) waypoints that are
+     * routed into legs; a waypoint's serviceMin is the loading or unloading there.
+     */
     public record TripInput(Instant start, Long vehicleId, @Size(max = 2) List<Long> driverIds, Integer crewSize,
                             String driverState, ManualState manualState, @Valid @Size(max = 50) List<LegInput> legs,
-                            @Valid Options options) {
+                            @Valid @Size(max = 25) List<PointInput> waypoints, @Valid Options options) {
+    }
+
+    /** A route point: coordinates, or an address to geocode; serviceMin only for the trip calculator. */
+    public record PointInput(Double lat, Double lng, @Size(max = 300) String address, Integer serviceMin) {
+    }
+
+    /** Truck dimensions overriding the vehicle's (metres, tonnes). */
+    public record ProfileInput(Double heightM, Double widthM, Double lengthM, Double weightT, Double axleLoadT,
+                               Integer axles, Boolean hazmat) {
+    }
+
+    /** Body of {@code POST /app/calc/route}. */
+    public record RouteInput(@Valid @Size(max = 25) List<PointInput> points, Long vehicleId, @Valid ProfileInput profile,
+                             Boolean avoidTolls, Boolean avoidFerries) {
+    }
+
+    public record RoutePoint(double lat, double lng, String label) {
+    }
+
+    public record RouteLeg(RoutePoint from, RoutePoint to, BigDecimal distanceKm, int durationMin,
+                           List<CountryKm> countries, String polyline) {
+    }
+
+    /** A truck route; polylines are encoded with precision 6; OSM data needs the attribution shown. */
+    public record Route(BigDecimal distanceKm, int durationMin, List<RoutePoint> points, List<RouteLeg> legs,
+                        int polylinePrecision, String attribution) {
     }
 
     public record Totals(BigDecimal distanceKm, int drivingMin, int breakMin, int restMin, int workMin,
