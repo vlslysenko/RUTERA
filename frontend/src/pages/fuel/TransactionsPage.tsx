@@ -18,15 +18,10 @@ import { useCrewOptions } from '@/pages/trips/crew';
 import { formatInstantShort, formatMoney } from '@/pages/trips/tripFormat';
 import { cx } from '@/utils/cx';
 import { MatchChip } from './FuelChips';
+import { formatQty } from './fuelFormat';
 import classes from '@/pages/trips/Trips.module.css';
 
 const PAGE_SIZE = 50;
-
-/** Quantity with its unit in the UI language ("410,5 l"). */
-export function formatQty(qty: number | null, unit: string | null, lang: string, t: (k: string) => string): string {
-  if (qty == null) return '—';
-  return `${new Intl.NumberFormat(lang, { maximumFractionDigits: 2 }).format(qty)} ${unit ? t(`fuel.unit.${unit}`) : ''}`.trim();
-}
 
 /** Fuel and toll transactions, newest first; filters in the URL; sums per currency and quantities per product. */
 export function TransactionsPage() {

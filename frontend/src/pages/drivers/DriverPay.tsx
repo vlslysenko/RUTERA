@@ -252,7 +252,7 @@ function PayRates({ driverId, canManage }: { driverId: string; canManage: boolea
 }
 
 /** Signed sum per currency: advances and deductions subtract (same rule as the firm-wide totals). */
-export function paymentTotals(items: DriverPayment[]): { currency: string; amount: number }[] {
+function paymentTotals(items: DriverPayment[]): { currency: string; amount: number }[] {
   const sums = new Map<string, number>();
   for (const p of items) sums.set(p.currency, (sums.get(p.currency) ?? 0) + (NEGATIVE_PAYMENT_KINDS.includes(p.kind) ? -p.amount : p.amount));
   return [...sums].map(([currency, amount]) => ({ currency, amount: Math.round(amount * 100) / 100 }));

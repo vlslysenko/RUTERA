@@ -46,18 +46,6 @@ export function RoutePanel({ vehicleId, onRoute }: { vehicleId: number | null; o
   const mapEl = useRef<HTMLDivElement>(null);
   const map = useRef<{ L: typeof Leaflet; map: Leaflet.Map; layer: Leaflet.LayerGroup } | null>(null);
 
-  // A click on the map fills the first empty point, or adds one.
-  const pick = (lat: number, lng: number) => {
-    setRoute(null);
-    setPoints((ps) => {
-      const i = ps.findIndex((p) => !p.text.trim() && p.lat == null);
-      const picked = { text: coords(lat, lng), lat, lng };
-      if (i >= 0) return ps.map((p, j) => (j === i ? { ...p, ...picked } : p));
-      return ps.length >= MAX_POINTS ? ps : [...ps, { key: ++seq, ...picked }];
-    });
-  };
-  const pickRef = useRef(pick);
-  pickRef.current = pick;
 
   useEffect(() => {
     let cancelled = false;
@@ -67,7 +55,17 @@ export function RoutePanel({ vehicleId, onRoute }: { vehicleId: number | null; o
       const m = L.map(mapEl.current, { center: [51.5, 15], zoom: 5 });
       L.tileLayer(TILES, { maxZoom: 18, attribution: OSM }).addTo(m);
       const layer = L.layerGroup().addTo(m);
-      m.on('click', (e: Leaflet.LeafletMouseEvent) => pickRef.current(e.latlng.lat, e.latlng.lng));
+      // A click on the map fills the first empty point, or adds one (state setters are stable, no stale closure).
+      m.on('click', (e: Leaflet.LeafletMouseEvent) => {
+        const { lat, lng } = e.latlng;
+        setRoute(null);
+        setPoints((ps) => {
+          const i = ps.findIndex((p) => !p.text.trim() && p.lat == null);
+          const picked = { text: coords(lat, lng), lat, lng };
+          if (i >= 0) return ps.map((p, j) => (j === i ? { ...p, ...picked } : p));
+          return ps.length >= MAX_POINTS ? ps : [...ps, { key: ++seq, ...picked }];
+        });
+      });
       map.current = { L, map: m, layer };
       setReady(true);
     });

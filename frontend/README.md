@@ -8,11 +8,12 @@ React + TypeScript + Vite + Mantine web client. Style direction A "Dispatch room
 cd frontend
 npm install
 npm run dev        # http://localhost:5173, mock API on
+npm run lint       # eslint . (typescript-eslint, react-hooks, react-refresh; eslint.config.js)
 npm run typecheck  # tsc -b
 npm run build      # tsc -b && vite build -> dist/ (PWA: manifest + service worker)
 ```
 
-Node 22+ (npm 10+). Dependencies are pinned to exact versions; bump them deliberately.
+Node 22+ (npm 10+). Dependencies are pinned to exact versions; bump them deliberately. CI runs `lint`, `typecheck` and `build`.
 
 ## Backend connection
 

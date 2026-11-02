@@ -18,7 +18,7 @@ import { countryName } from '@/utils/countries';
 import { idOrNull, useCrewOptions } from '@/pages/trips/crew';
 import { formatInstantShort, formatMoney } from '@/pages/trips/tripFormat';
 import { MatchChip } from './FuelChips';
-import { formatQty } from './TransactionsPage';
+import { formatQty } from './fuelFormat';
 import classes from '@/pages/trips/Trips.module.css';
 
 const LIST = '/fuel';

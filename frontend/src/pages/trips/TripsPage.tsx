@@ -23,7 +23,7 @@ import classes from './Trips.module.css';
 const PAGE_SIZE = 50;
 
 /** First loading and last unloading (or first and last stop) of a trip. */
-export function tripRoute(t: Trip): [string, string] | null {
+function tripRoute(t: Trip): [string, string] | null {
   if (t.stops.length === 0) return null;
   const from = t.stops.find((s) => s.kind === 'LOADING') ?? t.stops[0];
   const to = [...t.stops].reverse().find((s) => s.kind === 'UNLOADING') ?? t.stops[t.stops.length - 1];

@@ -1,8 +1,7 @@
-import { createBrowserRouter, Navigate, type RouteObject } from 'react-router';
+import { createBrowserRouter, type RouteObject } from 'react-router';
 import { PRIV } from '@/auth/privileges';
 import { RequireAuth } from '@/auth/RequireAuth';
 import { PrivilegeGuard, ScreenGuard } from '@/auth/ScreenGuard';
-import { useUser } from '@/auth/useAuth';
 import { AppLayout } from '@/layout/AppLayout';
 import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -63,14 +62,9 @@ import { TripForm } from '@/pages/trips/TripForm';
 import { TripsFallback, TripsLayout } from '@/pages/trips/TripsLayout';
 import { TollTariffsPage } from '@/pages/trips/TollTariffsPage';
 import { TripsPage } from '@/pages/trips/TripsPage';
-import { SCREENS, startScreenPath } from './navigation';
+import { SCREENS } from './navigation';
+import { StartRedirect } from './StartRedirect';
 import type { ScreenKey } from './types';
-
-/** "/" sends the user to the start screen from the profile, or the role default. */
-function StartRedirect() {
-  const user = useUser();
-  return <Navigate to={startScreenPath(user)} replace />;
-}
 
 /** A screen is reachable only for users who see it in the menu (privileges). */
 function screen(key: ScreenKey, routes: RouteObject[]): RouteObject {

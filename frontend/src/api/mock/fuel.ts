@@ -166,7 +166,7 @@ function splitLine(line: string, sep: string): string[] {
 }
 
 function parseCsv(text: string): { headers: string[]; rows: string[][] } {
-  const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter((l) => l.trim() !== '');
+  const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter((l) => l.trim() !== '');
   if (lines.length === 0) return { headers: [], rows: [] };
   const first = lines[0];
   const sep = [';', '\t', ','].sort((a, b) => first.split(b).length - first.split(a).length)[0];
