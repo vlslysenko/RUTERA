@@ -63,6 +63,14 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+        <!-- PDF of CMR notes (Apache-2.0). 3.0.7 of 2026-03-06: one release behind the newest (3.0.8) by the
+             project's library rule (versions older than 30 days, never the newest). Only generates PDFs. -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.7</version>
+        </dependency>
+
         <!-- Database: Flyway migrations (SQL files live in rutera-common) + MySQL driver -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

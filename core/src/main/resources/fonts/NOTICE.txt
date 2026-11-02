@@ -1,0 +1,5 @@
+Rubik Regular and Rubik Medium (version 2.000), used for the CMR PDF (core.trip.CmrPdf).
+Copyright 2015 The Rubik Project Authors.
+This Font Software is licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org,
+http://scripts.sil.org/OFL); the licence notice is also embedded in the font files (name table, IDs 13 and 14).
+The files were copied unchanged from the resources of the SMDP project.

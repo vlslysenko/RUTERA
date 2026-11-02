@@ -251,6 +251,42 @@ the missing ones (`seq` = position); a stop may only name an order of the trip. 
 `actualStart`, DONE an empty `actualEnd`, a stop marked DONE an empty `actualAt`. Changes are written to
 `audit_log` (module `trip`).
 
+### CMR consignment notes (`/app/cmr`)
+
+Privileges: read with `trip.order/view` or `trip.cmr/manage`, everything else `trip.cmr/manage`.
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/cmr?status=&orderId=&tripId=&q=&from=&to=&page=&size=` | `{items: Cmr[], total}`, newest first; from/to bound the loading date; `q` searches number, parties and places |
+| GET / POST | `/app/cmr[/{id}]` | `Cmr` |
+| PUT / DELETE | `/app/cmr/{id}` | full replacement / 204, only while DRAFT (else 409) |
+| POST | `/app/cmr/from-order/{orderId}` | 201 `Cmr`: a draft prefilled from the order |
+| POST | `/app/cmr/from-trip/{tripId}` | 201 `Cmr[]`: one draft per order of the trip (without orders: one from its first LOADING and last UNLOADING stop) |
+| POST | `/app/cmr/{id}/issue` | `Cmr` ISSUED: number frozen, PDF of the four copies stored; 422 when boxes are missing |
+| POST | `/app/cmr/{id}/cancel` | `Cmr` CANCELLED (409 when already cancelled) |
+| GET | `/app/cmr/{id}/pdf?copies=1..4` | `application/pdf`: a draft is drawn now with a DRAFT watermark and `copies` pages; issued and cancelled notes return the stored PDF |
+
+`Cmr = {id, number, status: DRAFT | ISSUED | CANCELLED, order: {id, number}, trip: {id, number}, sender, senderContractorId,
+consignee, consigneeContractorId, carrier, successiveCarriers[], deliveryPlace, deliveryCountry, loadingPlace,
+loadingCountry, loadingDate, documentsAttached, lines: [{marks, packages, packing, nature, statNumber, grossWeightKg,
+volumeM3}], senderInstructions, paymentTerms: PAID | FORWARD | null, paymentInstructions, cashOnDelivery: {amount,
+currency} | null, carrierReservations, specialAgreements, establishedPlace, establishedDate, vehiclePlates,
+signatures: {sender, carrier, consignee: {name, place, date}}, notes, hasPdf, issuedAt, createdAt, updatedAt}`; a party
+is `{name, address (line breaks allowed), country, vatId}`. The input has the same fields (ids instead of `order` and
+`trip`: `orderId`, `tripId`; `paymentTerms` as text) and is a full replacement.
+
+Rules: an empty number gets the next one of the loading year (`CMR/2026/0001`, the current year without a loading
+date); typed numbers are upper-cased and unique in the firma (`number: trip.cmr.number_taken`). Countries are
+ISO alpha-2 (`sender.country`, `deliveryCountry`, ... `validation.invalid_format`). Prefill from an order: sender =
+the customer (name, address, country, VAT id), consignee = the unloading place, carrier = the own firma, places,
+countries and the loading date from the order, one goods line with cargo and weight, box 21 = town of loading and
+the loading date, plates = vehicle / trailer of the order's trip. Issuing needs `sender.name`, `carrier.name`,
+`consignee.name` (or a delivery place), `loadingPlace`, `deliveryPlace` and a goods line with `nature`. The PDF
+(`core.trip.CmrPdf`, Apache PDFBox 3.0.7) draws the 24 boxes of the international form with English, Polish and
+German captions; font Rubik (SIL Open Font License 1.1, `core/src/main/resources/fonts`, licence note in NOTICE.txt),
+characters outside it print as `?`. Changes are written to `audit_log` (module `trip`). Not yet: scans with OCR,
+e-CMR, linking a CMR to an invoice.
+
 ### Tachograph files (`/app/tacho/files`, privileges `tacho.file/upload` and `tacho.hos/view`)
 
 Step A of `docs/TACHO_IMPORT_API.md` (project files): the uploaded DDD file, its summary, the driver or vehicle it
