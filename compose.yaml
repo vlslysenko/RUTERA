@@ -1,5 +1,6 @@
-# RUTERA with Docker Compose: the standalone stack and the database for local development.
-#   Standalone, one command:   docker compose up -d --build   -> http://localhost:8080 (RUTERA_PORT)
+# RUTERA with Docker Compose, built from source: a trial stack and the database for local development.
+# Installations use docker-compose.standalone.yml (released image, backups) instead.
+#   From source, one command:  docker compose up -d --build   -> http://localhost:18090 (RUTERA_PORT)
 #   Development database only: docker compose up -d mysql     -> localhost:3307 (RUTERA_DB_PORT)
 #   First start: the owner's generated password: docker compose exec rutera grep "generated password" logs/rutera.log
 #   Routing (optional): docker compose --profile routing up -d valhalla  -> localhost:8002 (RUTERA_ROUTING_PORT);
@@ -60,7 +61,7 @@ services:
       RUTERA_ROUTING_URL: ${RUTERA_ROUTING_URL:-}
       RUTERA_GEOCODING_URL: ${RUTERA_GEOCODING_URL:-https://nominatim.openstreetmap.org}
     ports:
-      - "${RUTERA_PORT:-8080}:8080"
+      - "${RUTERA_PORT:-18090}:8080"
     volumes:
       # conf/application.properties and conf/logback.xml, when present, override the built-in settings.
       - rutera-conf:/opt/rutera/conf

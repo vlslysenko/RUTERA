@@ -1,0 +1,201 @@
+# RUTERA standalone installation: MySQL, RUTERA from the released image and nightly backups; routing optional.
+# Needs no source code, only this file and .env next to it (copy .env.standalone.example, set the two passwords):
+#   docker compose -f docker-compose.standalone.yml up -d          -> http://<host>:18090 (RUTERA_PORT)
+#   Owner's generated password (first start, unless RUTERA_BOOTSTRAP_ADMIN_PASSWORD is set):
+#     docker compose -f docker-compose.standalone.yml logs rutera | grep "generated password"
+#   Update: RUTERA_VERSION in .env, then "pull" and "up -d" (Flyway migrates the database at start).
+#   Backups: nightly into ./backups; "run --rm backup now | list | restore <stamp>", see README "Deploy (standalone)".
+#   Routing (optional): --profile routing, RUTERA_ROUTING_URL=http://valhalla:8002 (first start builds the tiles).
+# compose.yaml stays the development stack (built from source, MySQL published on 3307).
+# Images are pinned to exact releases older than 30 days (project rule for dependencies).
+name: rutera-standalone
+
+services:
+  mysql:
+    image: mysql:8.4.11
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --innodb-file-per-table=1
+      - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+    environment:
+      TZ: UTC
+      # Applied once, when the volume is created; later changes need ALTER USER in MySQL as well.
+      MYSQL_DATABASE: ${RUTERA_DB_NAME:-rutera}
+      MYSQL_USER: ${RUTERA_DB_USER:-rutera}
+      MYSQL_PASSWORD: ${RUTERA_DB_PASSWORD:?set RUTERA_DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${RUTERA_DB_ROOT_PASSWORD:?set RUTERA_DB_ROOT_PASSWORD in .env}
+    # Not published: only RUTERA and the backup service reach it, over the compose network.
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  rutera:
+    image: ${RUTERA_IMAGE:-ghcr.io/vlslysenko/rutera}:${RUTERA_VERSION:-latest}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      TZ: ${RUTERA_TZ:-UTC}
+      JAVA_TOOL_OPTIONS: ${RUTERA_JAVA_OPTS:-}
+      RUTERA_DB_HOST: mysql
+      RUTERA_DB_PORT: 3306
+      RUTERA_DB_NAME: ${RUTERA_DB_NAME:-rutera}
+      RUTERA_DB_USER: ${RUTERA_DB_USER:-rutera}
+      RUTERA_DB_PASSWORD: ${RUTERA_DB_PASSWORD:?set RUTERA_DB_PASSWORD in .env}
+      RUTERA_COOKIE_SECURE: ${RUTERA_COOKIE_SECURE:-false}
+      # Passed only when set in .env; otherwise the built-in defaults apply (application.properties).
+      RUTERA_BOOTSTRAP_FIRMA_NAME:
+      RUTERA_BOOTSTRAP_FIRMA_COUNTRY:
+      RUTERA_BOOTSTRAP_LANG:
+      RUTERA_BOOTSTRAP_ADMIN_LOGIN:
+      RUTERA_BOOTSTRAP_ADMIN_PASSWORD:
+      RUTERA_BOOTSTRAP_ADMIN_NAME:
+      RUTERA_LOCKOUT_ATTEMPTS:
+      RUTERA_LOCKOUT_DURATION:
+      RUTERA_PASSWORD_MIN_LENGTH:
+      RUTERA_API_RATE_PER_MINUTE:
+      RUTERA_ROUTING_URL:
+      RUTERA_GEOCODING_URL:
+      RUTERA_GEOCODING_USER_AGENT:
+      SPRING_MAIL_HOST:
+      SPRING_MAIL_PORT:
+      SPRING_MAIL_USERNAME:
+      SPRING_MAIL_PASSWORD:
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_ENABLE:
+      RUTERA_MAIL_FROM:
+      RUTERA_MAIL_FROM_NAME:
+    ports:
+      - "${RUTERA_BIND_ADDRESS:-0.0.0.0}:${RUTERA_PORT:-18090}:8080"
+    volumes:
+      # conf/application.properties and conf/logback.xml, when present, override the built-in settings.
+      - conf:/opt/rutera/conf
+      - logs:/opt/rutera/logs
+      # Uploaded files (tachograph downloads, CMR, trip photos), see rutera.storage.dir
+      - data:/opt/rutera/data
+    healthcheck:
+      # The JRE image has neither curl nor wget: bash sends the request through /dev/tcp.
+      test: ["CMD", "bash", "-c", 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf "GET /actuator/health HTTP/1.0\r\nHost: localhost\r\n\r\n" >&3 && grep -q "\"status\":\"UP\"" <&3']
+      interval: 15s
+      timeout: 5s
+      start_period: 120s
+      retries: 5
+    restart: unless-stopped
+
+  # Nightly at RUTERA_BACKUP_TIME (RUTERA_TZ): rutera-db-<stamp>.sql.gz (mysqldump, one consistent transaction)
+  # and rutera-files-<stamp>.tar.gz (uploaded files) in RUTERA_BACKUP_DIR; files older than
+  # RUTERA_BACKUP_KEEP_DAYS days are removed. Commands: docker compose -f docker-compose.standalone.yml run --rm backup
+  #   now                 one backup at once
+  #   list                the backups present
+  #   restore <stamp>     replaces the database and the uploaded files (stop rutera first), e.g. 2026-11-02_0230
+  backup:
+    image: mysql:8.4.11
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      TZ: ${RUTERA_TZ:-UTC}
+      DB_NAME: ${RUTERA_DB_NAME:-rutera}
+      DB_USER: ${RUTERA_DB_USER:-rutera}
+      DB_ROOT_PASSWORD: ${RUTERA_DB_ROOT_PASSWORD:?set RUTERA_DB_ROOT_PASSWORD in .env}
+      BACKUP_TIME: ${RUTERA_BACKUP_TIME:-02:30}
+      BACKUP_KEEP_DAYS: ${RUTERA_BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ${RUTERA_BACKUP_DIR:-./backups}:/backups
+      - data:/data
+    entrypoint:
+      - bash
+      - -c
+      - |
+        set -uo pipefail
+        umask 077
+        cnf=$$(mktemp)
+        printf '[client]\nuser=root\npassword="%s"\nhost=mysql\n' "$$DB_ROOT_PASSWORD" > "$$cnf"
+        log() { echo "$$(date '+%F %T %Z') $$*"; }
+
+        backup() {
+          local stamp db files rc
+          stamp=$$(date +%Y-%m-%d_%H%M)
+          db=/backups/rutera-db-$$stamp.sql.gz
+          files=/backups/rutera-files-$$stamp.tar.gz
+          if ! mysqldump --defaults-extra-file="$$cnf" --single-transaction --quick --routines --triggers \
+              --events --no-tablespaces "$$DB_NAME" | gzip > "$$db.part"; then
+            rm -f "$$db.part"; log "backup FAILED: database dump"; return 1
+          fi
+          mv "$$db.part" "$$db"
+          tar -czf "$$files.part" -C /data .; rc=$$?
+          # 1 = a file changed while it was read (an upload in progress): the archive is still usable
+          if [ "$$rc" -gt 1 ]; then rm -f "$$files.part"; log "backup FAILED: files archive"; return 1; fi
+          mv "$$files.part" "$$files"
+          find /backups -maxdepth 1 -type f -name 'rutera-*' -mtime +"$$BACKUP_KEEP_DAYS" -delete
+          log "backup written: $$db, $$files"
+        }
+
+        restore() {
+          local db=/backups/rutera-db-$$1.sql.gz files=/backups/rutera-files-$$1.tar.gz busy
+          [ -f "$$db" ] || { log "no such backup: $$db"; return 1; }
+          busy=$$(mysql --defaults-extra-file="$$cnf" -N -B -e \
+            "SELECT COUNT(*) FROM information_schema.processlist WHERE user = '$$DB_USER'") || return 1
+          if [ "$$busy" != 0 ]; then log "RUTERA is still connected: stop the rutera service first"; return 1; fi
+          log "restoring $$db"
+          mysql --defaults-extra-file="$$cnf" -e "DROP DATABASE IF EXISTS \`$$DB_NAME\`;
+            CREATE DATABASE \`$$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci" || return 1
+          gunzip -c "$$db" | mysql --defaults-extra-file="$$cnf" "$$DB_NAME" || { log "restore FAILED"; return 1; }
+          if [ -f "$$files" ]; then
+            log "restoring $$files"
+            find /data -mindepth 1 -delete && tar -xzf "$$files" -C /data || { log "restore FAILED: files"; return 1; }
+          fi
+          log "restore done, start the rutera service again"
+        }
+
+        case "$${1:-}" in
+          now) backup; exit $$? ;;
+          list) ls -lh /backups; exit 0 ;;
+          restore) restore "$${2:?usage: restore <stamp>, e.g. 2026-11-02_0230}"; exit $$? ;;
+          "") ;;
+          *) echo "usage: now | list | restore <stamp>"; exit 2 ;;
+        esac
+
+        [[ "$$BACKUP_TIME" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$$ ]] || { log "RUTERA_BACKUP_TIME must be HH:MM"; exit 2; }
+        trap 'exit 0' TERM INT
+        log "nightly backup at $$BACKUP_TIME, kept $$BACKUP_KEEP_DAYS days"
+        while true; do
+          now=$$(date +%s)
+          next=$$(date -d "today $$BACKUP_TIME" +%s 2>/dev/null) || next=0
+          if [ "$$next" -le "$$now" ]; then
+            # A time inside the daylight saving gap does not exist that day: try again in an hour.
+            next=$$(date -d "tomorrow $$BACKUP_TIME" +%s 2>/dev/null) || next=$$((now + 3600))
+          fi
+          sleep $$((next - now)) & wait $$!
+          backup || true
+        done
+      - backup
+    restart: unless-stopped
+
+  # Truck routing (Valhalla, MIT; OSM data ODbL): the first start downloads RUTERA_OSM_EXTRACT_URL (Poland
+  # ~1.9 GB) and builds the tiles (30-60 min, ~4 GB RAM). Reached by RUTERA only (RUTERA_ROUTING_URL).
+  valhalla:
+    profiles: ["routing"]
+    image: ghcr.io/valhalla/valhalla-scripted:3.9.0
+    environment:
+      tile_urls: ${RUTERA_OSM_EXTRACT_URL:-https://download.geofabrik.de/europe/poland-latest.osm.pbf}
+      use_tiles_ignore_pbf: "True"
+      build_admins: "True"
+      build_time_zones: "True"
+      server_threads: ${RUTERA_ROUTING_THREADS:-2}
+    volumes:
+      - valhalla-data:/custom_files
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+  conf:
+  logs:
+  data:
+  valhalla-data:

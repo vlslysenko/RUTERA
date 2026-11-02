@@ -35,3 +35,5 @@ dist/
 
 # Uploaded files of a local run (core.storage.FileStorage, may hold real tachograph data)
 data/
+# Backups of a standalone installation (docker-compose.standalone.yml): database dumps and uploaded files
+backups/

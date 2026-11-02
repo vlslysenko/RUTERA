@@ -31,3 +31,4 @@ docs
 **/*.V1B
 tacho/samples-private
 data
+backups

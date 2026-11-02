@@ -12,23 +12,94 @@ Requirements: `docs/REQUIREMENTS.md`; database sketch: `docs/DB_SCHEMA.md`; AI r
 | `core/` | Spring Boot application on Jetty: web layer, security, internal API for the React client (`/app/...`) |
 | `frontend/` | React + TypeScript client (Vite, Mantine, PWA) |
 | `Dockerfile` | Standalone image: client + backend in one jar on a JRE |
-| `compose.yaml` | Standalone stack (MySQL 8.4 + RUTERA); its `mysql` service alone is the development database |
+| `docker-compose.standalone.yml` | Installation from the released image: MySQL, RUTERA, nightly backups, optional routing (`.env.standalone.example`) |
+| `compose.yaml` | Stack built from source (MySQL 8.4 + RUTERA); its `mysql` service alone is the development database |
+| `.github/workflows/` | CI (`mvn verify`, client build) and the release of the image to ghcr.io |
 | `docs/` | Requirements, DB schema, AI role guides, UI mockups |
 
-## Standalone with one command (Docker)
+## Deploy (standalone)
+
+One server with Docker and the Compose plugin, 2 CPU and 4 GB RAM are enough for a small firma
+(add ~4 GB for the optional routing). Nothing has to be built: the image comes from the GitHub Container Registry.
 
 ```bash
-cp .env.example .env          # optional: port, database credentials, first firma and owner
-docker compose up -d --build  # builds the image (client + jar), starts MySQL and RUTERA
-docker compose exec rutera grep "generated password" logs/rutera.log   # owner admin, first start
+mkdir rutera && cd rutera
+curl -fsSLO https://raw.githubusercontent.com/vlslysenko/RUTERA/main/docker-compose.standalone.yml
+curl -fsSL -o .env https://raw.githubusercontent.com/vlslysenko/RUTERA/main/.env.standalone.example
+#   edit .env: RUTERA_DB_PASSWORD and RUTERA_DB_ROOT_PASSWORD (required), RUTERA_VERSION, RUTERA_TZ, SMTP ...
+docker compose -f docker-compose.standalone.yml up -d
+docker compose -f docker-compose.standalone.yml logs rutera | grep "generated password"   # first start only
 ```
 
-RUTERA is then at `http://localhost:8080` (`RUTERA_PORT` changes the published port; MySQL is published on
-`RUTERA_DB_PORT`, default 3307). The `rutera` service waits for a healthy MySQL and is healthy itself once
-`/actuator/health` answers. Volumes: `rutera-mysql-data` (database), `rutera-conf` (`/opt/rutera/conf`, optional
-`application.properties` / `logback.xml`), `rutera-logs` (`/opt/rutera/logs`). JVM options go to
-`RUTERA_JAVA_OPTS`. Behind an HTTPS reverse proxy set `RUTERA_COOKIE_SECURE=true`. Update: `git pull` and the same
-`docker compose up -d --build`; `docker compose down -v` removes everything including the data.
+RUTERA is then at `http://<host>:18090` (`RUTERA_PORT`, `RUTERA_BIND_ADDRESS`); sign in as `admin` (or
+`RUTERA_BOOTSTRAP_ADMIN_LOGIN`) with the generated password, or set `RUTERA_BOOTSTRAP_ADMIN_PASSWORD` before the
+first start, and change it afterwards. The first firma comes from `RUTERA_BOOTSTRAP_*`. Every setting is described
+in `.env.standalone.example`; lines left commented out keep the built-in defaults.
+
+| Service | Image | Role |
+|---|---|---|
+| `mysql` | `mysql:8.4.11` | Database, volume `mysql-data`; not published, only the stack reaches it |
+| `rutera` | `ghcr.io/vlslysenko/rutera:${RUTERA_VERSION}` | Client and backend on port 8080 inside, published on `RUTERA_PORT`; volumes `conf` (`/opt/rutera/conf`: optional `application.properties`, `logback.xml`), `logs`, `data` (uploaded files) |
+| `backup` | `mysql:8.4.11` | Nightly database dump and archive of the uploaded files into `./backups` |
+| `valhalla` | `ghcr.io/valhalla/valhalla-scripted:3.9.0` | Truck routing, only with `--profile routing` |
+
+Volumes are named `rutera-standalone_<volume>`; `docker compose ... down` keeps them, `down -v` deletes all data.
+
+**HTTPS.** Put a reverse proxy (Caddy, nginx, Traefik) in front, publish RUTERA only to it
+(`RUTERA_BIND_ADDRESS=127.0.0.1` when it runs on the same host) and set `RUTERA_COOKIE_SECURE=true`. The proxy has
+to allow request bodies of 200 MB (tachograph import).
+
+**E-mail.** Payment reminders go out once `SPRING_MAIL_HOST` (and port, user, password, STARTTLS or SSL) is set;
+until then they wait in the outbox and are sent afterwards.
+
+**Routing.** `docker compose -f docker-compose.standalone.yml --profile routing up -d` and
+`RUTERA_ROUTING_URL=http://valhalla:8002` in `.env`. The first start downloads `RUTERA_OSM_EXTRACT_URL` (Poland
+~1.9 GB, Geofabrik) and builds the tiles (30-60 minutes); until then route requests answer 502 `calc.routing.failed`.
+Geocoding uses the public Nominatim (1 request/s, put a contact into `RUTERA_GEOCODING_USER_AGENT`) unless
+`RUTERA_GEOCODING_URL` points at an own instance.
+
+**Update.** Set `RUTERA_VERSION` to the new release (pinning a version is safer than `latest`), then
+
+```bash
+docker compose -f docker-compose.standalone.yml run --rm backup now   # a backup first
+docker compose -f docker-compose.standalone.yml pull
+docker compose -f docker-compose.standalone.yml up -d
+```
+
+Flyway migrates the database at start. Going back to an older version needs the backup taken before the update.
+
+**Backups.** The `backup` service writes `rutera-db-<yyyy-mm-dd_hhmm>.sql.gz` (mysqldump in one transaction, RUTERA
+keeps running) and `rutera-files-<stamp>.tar.gz` (uploaded files) every night at `RUTERA_BACKUP_TIME` (`RUTERA_TZ`,
+default 02:30) into `RUTERA_BACKUP_DIR` (`./backups`) and deletes those older than `RUTERA_BACKUP_KEEP_DAYS` (14).
+Copy that folder off the server (rsync, restic, a NAS): a backup on the same disk does not survive a disk failure.
+The files hold personal data (drivers, tachograph downloads); keep them encrypted and access-restricted.
+
+```bash
+docker compose -f docker-compose.standalone.yml run --rm backup now      # one backup at once
+docker compose -f docker-compose.standalone.yml run --rm backup list     # what is there
+docker compose -f docker-compose.standalone.yml stop rutera              # restore: RUTERA must be stopped
+docker compose -f docker-compose.standalone.yml run --rm backup restore 2026-11-02_0230
+docker compose -f docker-compose.standalone.yml start rutera
+```
+
+`restore <stamp>` drops and recreates the database from `rutera-db-<stamp>.sql.gz` and replaces the uploaded files
+with `rutera-files-<stamp>.tar.gz`; it refuses while RUTERA is still connected to the database.
+
+**Logs and health.** `docker compose -f docker-compose.standalone.yml logs -f rutera`; the files are in the `logs`
+volume (daily, 30 days). `GET /actuator/health` answers `{"status":"UP"}` (the container health check uses it).
+
+**Releases.** A tag `v<major>.<minor>.<patch>` runs `.github/workflows/release.yml`: CI first, then the image
+`ghcr.io/vlslysenko/rutera:<version>` (plus `<major>.<minor>` and `latest`, linux/amd64). Every push and pull
+request to `main` runs `.github/workflows/ci.yml` (`mvn verify` with Testcontainers, type check and build of the
+client). Base images and actions are pinned to releases older than 30 days; bump them together.
+
+### From source with one command (Docker)
+
+To try a working copy: `docker compose up -d --build` builds the image from the sources (`compose.yaml`, settings
+from `.env`, see `.env.example`) and starts MySQL and RUTERA on `http://localhost:18090` (`RUTERA_PORT`; MySQL is
+published on `RUTERA_DB_PORT`, default 3307, for development). The owner's generated password:
+`docker compose exec rutera grep "generated password" logs/rutera.log`. `docker compose down -v` removes everything
+including the data.
 
 ## Build and run (development)
 

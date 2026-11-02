@@ -4,8 +4,10 @@
 #   2. backend:  mvn -Pfrontend -Dexec.skip=true package, which puts that dist into the jar as classpath:/static/
 #   3. runtime:  JRE only, unprivileged user, /opt/rutera/{conf,logs,data} as in an installation without Docker
 # JVM options: JAVA_TOOL_OPTIONS (e.g. -Xmx1g); application settings: RUTERA_* variables, see .env.example.
+# Base images are pinned to exact releases older than 30 days (project rule for dependencies); bump them together.
+# Released images: ghcr.io/vlslysenko/rutera:<version> (.github/workflows/release.yml), docker-compose.standalone.yml.
 
-FROM node:22-alpine AS frontend
+FROM node:22.23.3-alpine AS frontend
 WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
@@ -14,7 +16,7 @@ COPY frontend/ ./
 ENV VITE_API_MOCK=false
 RUN npm run build
 
-FROM maven:3.9-eclipse-temurin-25 AS backend
+FROM maven:3.9.16-eclipse-temurin-25 AS backend
 WORKDIR /build
 COPY pom.xml ./
 COPY common/pom.xml common/
@@ -26,7 +28,10 @@ COPY tacho/src tacho/src
 COPY --from=frontend /build/frontend/dist frontend/dist
 RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp -Pfrontend -Dexec.skip=true -DskipTests package
 
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:25.0.4.1_1-jre
+LABEL org.opencontainers.image.title="RUTERA" \
+      org.opencontainers.image.description="TMS and fleet management for small transport companies" \
+      org.opencontainers.image.source="https://github.com/vlslysenko/RUTERA"
 RUN groupadd --system rutera \
     && useradd --system --gid rutera --home-dir /opt/rutera --no-create-home --shell /usr/sbin/nologin rutera
 WORKDIR /opt/rutera
