@@ -14,6 +14,7 @@ import com.rutera.common.security.Privileges;
 import com.rutera.common.security.RequiresPrivilege;
 import com.rutera.core.audit.AuditEvent;
 import com.rutera.core.audit.AuditService;
+import com.rutera.core.tacho.HosService;
 import com.rutera.core.web.ApiException;
 import com.rutera.core.web.ErrorCodes;
 import com.rutera.core.web.InputFields;
@@ -60,15 +61,17 @@ public class DriverService {
     private final DriverDocumentRepository documents;
     private final VehicleRepository vehicles;
     private final AppUserRepository users;
+    private final HosService hos;
     private final AuditService audit;
 
     public DriverService(DriverRepository drivers, DriverCardRepository cards, DriverDocumentRepository documents,
-                         VehicleRepository vehicles, AppUserRepository users, AuditService audit) {
+                         VehicleRepository vehicles, AppUserRepository users, HosService hos, AuditService audit) {
         this.drivers = drivers;
         this.cards = cards;
         this.documents = documents;
         this.vehicles = vehicles;
         this.users = users;
+        this.hos = hos;
         this.audit = audit;
     }
 
@@ -121,6 +124,8 @@ public class DriverService {
         CardInput card = apply(driver, input);
         driver = drivers.save(driver);
         saveCard(driver, null, card);
+        // Vehicle unit data of the card may already be imported.
+        hos.recompute(driver.getFirmaId(), List.of(driver.getId()));
         audit.record(AuditEvent.of(MODULE, "driver_created", "Added driver " + driver.getFullName())
                 .entity("driver", driver.getId())
                 .detail("name", driver.getFullName()));
@@ -136,6 +141,7 @@ public class DriverService {
         CardInput card = apply(driver, input);
         driver = drivers.save(driver);
         saveCard(driver, currentCard(driver), card);
+        hos.recompute(driver.getFirmaId(), List.of(driver.getId()));
         DriverDto after = toDto(driver);
         List<String> changed = changedFields(before, after);
         if (!changed.isEmpty()) {

@@ -259,6 +259,42 @@ or vehicle. Accepted files are stored by `core.storage.FileStorage` under `ruter
 (`RUTERA_STORAGE_DIR`, default `data/files` next to the working directory; volume `rutera-data` in Docker). Names
 and card numbers from the files never go to the log files.
 
+### Driver activity and 561/2006 (`/app/tacho/activity`, `/app/tacho/violations`)
+
+Steps B and D of the import. Every imported file writes its activity intervals to `tacho_activity`
+(`core.tacho.TachoFacts`, plain JDBC): a driver card all its intervals (card withdrawn without a manual entry =
+UNKNOWN, vehicle from EF Vehicles_Used), a vehicle unit the intervals of slots with a driver card inserted, with that
+card's number. Files stored before this step are extracted at the next start (`TachoFactsBackfill`,
+`tacho_file.facts_version`). A driver's timeline is merged on read (`core.tacho.HosService`): the driver's card files
+(the newest file wins per UTC day), and for days without card data the vehicle unit data of their cards (matched by
+the driver identification, the first 14 characters of the card number), the newest file winning per moment.
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/tacho/activity?driverId=&from=&to=` | `{driver: {id, name}, timezone, days: HosDay[], intervals: Interval[]}`, up to 31 days (`tacho.hos/view`) |
+| GET | `/app/tacho/violations?driverId=&from=&to=&severity=&unacknowledged=true&page=&size=` | `{items: Violation[], total}`, newest first (`tacho.hos/view`) |
+| GET | `/app/tacho/violations/{id}` | `Violation` (`tacho.hos/view`) |
+| POST | `/app/tacho/violations/{id}/ack` | `{note?}` -> `Violation` (`tacho.violation/ack`) |
+| DELETE | `/app/tacho/violations/{id}/ack` | `Violation`, acknowledgement removed (`tacho.violation/ack`) |
+
+`Interval = {startAt, endAt, activity: DRIVING | WORK | AVAILABILITY | REST | UNKNOWN, slot: 1 | 2, vehicle: {id |
+null, plate} | null}` (id null: the plate is not in the fleet). `HosDay = {day, drivingMin, workMin, availabilityMin,
+restMin, dailyRestMin, extDrivingInWeek, reducedRestInWeek, weeklyDrivingMin, biweeklyDrivingMin, remainingDailyMin,
+remainingWeeklyMin, nextWeeklyRestBy, violations}` for every day of the range, cut in the firma's time zone.
+`Violation = {id, driver: {id, name}, rule, severity: MINOR | SERIOUS | VERY_SERIOUS | MOST_SERIOUS, startAt, endAt,
+actualValue, limitValue (minutes), vehicle, details, ack: {by: {id, name}, at, note} | null}`.
+
+Rules (`core.tacho.hos.HosEngine`, pure code): unrecorded time and UNKNOWN count as rest; a rest of 9 h ends a shift,
+24 h is a weekly rest. `DAILY_DRIVING_9H` / `DAILY_DRIVING_10H` (two 10 h days per calendar week),
+`BREAK_45_AFTER_4H30` (45 min, or 15 + 30), `DAILY_REST_11H` / `DAILY_REST_9H` (within 24 h of the shift start; 3 + 9
+split; at most three reduced rests between weekly rests), `WEEKLY_DRIVING_56H`, `TWO_WEEK_DRIVING_90H`,
+`WEEKLY_REST_24H` (within six 24-hour periods), `WEEKLY_REST_45H` (no two reduced weekly rests in a row). Weeks run
+Monday to Sunday in the firma's time zone. Severity follows Regulation (EU) 2016/403, simplified to one threshold
+table per rule (`HosEngine.severity`). Not modelled yet: compensation of reduced weekly rests, the 2020 exceptions
+for international transport, ferry/train interruptions, multi-manning specifics. Violations are recomputed after
+every import, assignment or deletion of a file and after a change of a driver's card; the same violation (driver,
+rule, start) keeps its acknowledgement.
+
 Service and controller methods are guarded with `@RequiresPrivilege("module.entity/action")` (AOP, module
 `core.security`); the effective set = role defaults + custom role + per-user overrides, computed at login. Every
 request carries `requestId`, `firmaId` and `userId` in the MDC (log lines) and the same `requestId` in `audit_log`.

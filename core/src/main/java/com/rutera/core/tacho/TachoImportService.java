@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -94,6 +95,8 @@ public class TachoImportService {
     private final AppUserRepository users;
     private final DriverService driverService;
     private final VehicleService vehicleService;
+    private final TachoFacts facts;
+    private final HosService hos;
     private final AuditService audit;
     private final LangService lang;
     private final ObjectMapper json;
@@ -102,7 +105,7 @@ public class TachoImportService {
     public TachoImportService(TachoFileRepository files, StoredFileRepository storedFiles, FileStorage storage,
                               DriverRepository drivers, DriverCardRepository cards, VehicleRepository vehicles,
                               AppUserRepository users, DriverService driverService, VehicleService vehicleService,
-                              AuditService audit, LangService lang, ObjectMapper json,
+                              TachoFacts facts, HosService hos, AuditService audit, LangService lang, ObjectMapper json,
                               PlatformTransactionManager transactionManager) {
         this.files = files;
         this.storedFiles = storedFiles;
@@ -113,6 +116,8 @@ public class TachoImportService {
         this.users = users;
         this.driverService = driverService;
         this.vehicleService = vehicleService;
+        this.facts = facts;
+        this.hos = hos;
         this.audit = audit;
         this.lang = lang;
         this.json = json;
@@ -210,6 +215,7 @@ public class TachoImportService {
         } else {
             matchVehicle(f);
         }
+        extractFacts(f, parsed);
         audit.record(fileEvent("file_imported", "Imported", f, name));
         return f;
     }
@@ -435,7 +441,9 @@ public class TachoImportService {
             Driver driver = drivers.findByIdAndDeletedFalse(driverId).filter(d -> firmaId.equals(d.getFirmaId()))
                     .orElseThrow(() -> ApiException.validation(Map.of("driverId", ErrorCodes.FIELD_INVALID_VALUE)));
             ensureCard(driver, f);
+            Long previous = f.getDriverId();
             assignToDriver(f, driver.getId(), TachoFileRecord.Match.MANUAL);
+            hos.recompute(firmaId, previous == null ? List.of(driver.getId()) : List.of(driver.getId(), previous));
         } else {
             Long vehicleId = input == null ? null : input.vehicleId();
             if (vehicleId == null) {
@@ -499,6 +507,7 @@ public class TachoImportService {
             cards.save(c);
         });
         assignToDriver(f, created.id(), TachoFileRecord.Match.MANUAL);
+        hos.recompute(f.getFirmaId(), List.of(created.id()));
         audit.record(fileEvent("file_assigned", "Created a driver from", f, originalName(f)));
         return new TachoFileDto.CreatedDriver(driverService.get(created.id()), toDto(f));
     }
@@ -533,7 +542,9 @@ public class TachoImportService {
         String name = originalName(f);
         Long driverId = f.getDriverId();
         Long vehicleId = f.getVehicleId();
+        Set<Long> affected = affectedDrivers(f);
         StoredFile stored = storedFiles.findById(f.getFileId()).orElse(null);
+        facts.delete(f.getFirmaId(), f.getId());
         files.delete(f);
         files.flush();
         if (stored != null) {
@@ -545,7 +556,25 @@ public class TachoImportService {
         if (vehicleId != null) {
             refreshVehicle(vehicleId);
         }
+        hos.recompute(f.getFirmaId(), affected);
         audit.record(fileEvent("file_deleted", "Deleted", f, name));
+    }
+
+    // --- facts (step B) and 561/2006 (step D) ----------------------------------------------------------------
+
+    /** Writes the activity intervals of the file and recomputes the violations of the drivers it touches. */
+    public void extractFacts(TachoFileRecord f, TachoFile parsed) {
+        facts.extract(f, parsed);
+        files.saveAndFlush(f);
+        hos.recompute(f.getFirmaId(), affectedDrivers(f));
+    }
+
+    /** Card file: its driver; vehicle unit file: the drivers whose cards were inserted. */
+    private Set<Long> affectedDrivers(TachoFileRecord f) {
+        if (f.getKind() == TachoFileRecord.Kind.DRIVER_CARD) {
+            return f.getDriverId() == null ? Set.of() : Set.of(f.getDriverId());
+        }
+        return hos.driversWithCards(f.getFirmaId(), facts.cardNumbers(f.getFirmaId(), f.getId()));
     }
 
     // --- helpers -------------------------------------------------------------------------------------------

@@ -110,6 +110,18 @@ public class TachoFileRecord extends TenantEntity {
     @Column(name = "uploaded_at", nullable = false)
     private Instant uploadedAt;
 
+    /** Version of the fact extraction (tacho_activity) applied to this file; 0 = not extracted yet. */
+    @Column(name = "facts_version", nullable = false)
+    private int factsVersion;
+
+    public int getFactsVersion() {
+        return factsVersion;
+    }
+
+    public void setFactsVersion(int factsVersion) {
+        this.factsVersion = factsVersion;
+    }
+
     public Kind getKind() {
         return kind;
     }

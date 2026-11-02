@@ -9,12 +9,17 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 /** Tenant-filtered: results always belong to the firma of the current request context. */
 public interface TachoFileRepository extends JpaRepository<TachoFileRecord, Long> {
 
     Optional<TachoFileRecord> findBySha256(String sha256);
+
+    /** [id, firmaId] of files whose facts are older than {@code version} (run as root: all firmas). */
+    @Query("select f.id, f.firmaId from TachoFileRecord f where f.factsVersion < :version order by f.id")
+    List<Object[]> findPendingFacts(@Param("version") int version);
 
     /**
      * The journal: every filter is optional (null = any); {@code from}/{@code to} select files whose period
