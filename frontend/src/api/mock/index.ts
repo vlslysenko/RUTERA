@@ -123,6 +123,11 @@ function toUser(u: MockUser): User {
     language: saved.language ?? u.language,
     startScreen: saved.startScreen ?? null,
     privileges: ROLE_PRIVILEGES[u.role],
+    driver: (() => {
+      const own = ownDriverId(u);
+      const d = own == null ? undefined : drivers.find((x) => x.id === own);
+      return d ? { id: d.id, name: `${d.firstName} ${d.lastName}`.trim() } : null;
+    })(),
   };
 }
 
@@ -165,6 +170,30 @@ function withPrivilege(
     u.role === 'SUPERUSER' || ROLE_PRIVILEGES[u.role].includes(key) ? fn(u, req) : error(403, 'auth.access_denied'),
   );
 }
+
+/** Driver linked to the login (driver.user_id), for the driver app. */
+function ownDriverId(u: MockUser): number | null {
+  return drivers.find((d) => d.user?.id === u.id && !d.deleted)?.id ?? null;
+}
+
+/**
+ * The privilege, or the driver app's own data: with driver_app.self/use a driver reads what belongs to the driver linked
+ * to the login (proposed backend contract for the driver cabinet).
+ */
+function withPrivilegeOrSelf(
+  key: string,
+  isOwn: (req: MockRequest, ownDriver: number) => boolean,
+  fn: (user: MockUser, req: MockRequest) => MockResponse | Promise<MockResponse>,
+): Handler {
+  return withAuth((u, req) => {
+    if (u.role === 'SUPERUSER' || ROLE_PRIVILEGES[u.role].includes(key)) return fn(u, req);
+    const own = ownDriverId(u);
+    const self = own != null && ROLE_PRIVILEGES[u.role].includes('driver_app.self/use') && isOwn(req, own);
+    return self ? fn(u, req) : error(403, 'auth.access_denied');
+  });
+}
+const ownPathDriver = (req: MockRequest, own: number) => Number(req.params.id) === own;
+const ownQueryDriver = (req: MockRequest, own: number) => Number(req.query.driverId) === own;
 
 function passwordError(value: unknown): string | null {
   if (typeof value !== 'string' || value.length === 0) return 'validation.required';
@@ -341,7 +370,7 @@ route('GET', '/app/drivers', withPrivilege('driver.driver/view', () => ({
     .map((d) => toDriver(d, vehicles)),
 })));
 
-route('GET', '/app/drivers/:id', withPrivilege('driver.driver/view', (_u, req) => {
+route('GET', '/app/drivers/:id', withPrivilegeOrSelf('driver.driver/view', ownPathDriver, (_u, req) => {
   const d = findDriver(req.params.id);
   return d ? { status: 200, body: toDriver(d, vehicles) } : error(404, 'error.not_found');
 }));
@@ -386,7 +415,7 @@ route('DELETE', '/app/drivers/:id', withPrivilege('driver.driver/manage', (_u, r
   return { status: 204 };
 }));
 
-route('GET', '/app/drivers/:id/documents', withPrivilege('driver.driver/view', (_u, req) => {
+route('GET', '/app/drivers/:id/documents', withPrivilegeOrSelf('driver.driver/view', ownPathDriver, (_u, req) => {
   const d = findDriver(req.params.id);
   if (!d) return error(404, 'error.not_found');
   const sorted = [...d.documents].sort((a, b) => (a.validTo ?? '9999').localeCompare(b.validTo ?? '9999'));
@@ -670,7 +699,7 @@ function violationStore(): Violation[] {
   return violations;
 }
 
-route('GET', '/app/tacho/activity', withPrivilege('tacho.hos/view', (_u, { query }) => {
+route('GET', '/app/tacho/activity', withPrivilegeOrSelf('tacho.hos/view', ownQueryDriver, (_u, { query }) => {
   const d = shiftDrivers().find((x) => String(x.id) === query.driverId);
   if (!d) return error(404, 'error.not_found');
   if (!query.from || !query.to || query.to < query.from) return error(422, 'error.validation', { to: 'validation.invalid_value' });
@@ -691,7 +720,7 @@ route('GET', '/app/tacho/activity', withPrivilege('tacho.hos/view', (_u, { query
   };
 }));
 
-route('GET', '/app/tacho/violations', withPrivilege('tacho.hos/view', (_u, { query }) => {
+route('GET', '/app/tacho/violations', withPrivilegeOrSelf('tacho.hos/view', ownQueryDriver, (_u, { query }) => {
   const page = Number(query.page ?? 0);
   const size = Number(query.size ?? 50);
   const items = violationStore()
@@ -729,16 +758,19 @@ const hr: hrMock.HrLookup = { driverName };
 /** The driver of /app/drivers/:id/... must exist; HR handlers get its numeric id. */
 const forDriver = (key: string, fn: (u: MockUser, id: number, req: MockRequest) => MockResponse) =>
   withPrivilege(key, (u, req) => (liveDriver(Number(req.params.id)) ? fn(u, Number(req.params.id), req) : error(404, 'error.not_found')));
+/** Read by the office, or by the driver app for the own driver. */
+const forOwnDriver = (key: string, fn: (u: MockUser, id: number, req: MockRequest) => MockResponse) =>
+  withPrivilegeOrSelf(key, ownPathDriver, (u, req) => (liveDriver(Number(req.params.id)) ? fn(u, Number(req.params.id), req) : error(404, 'error.not_found')));
 const me = (u: MockUser) => ({ id: u.id, name: fullName(u) });
 
-route('GET', '/app/drivers/:id/absences', forDriver('driver.driver/view', (_u, id, { query }) => hrMock.listAbsences(id, query, hr)));
+route('GET', '/app/drivers/:id/absences', forOwnDriver('driver.driver/view', (_u, id, { query }) => hrMock.listAbsences(id, query, hr)));
 route('POST', '/app/drivers/:id/absences', forDriver('driver.absence/manage', (u, id, { body }) => hrMock.saveAbsence(id, (body ?? {}) as AbsenceInput, null, hr, me(u))));
 route('PUT', '/app/drivers/:id/absences/:absenceId', forDriver('driver.absence/manage', (u, id, req) =>
   hrMock.saveAbsence(id, (req.body ?? {}) as AbsenceInput, req.params.absenceId, hr, me(u))));
 route('DELETE', '/app/drivers/:id/absences/:absenceId', forDriver('driver.absence/manage', (_u, id, req) => hrMock.removeAbsence(id, req.params.absenceId)));
 route('GET', '/app/absences', withPrivilege('driver.driver/view', (_u, { query }) => hrMock.firmAbsences(query, hr)));
 
-route('GET', '/app/drivers/:id/days', forDriver('driver.driver/view', (_u, id, { query }) => hrMock.month(id, query)));
+route('GET', '/app/drivers/:id/days', forOwnDriver('driver.driver/view', (_u, id, { query }) => hrMock.month(id, query)));
 route('PUT', '/app/drivers/:id/days/:day', forDriver('driver.driver/manage', (_u, id, req) =>
   hrMock.setDay(id, req.params.day, (req.body ?? {}) as { kind?: string; note?: string | null })));
 route('DELETE', '/app/drivers/:id/days/:day', forDriver('driver.driver/manage', (_u, id, req) => hrMock.resetDay(id, req.params.day)));
@@ -749,7 +781,7 @@ route('PUT', '/app/drivers/:id/pay-rates/:rateId', forDriver('driver.payment/man
   hrMock.saveRate(id, (req.body ?? {}) as PayRateInput, req.params.rateId)));
 route('DELETE', '/app/drivers/:id/pay-rates/:rateId', forDriver('driver.payment/manage', (_u, id, req) => hrMock.removeRate(id, req.params.rateId)));
 
-route('GET', '/app/drivers/:id/payments', forDriver('driver.payment/view', (_u, id, { query }) => hrMock.listPayments(id, query, hr)));
+route('GET', '/app/drivers/:id/payments', forOwnDriver('driver.payment/view', (_u, id, { query }) => hrMock.listPayments(id, query, hr)));
 route('POST', '/app/drivers/:id/payments', forDriver('driver.payment/manage', (_u, id, { body }) =>
   hrMock.savePayment(id, (body ?? {}) as DriverPaymentInput, null, hr)));
 route('PUT', '/app/drivers/:id/payments/:paymentId', forDriver('driver.payment/manage', (_u, id, req) =>
@@ -785,12 +817,12 @@ route('POST', '/app/orders/:id/trip', withPrivilege('trip.order/manage', (u, req
   hasKey(u, 'trip.trip/manage') ? tripMock.createTripForOrder(req.params.id, (req.body ?? {}) as TripFromOrder, crew) : error(403, 'auth.access_denied'),
 ));
 
-route('GET', '/app/trips', withPrivilege('trip.trip/view', (_u, { query }) => tripMock.listTrips(query, crew)));
-route('GET', '/app/trips/:id', withPrivilege('trip.trip/view', (_u, req) => tripMock.getTrip(req.params.id, crew)));
+route('GET', '/app/trips', withPrivilegeOrSelf('trip.trip/view', ownQueryDriver, (_u, { query }) => tripMock.listTrips(query, crew)));
+route('GET', '/app/trips/:id', withPrivilegeOrSelf('trip.trip/view', (req, own) => tripMock.tripHasDriver(req.params.id, own), (_u, req) => tripMock.getTrip(req.params.id, crew)));
 route('POST', '/app/trips', withPrivilege('trip.trip/manage', (_u, { body }) => tripMock.saveTrip((body ?? {}) as TripInput, null, crew)));
 route('PUT', '/app/trips/:id', withPrivilege('trip.trip/manage', (_u, req) => tripMock.saveTrip((req.body ?? {}) as TripInput, req.params.id, crew)));
 route('DELETE', '/app/trips/:id', withPrivilege('trip.trip/manage', (_u, req) => tripMock.removeTrip(req.params.id)));
-route('PATCH', '/app/trips/:id/stops/:stopId', withPrivilege('trip.trip/manage', (_u, req) =>
+route('PATCH', '/app/trips/:id/stops/:stopId', withPrivilegeOrSelf('trip.trip/manage', (req, own) => tripMock.tripHasDriver(req.params.id, own), (_u, req) =>
   tripMock.markStop(req.params.id, req.params.stopId, (req.body ?? {}) as { status?: string; actualAt?: string | null }),
 ));
 

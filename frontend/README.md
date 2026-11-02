@@ -21,7 +21,7 @@ Node 22+ (npm 10+). Dependencies are pinned to exact versions; bump them deliber
   Copy `.env.example` to `.env.local` to change it. Production builds never use the mock.
 
 Mock test accounts (login = password): `owner`, `dispatcher`, `logistician`, `accountant` (locked), `driver`
-(inactive). Firma "TransPol Sp. z o.o.". Mock users live in memory per page load.
+(driver cabinet of Jan Kowalski). Firma "TransPol Sp. z o.o.". Mock users live in memory per page load.
 
 Internal endpoints used (all under `/app`, session cookie + CSRF header `X-XSRF-TOKEN` from cookie `XSRF-TOKEN`;
 the backend clears the cookie on logout, the client fetches a new one with `GET /app/auth/me` and retries once):
@@ -103,6 +103,12 @@ Drivers are tabs as well: `/drivers` (list and cards), `/drivers/absences` (who 
 and `/drivers/payments` (payroll of a month, `driver.payment/view` only). The driver card has the tabs overview,
 documents, absences, work days (month calendar with manual corrections) and pay (rates and payments of a year);
 `?tab=` in the URL opens a card on a tab.
+
+The driver cabinet `/driver` is a separate shell for the phone (tabs Today / Hours / Documents / Me at the bottom, no
+side menu); users with role DRIVER start there. It reads the driver linked to the login (`User.driver`, proposed) through
+the existing endpoints with that driver's id: trips (`?driverId=`, stop marks), `/tacho/activity` and violations,
+the driver with documents, absences, work days and payments. The backend does not grant `driver_app.self/use` on them
+yet and `/app/auth/me` has no `driver`; the mock implements that contract (`withPrivilegeOrSelf`).
 
 The vehicle–driver link lives on the vehicle (`defaultDriverId` in the vehicle form); `Driver.defaultVehicle` is
 derived from it. Documents of vehicles and drivers share `components/DeadlineDocuments`.

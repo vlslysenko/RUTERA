@@ -41,6 +41,11 @@ import { TachoIndex, TachoLayout } from '@/pages/tacho/TachoLayout';
 import { ViolationDetail } from '@/pages/tacho/ViolationDetail';
 import { ViolationsPage } from '@/pages/tacho/ViolationsPage';
 import { UsersPage } from '@/pages/settings/users/UsersPage';
+import { DocumentsPage } from '@/pages/driver/DocumentsPage';
+import { DriverShell } from '@/pages/driver/DriverShell';
+import { HoursPage } from '@/pages/driver/HoursPage';
+import { MePage } from '@/pages/driver/MePage';
+import { TodayPage } from '@/pages/driver/TodayPage';
 import { CalculatorPage } from '@/pages/trips/CalculatorPage';
 import { CmrDetail } from '@/pages/trips/CmrDetail';
 import { CmrForm } from '@/pages/trips/CmrForm';
@@ -78,6 +83,17 @@ export const router = createBrowserRouter([
     path: '/',
     element: <RequireAuth />,
     children: [
+      {
+        // Driver cabinet: its own shell without the side menu.
+        path: 'driver',
+        element: <DriverShell />,
+        children: [
+          { index: true, element: <TodayPage /> },
+          { path: 'hours', element: <HoursPage /> },
+          { path: 'documents', element: <DocumentsPage /> },
+          { path: 'me', element: <MePage /> },
+        ],
+      },
       {
         element: <AppLayout />,
         children: [

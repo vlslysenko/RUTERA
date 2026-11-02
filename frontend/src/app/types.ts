@@ -44,6 +44,8 @@ export interface User {
   startScreen: ScreenKey | null;
   /** Effective privilege keys "module.entity/action"; empty for SUPERUSER, who bypasses checks. */
   privileges: string[];
+  /** Driver linked to this login (driver app); proposed field, absent on older backends. */
+  driver?: { id: number; name: string } | null;
 }
 
 export interface UserSettingsPatch {

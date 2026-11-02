@@ -1,7 +1,9 @@
 import { Link, useNavigate } from 'react-router';
 import { Avatar, Menu, Text, UnstyledButton } from '@mantine/core';
-import { IconLogout, IconSettings } from '@tabler/icons-react';
+import { IconLogout, IconSettings, IconSteeringWheel } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { DRIVER_APP_PATH } from '@/app/navigation';
+import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useLogout, useUser } from '@/auth/useAuth';
 import classes from './UserMenu.module.css';
 
@@ -46,6 +48,11 @@ export function UserMenu() {
         <Menu.Item component={Link} to="/settings" leftSection={<IconSettings size={16} />}>
           {t('user.settings')}
         </Menu.Item>
+        {user.driver && hasPrivilege(user, PRIV.DRIVER_APP_SELF_USE) && (
+          <Menu.Item component={Link} to={DRIVER_APP_PATH} leftSection={<IconSteeringWheel size={16} />}>
+            {t('driver_app.title')}
+          </Menu.Item>
+        )}
         <Menu.Divider />
         <Menu.Item color="red" leftSection={<IconLogout size={16} />} onClick={onLogout}>
           {t('user.logout')}

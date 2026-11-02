@@ -129,7 +129,7 @@ const trips: MockTrip[] = [
     ]),
   },
   {
-    id: 2, number: `T-${Y}-0002`, status: 'RUNNING', vehicleId: 2, trailerId: 7, mainDriverId: 2, secondDriverId: 3,
+    id: 2, number: `T-${Y}-0002`, status: 'RUNNING', vehicleId: 2, trailerId: 7, mainDriverId: 1, secondDriverId: 3,
     plannedStart: at(inDays(0), 5), plannedEnd: at(inDays(1), 16), actualStart: at(inDays(0), 5), actualEnd: null,
     kmPlanned: 560, kmActual: null, notes: 'Podwójna obsada.', createdAt: T0, updatedAt: T0,
     stops: numbered([
@@ -609,3 +609,9 @@ export function tripForCmr(id: number, crew: CrewLookup):
 }
 
 export const contractorForCmr = (id: number): boolean => !!liveContractor(id);
+
+/** For the driver app: the driver is the main or second driver of the trip. */
+export function tripHasDriver(id: string, driverId: number): boolean {
+  const t = trips.find((x) => x.id === Number(id));
+  return !!t && (t.mainDriverId === driverId || t.secondDriverId === driverId);
+}

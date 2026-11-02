@@ -13,7 +13,7 @@ import {
   IconUsers,
   type IconProps,
 } from '@tabler/icons-react';
-import { hasAnyPrivilege, PRIV } from '@/auth/privileges';
+import { hasAnyPrivilege, hasPrivilege, PRIV } from '@/auth/privileges';
 import type { Role, ScreenKey, User } from './types';
 
 export type NavIcon = ComponentType<IconProps>;
@@ -110,7 +110,16 @@ export function visibleScreens(user: User): NavItem[] {
   return visibleGroups(user).flatMap((g) => g.items);
 }
 
+/** The driver cabinet: its own shell with tabs at the bottom (REQUIREMENTS.md, section 15). */
+export const DRIVER_APP_PATH = '/driver';
+
+/** Drivers start in their cabinet; other roles reach it from the user menu when their login is linked to a driver. */
+export function usesDriverApp(user: User): boolean {
+  return user.role === 'DRIVER' && hasPrivilege(user, PRIV.DRIVER_APP_SELF_USE);
+}
+
 export function startScreenPath(user: User): string {
+  if (usesDriverApp(user)) return DRIVER_APP_PATH;
   const preferred = user.startScreen;
   const key = preferred && canSee(SCREENS[preferred], user) ? preferred : DEFAULT_START_SCREEN[user.role];
   const item = SCREENS[key];

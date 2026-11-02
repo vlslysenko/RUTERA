@@ -29,6 +29,7 @@ export const PRIV = {
   FUEL_TRANSACTION_VIEW: 'fuel.transaction/view',
   FUEL_IMPORT_MANAGE: 'fuel.import/manage',
   REPORT_VIEW: 'report.report/view',
+  DRIVER_APP_SELF_USE: 'driver_app.self/use',
   PROFILE_SELF_MANAGE: 'profile.self/manage',
 } as const;
 

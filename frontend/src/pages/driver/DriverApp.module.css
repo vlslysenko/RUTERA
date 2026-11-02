@@ -1,0 +1,210 @@
+/* Driver cabinet: one column for the phone, tabs at the bottom, touch targets of 44 px and more. */
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--mantine-color-gray-0);
+}
+
+.head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 12px;
+  padding-top: env(safe-area-inset-top);
+  background: var(--rutera-side-bg);
+  color: var(--rutera-side-fg);
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--mantine-color-white);
+}
+
+.who {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--mantine-font-size-sm);
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12px 12px calc(84px + env(safe-area-inset-bottom));
+}
+
+.tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--mantine-color-white);
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 60px;
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-xs);
+  text-decoration: none;
+}
+
+.tab[aria-current='page'] {
+  color: var(--mantine-color-blue-7);
+  font-weight: 600;
+}
+
+.card {
+  padding: 12px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-white);
+}
+
+.cardTitle {
+  margin: 0 0 8px;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+}
+
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.big {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: var(--mantine-font-family-monospace);
+  line-height: 1.1;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.statValue {
+  font-weight: 600;
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.stops {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stop {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 52px;
+  padding: 6px 0;
+  border-top: 1px solid var(--mantine-color-gray-2);
+}
+
+.stop:first-child {
+  border-top: 0;
+}
+
+.stopNext {
+  background: var(--mantine-color-blue-0);
+  margin: 0 -12px;
+  padding: 6px 12px;
+}
+
+.stopDone {
+  color: var(--mantine-color-dimmed);
+}
+
+.seq {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--mantine-color-gray-2);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+  height: 110px;
+}
+
+.bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  height: 100%;
+  font-size: 11px;
+  color: var(--mantine-color-dimmed);
+}
+
+.barFill {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 3px 3px 0 0;
+  background: var(--mantine-color-blue-6);
+}
+
+.barOver {
+  background: var(--mantine-color-red-6);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  border-top: 1px solid var(--mantine-color-gray-2);
+}
+
+.row:first-of-type {
+  border-top: 0;
+}
