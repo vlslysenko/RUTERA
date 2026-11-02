@@ -104,6 +104,12 @@ and `/drivers/payments` (payroll of a month, `driver.payment/view` only). The dr
 documents, absences, work days (month calendar with manual corrections) and pay (rates and payments of a year);
 `?tab=` in the URL opens a card on a tab.
 
+Settings -> API tokens (`/settings/tokens`, `/app/me/tokens`) lists the own personal tokens of the public API and
+the MCP server, creates one (the whole token is shown once, with a copy button; 403 `api.ai_access_required` without
+the add-on), revokes it and shows its call log; with `admin.api_token/manage` the tab "All API tokens"
+(`/settings/api-tokens`) lists and revokes every token of the firma. The page links `/api/v1/openapi.json` and shows
+the `claude mcp add` command; the dev server proxies `/api` and `/mcp` to the backend as well.
+
 The driver cabinet `/driver` is a separate shell for the phone (tabs Today / Hours / Documents / Me at the bottom, no
 side menu); users with role DRIVER start there. It reads the driver linked to the login (`User.driver`, proposed) through
 the existing endpoints with that driver's id: trips (`?driverId=`, stop marks), `/tacho/activity` and violations,

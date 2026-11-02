@@ -42,6 +42,8 @@ import { ViolationDetail } from '@/pages/tacho/ViolationDetail';
 import { ViolationsPage } from '@/pages/tacho/ViolationsPage';
 import { UsersPage } from '@/pages/settings/users/UsersPage';
 import { DocumentsPage } from '@/pages/driver/DocumentsPage';
+import { AllTokensPage } from '@/pages/settings/tokens/AllTokensPage';
+import { TokensPage } from '@/pages/settings/tokens/TokensPage';
 import { DriverShell } from '@/pages/driver/DriverShell';
 import { HoursPage } from '@/pages/driver/HoursPage';
 import { MePage } from '@/pages/driver/MePage';
@@ -352,6 +354,14 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <ProfileTab /> },
               { path: 'password', element: <PasswordTab /> },
+              {
+                element: <PrivilegeGuard privilege={PRIV.PROFILE_SELF_MANAGE} />,
+                children: [{ path: 'tokens', element: <TokensPage /> }],
+              },
+              {
+                element: <PrivilegeGuard privilege={PRIV.ADMIN_API_TOKEN_MANAGE} />,
+                children: [{ path: 'api-tokens', element: <AllTokensPage /> }],
+              },
               {
                 element: <PrivilegeGuard privilege={PRIV.ADMIN_USER_VIEW} />,
                 children: [

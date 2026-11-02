@@ -1,0 +1,51 @@
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--mantine-color-default-border);
+}
+
+.table th {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+}
+
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+  white-space: nowrap;
+}
+
+.num {
+  text-align: right;
+  font-family: var(--mantine-font-family-monospace);
+  white-space: nowrap;
+}
+
+.selected td {
+  background: var(--mantine-color-blue-0);
+}
+
+/* The new token: shown once, selectable in one click. */
+.secret {
+  display: block;
+  padding: 8px 10px;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-gray-1);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-sm);
+  word-break: break-all;
+  user-select: all;
+}
+
+.command {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-gray-1);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  white-space: pre-wrap;
+  word-break: break-all;
+}

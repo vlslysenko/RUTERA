@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => {
           // Only the built assets are precached. API calls (/app/...) are never served from the cache.
           globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
           navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/app\//, /^\/api\//],
+          navigateFallbackDenylist: [/^\/app\//, /^\/api\//, /^\/mcp/],
           cleanupOutdatedCaches: true,
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         },
@@ -57,6 +57,9 @@ export default defineConfig(({ mode }) => {
           target: apiProxy,
           changeOrigin: false,
         },
+        // Public API (bearer tokens) and its OpenAPI document, MCP endpoint: linked from the API tokens page.
+        '/api': { target: apiProxy, changeOrigin: false },
+        '/mcp': { target: apiProxy, changeOrigin: false },
       },
     },
     build: {

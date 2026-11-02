@@ -49,6 +49,8 @@ import type { CalcRequest, TollTariffInput } from '@/api/calc';
 import * as calcMock from './calc';
 import type { CmrInput } from '@/api/cmr';
 import * as cmrMock from './cmr';
+import type { ApiTokenInput } from '@/api/tokens';
+import * as tokenMock from './tokens';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
  * The session lives in sessionStorage, per-user settings in localStorage; users live in memory per page load.
@@ -845,6 +847,15 @@ route('POST', '/app/cmr/from-order/:orderId', withPrivilege('trip.cmr/manage', (
 route('POST', '/app/cmr/from-trip/:tripId', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.cmrFromTrip(req.params.tripId, cmrLookup)));
 route('POST', '/app/cmr/:id/issue', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.issueCmr(req.params.id, crew)));
 route('POST', '/app/cmr/:id/cancel', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.cancelCmr(req.params.id, crew)));
+
+// --- personal API tokens (the mock firma has the AI access add-on) ---------------------------------------
+
+route('GET', '/app/me/tokens', withPrivilege('profile.self/manage', (u) => tokenMock.listMine(u.id)));
+route('POST', '/app/me/tokens', withPrivilege('profile.self/manage', (u, { body }) => tokenMock.create((body ?? {}) as ApiTokenInput, { id: u.id, name: fullName(u) }, true)));
+route('DELETE', '/app/me/tokens/:id', withPrivilege('profile.self/manage', (u, req) => tokenMock.revoke(req.params.id, u.id)));
+route('GET', '/app/me/tokens/:id/calls', withPrivilege('profile.self/manage', (u, req) => tokenMock.calls(req.params.id, u.id, hasKey(u, 'admin.api_token/manage'), req.query)));
+route('GET', '/app/admin/tokens', withPrivilege('admin.api_token/manage', () => tokenMock.listAll()));
+route('DELETE', '/app/admin/tokens/:id', withPrivilege('admin.api_token/manage', (_u, req) => tokenMock.revoke(req.params.id, null)));
 
 // --- invoices, debts and reminders ---------------------------------------------------------------
 

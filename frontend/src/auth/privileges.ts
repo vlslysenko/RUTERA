@@ -4,6 +4,7 @@ import type { User } from '@/app/types';
 export const PRIV = {
   ADMIN_USER_VIEW: 'admin.user/view',
   ADMIN_USER_MANAGE: 'admin.user/manage',
+  ADMIN_API_TOKEN_MANAGE: 'admin.api_token/manage',
   FLEET_VEHICLE_VIEW: 'fleet.vehicle/view',
   FLEET_VEHICLE_MANAGE: 'fleet.vehicle/manage',
   FLEET_DOCUMENT_MANAGE: 'fleet.document/manage',
