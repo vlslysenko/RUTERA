@@ -88,6 +88,10 @@ public abstract class AbstractIntegrationTest {
             return perform(withBody(MockMvcRequestBuilders.put(path), body));
         }
 
+        public MvcResult patch(String path, Object body) throws Exception {
+            return perform(withBody(MockMvcRequestBuilders.patch(path), body));
+        }
+
         public MvcResult delete(String path) throws Exception {
             return perform(withBody(MockMvcRequestBuilders.delete(path), null));
         }

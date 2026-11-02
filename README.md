@@ -179,6 +179,50 @@ unique in the firma (`cardNumber: driver.card.number_taken`). `defaultVehicle` i
 whose `defaultDriverId` is this driver. `nextDocument` is the earliest `validTo` among the documents and the card
 (`kind: DRIVER_CARD`). Changes are written to `audit_log` (module `driver`).
 
+### Contractors, orders and trips (`/app/contractors`, `/app/orders`, `/app/trips`)
+
+Privileges: contractors are read with `trip.order/view` or `trip.contractor/manage` and changed with
+`trip.contractor/manage`; orders `trip.order/view` / `trip.order/manage`; trips `trip.trip/view` /
+`trip.trip/manage`; `POST /app/orders/{id}/trip` needs both manage keys.
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/contractors?q=&role=CUSTOMER\|CARRIER` | `Contractor[]` by name, deleted excluded |
+| GET / POST / PUT / DELETE | `/app/contractors[/{id}]` | `Contractor`; PUT is a full replacement; DELETE is a soft delete |
+| GET | `/app/orders?status=&customerId=&q=&from=&to=&page=&size=` | `{items: Order[], total}`, newest `orderDate` first |
+| GET / POST / PUT | `/app/orders[/{id}]` | `Order`; PUT is a full replacement |
+| DELETE | `/app/orders/{id}` | 204; 409 `error.conflict` when the order is on a trip or invoiced |
+| POST | `/app/orders/{id}/trip` | `{vehicleId, trailerId?, mainDriverId?, secondDriverId?, plannedStart?}` -> 201 `Trip` with the order's loading and unloading as stops |
+| GET | `/app/trips?status=&vehicleId=&driverId=&from=&to=&q=&page=&size=` | `{items: Trip[], total}`; from/to overlap the planned period |
+| GET / POST / PUT | `/app/trips[/{id}]` | `Trip`; PUT replaces crew, orders and stops |
+| DELETE | `/app/trips/{id}` | 204 for PLANNED or CANCELLED trips (orders go back to NEW), else 409 |
+| PATCH | `/app/trips/{id}/stops/{stopId}` | `{status: PLANNED\|DONE\|SKIPPED, actualAt?}` -> `TripStop` |
+
+`Contractor = {id, name, vatId, country, address, phone, invoiceEmails[], paymentDays, lang, isCustomer, isCarrier,
+notes, createdAt, updatedAt}`; the VAT id is stored upper-case without spaces, dots and hyphens and is unique among
+the firma's non-deleted contractors (`vatId: trip.contractor.vat_taken`).
+`Order = {id, number, orderDate, customer: {id, name}, customerRef, price, currency, cargo, weightKg, loading:
+{place, country, date}, unloading: {place, country, date}, status, trip: {id, number, status} | null, notes,
+createdAt, updatedAt}`; input `{number?, orderDate, customerId, customerRef?, price?, currency?, cargo?, weightKg?,
+loadingPlace, loadingCountry, loadingDate?, unloadingPlace, unloadingCountry, unloadingDate?, cancelled?, notes?}`.
+`Trip = {id, number, status: PLANNED | RUNNING | DONE | CANCELLED, vehicle: {id, plate}, trailer, drivers: [{id,
+name, role: MAIN | SECOND}], plannedStart, plannedEnd, actualStart, actualEnd, kmPlanned, kmActual, orders: [{id,
+number, customer, price, currency}], stops: TripStop[], notes, createdAt, updatedAt}`; `TripStop = {id, seq, kind:
+LOADING | UNLOADING | BORDER | REST | FUEL | CUSTOMS | OTHER, orderId, name, address, country, plannedAt, actualAt,
+status: PLANNED | DONE | SKIPPED}`; input `{number?, vehicleId, trailerId?, mainDriverId?, secondDriverId?, status?,
+plannedStart?, plannedEnd?, actualStart?, actualEnd?, kmPlanned?, kmActual?, orderIds[], stops: [{id?, kind,
+orderId?, name?, address, country, plannedAt?, actualAt?, status?}], notes?}`.
+
+Rules: an empty number gets the next one of the year (`O-2026-0001`, `T-2026-0001`; orders count by the year of
+`orderDate`); typed numbers are upper-cased and unique in the firma (`number: trip.order.number_taken |
+trip.trip.number_taken`). The vehicle may not be a trailer and the trailer must be one; the second driver needs a
+main driver and may not be the same person. An order's status is NEW without a trip and follows it otherwise
+(PLANNED, RUNNING -> IN_PROGRESS, DONE); `cancelled: true` sets CANCELLED and takes it off its trip, a cancelled trip
+lets its orders go back to NEW. A PUT of a trip keeps stops that carry their `id`, creates the others and deletes
+the missing ones (`seq` = position); a stop may only name an order of the trip. RUNNING fills an empty
+`actualStart`, DONE an empty `actualEnd`, a stop marked DONE an empty `actualAt`. Changes are written to
+`audit_log` (module `trip`).
+
 ### Tachograph files (`/app/tacho/files`, privileges `tacho.file/upload` and `tacho.hos/view`)
 
 Step A of `docs/TACHO_IMPORT_API.md` (project files): the uploaded DDD file, its summary, the driver or vehicle it

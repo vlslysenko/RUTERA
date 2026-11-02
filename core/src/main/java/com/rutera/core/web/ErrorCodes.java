@@ -47,6 +47,11 @@ public final class ErrorCodes {
     /** Top-level 413: more files in one upload than allowed. */
     public static final String TACHO_TOO_MANY = "tacho.file.too_many";
 
+    /** Trips and orders (per-field): the VAT id or the number is already used in the firma. */
+    public static final String CONTRACTOR_VAT_TAKEN = "trip.contractor.vat_taken";
+    public static final String ORDER_NUMBER_TAKEN = "trip.order.number_taken";
+    public static final String TRIP_NUMBER_TAKEN = "trip.trip.number_taken";
+
     private ErrorCodes() {
     }
 }
