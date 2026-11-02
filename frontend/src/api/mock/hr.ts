@@ -317,3 +317,10 @@ export function removePayment(driverId: number, id: string): MockReply {
   payments.splice(i, 1);
   return { status: 204 };
 }
+
+/** For the calculator mock: the pay rate of a driver valid on a day (newest validFrom not after the day). */
+export function payRateFor(driverId: number, day: string): PayRate | undefined {
+  return rates
+    .filter((r) => r.driverId === driverId && r.validFrom <= day)
+    .sort((a, b) => b.validFrom.localeCompare(a.validFrom))[0];
+}

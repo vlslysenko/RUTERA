@@ -81,6 +81,10 @@ Trips are tabs too: `/trips` (trips; card with stops and quick marks, status but
 of the whole trip), `/trips/orders` (orders; card with "create trip") and `/trips/contractors` (customers and
 carriers). Each tab needs its own privilege; users without `trip.trip/view` land on the first tab they may open.
 Stop errors come as `stops[2].address` and land on the field `stops.2.address` of the trip form.
+`/trips/calc` is the trip calculator (`POST /app/calc/trip`): legs with km, driving and loading time and countries, a
+crew of one or two, the drivers' state from the tachograph, rested or typed in; the plan shows the ETA, the timeline of
+driving, breaks and rests (561/2006) and the cost lines. `calc.missing.*` / `calc.warning.*` codes live only in the
+frontend bundles. `/trips/tolls` keeps the toll rates per km (country, optional euro class, axles and weight).
 
 Finance is tabs too: `/finance` (invoices, sales or purchase; card with lines, payments and reminders; form with
 lines `vatCode` RATE / ZW / NP / OO, or plain totals without lines), `/finance/debts` (aging per contractor) and

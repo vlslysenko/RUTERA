@@ -1,0 +1,113 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(340px, 5fr) minmax(0, 7fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.num {
+  text-align: right;
+  font-family: var(--mantine-font-family-monospace);
+  white-space: nowrap;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.statValue {
+  font-weight: 600;
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.leg {
+  padding: 8px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One line per timeline item; the left border colour says what it is. */
+.item {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) 100px minmax(0, 1.2fr);
+  gap: 8px;
+  padding: 4px 8px;
+  border-left: 4px solid var(--mantine-color-gray-4);
+  font-size: var(--mantine-font-size-sm);
+}
+
+.when,
+.dur {
+  font-family: var(--mantine-font-family-monospace);
+  white-space: nowrap;
+}
+
+.dur {
+  text-align: right;
+}
+
+.where {
+  color: var(--mantine-color-dimmed);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.DRIVE {
+  border-left-color: var(--mantine-color-blue-6);
+}
+
+.BREAK {
+  border-left-color: var(--mantine-color-green-4);
+  background: var(--mantine-color-green-0);
+}
+
+.DAILY_REST,
+.REDUCED_DAILY_REST {
+  border-left-color: var(--mantine-color-green-7);
+  background: var(--mantine-color-green-0);
+}
+
+.WEEKLY_REST,
+.REDUCED_WEEKLY_REST {
+  border-left-color: var(--mantine-color-teal-8);
+  background: var(--mantine-color-teal-0);
+}
+
+.SERVICE {
+  border-left-color: var(--mantine-color-orange-6);
+  background: var(--mantine-color-orange-0);
+}

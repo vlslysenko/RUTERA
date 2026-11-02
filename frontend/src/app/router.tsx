@@ -41,6 +41,7 @@ import { TachoIndex, TachoLayout } from '@/pages/tacho/TachoLayout';
 import { ViolationDetail } from '@/pages/tacho/ViolationDetail';
 import { ViolationsPage } from '@/pages/tacho/ViolationsPage';
 import { UsersPage } from '@/pages/settings/users/UsersPage';
+import { CalculatorPage } from '@/pages/trips/CalculatorPage';
 import { ContractorDetail } from '@/pages/trips/ContractorDetail';
 import { ContractorsPage } from '@/pages/trips/ContractorsPage';
 import { OrderDetail } from '@/pages/trips/OrderDetail';
@@ -49,6 +50,7 @@ import { OrdersPage } from '@/pages/trips/OrdersPage';
 import { TripDetail } from '@/pages/trips/TripDetail';
 import { TripForm } from '@/pages/trips/TripForm';
 import { TripsFallback, TripsLayout } from '@/pages/trips/TripsLayout';
+import { TollTariffsPage } from '@/pages/trips/TollTariffsPage';
 import { TripsPage } from '@/pages/trips/TripsPage';
 import { SCREENS, startScreenPath } from './navigation';
 import type { ScreenKey } from './types';
@@ -102,6 +104,13 @@ export const router = createBrowserRouter([
                         },
                       ],
                     },
+                  ],
+                },
+                {
+                  element: <PrivilegeGuard privilege={PRIV.TRIP_TRIP_VIEW} />,
+                  children: [
+                    { path: 'calc', element: <CalculatorPage /> },
+                    { path: 'tolls', element: <TollTariffsPage /> },
                   ],
                 },
                 {

@@ -588,3 +588,14 @@ export function removeCard(id: string): MockReply {
 export function plateMatches(a: string, b: string): boolean {
   return plateKey(a) === plateKey(b);
 }
+
+/** For the calculator mock: average DIESEL unit price of the last 30 days in the most used currency. */
+export function avgDieselPrice(): { price: number; currency: string } | undefined {
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const rows = txs.filter((t) => t.product === 'DIESEL' && t.unitPrice != null && t.at >= since);
+  if (rows.length === 0) return undefined;
+  const byCur = new Map<string, number[]>();
+  for (const t of rows) byCur.set(t.currency, [...(byCur.get(t.currency) ?? []), t.unitPrice as number]);
+  const [currency, prices] = [...byCur].sort((a, b) => b[1].length - a[1].length)[0];
+  return { price: Math.round((prices.reduce((s, p) => s + p, 0) / prices.length) * 1000) / 1000, currency };
+}

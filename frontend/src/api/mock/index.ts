@@ -45,6 +45,8 @@ import type { InvoiceInput, InvoicePaymentInput, ReminderSchedule } from '@/api/
 import * as financeMock from './finance';
 import type { FuelAssignment, FuelCardInput, FuelTransactionInput } from '@/api/fuel';
 import * as fuelMock from './fuel';
+import type { CalcRequest, TollTariffInput } from '@/api/calc';
+import * as calcMock from './calc';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
  * The session lives in sessionStorage, per-user settings in localStorage; users live in memory per page load.
@@ -844,6 +846,26 @@ route('POST', '/app/fuel/cards', withPrivilege('fuel.import/manage', (u, { body 
 route('PUT', '/app/fuel/cards/:id', withPrivilege('fuel.import/manage', (u, req) =>
   fuelMock.saveCard((req.body ?? {}) as FuelCardInput, req.params.id, fuelLookup(u))));
 route('DELETE', '/app/fuel/cards/:id', withPrivilege('fuel.import/manage', (_u, req) => fuelMock.removeCard(req.params.id)));
+
+// --- trip calculator and toll tariffs ------------------------------------------------------------
+
+const calcLookup = (u: MockUser): calcMock.CalcLookup => ({
+  vehicle: (id) => {
+    const v = vehicles.find((x) => x.id === id && !x.deleted);
+    return v && { id: v.id, avgL100km: v.avgL100km, euroClass: v.euroClass, axles: v.axles, grossWeightKg: v.grossWeightKg };
+  },
+  driverExists,
+  payRate: (driverId, day) => hrMock.payRateFor(driverId, day),
+  dieselPrice: () => fuelMock.avgDieselPrice(),
+  canSeePay: hasKey(u, 'driver.payment/view'),
+  firmaCountry: 'PL',
+});
+
+route('POST', '/app/calc/trip', withPrivilege('trip.trip/view', (u, { body }) => calcMock.plan((body ?? {}) as CalcRequest, calcLookup(u))));
+route('GET', '/app/calc/toll-tariffs', withPrivilege('trip.trip/view', () => calcMock.listTolls()));
+route('POST', '/app/calc/toll-tariffs', withPrivilege('trip.trip/manage', (_u, { body }) => calcMock.saveToll((body ?? {}) as TollTariffInput, null)));
+route('PUT', '/app/calc/toll-tariffs/:id', withPrivilege('trip.trip/manage', (_u, req) => calcMock.saveToll((req.body ?? {}) as TollTariffInput, req.params.id)));
+route('DELETE', '/app/calc/toll-tariffs/:id', withPrivilege('trip.trip/manage', (_u, req) => calcMock.removeToll(req.params.id)));
 
 // --- user administration -------------------------------------------------------------------------
 

@@ -18,6 +18,12 @@ export function TripsLayout() {
     ...(hasAnyPrivilege(user, [PRIV.TRIP_ORDER_VIEW, PRIV.TRIP_CONTRACTOR_MANAGE])
       ? [{ value: '/trips/contractors', label: t('trips.tab.contractors') }]
       : []),
+    ...(hasPrivilege(user, PRIV.TRIP_TRIP_VIEW)
+      ? [
+          { value: '/trips/calc', label: t('trips.tab.calc') },
+          { value: '/trips/tolls', label: t('trips.tab.tolls') },
+        ]
+      : []),
   ];
   // The trips tab owns /trips and /trips/:id; the others own their prefix.
   const active =
