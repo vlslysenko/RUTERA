@@ -181,8 +181,9 @@ whose `defaultDriverId` is this driver. `nextDocument` is the earliest `validTo`
 
 ### Driver cabinet (logins of drivers)
 
-A login is linked to a driver with `userId` in the driver input (`POST`/`PUT /app/drivers`; a login of the firma,
-linked to one driver only: `userId: driver.user.taken`; null unlinks). `GET /app/auth/me` then carries
+A login is linked to a driver with `userId` in the driver input (`POST`/`PUT /app/drivers`; a login of the firma
+with the role DRIVER, else `userId: validation.invalid_value`; linked to one driver only: `userId:
+driver.user.taken`; null unlinks). `GET /app/auth/me` then carries
 `driver: {id, name}` (null for other logins). With `driver_app.self/use` (role DRIVER) and without the full privilege
 a login reads only its own driver, on the usual endpoints: `GET /app/drivers/{own}` and its `/documents`,
 `/absences`, `/days?month=`; `GET /app/trips?driverId={own}` (driverId required) and `GET /app/trips/{id}` of trips

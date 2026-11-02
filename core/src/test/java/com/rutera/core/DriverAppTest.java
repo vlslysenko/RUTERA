@@ -52,6 +52,8 @@ class DriverAppTest extends AbstractIntegrationTest {
         assertThat(body(taken).get("details").get("userId").asString()).isEqualTo("driver.user.taken");
         assertThat(body(c.put("/app/drivers/" + other, driver("Piotr", "Inny", owner.getId() + 999_999)))
                 .get("details").get("userId").asString()).isEqualTo("validation.invalid_value");
+        assertThat(body(c.put("/app/drivers/" + other, driver("Piotr", "Inny", owner.getId())))
+                .get("details").get("userId").asString()).as("only DRIVER logins").isEqualTo("validation.invalid_value");
 
         long vehicle = id(c.post("/app/fleet/vehicles", Map.of("kind", "TRACTOR", "plate", "DA 1001")));
         Map<String, Object> stop = new HashMap<>(Map.of("kind", "LOADING", "address", "Poznań", "country", "PL"));

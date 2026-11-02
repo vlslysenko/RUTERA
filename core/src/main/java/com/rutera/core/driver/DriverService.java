@@ -12,6 +12,7 @@ import com.rutera.common.repository.DriverRepository;
 import com.rutera.common.repository.VehicleRepository;
 import com.rutera.common.security.Privileges;
 import com.rutera.common.security.RequiresPrivilege;
+import com.rutera.common.security.Role;
 import com.rutera.core.audit.AuditEvent;
 import com.rutera.core.audit.AuditService;
 import com.rutera.core.tacho.HosService;
@@ -277,8 +278,8 @@ public class DriverService {
         CardInput card = readCard(driver, in, errors);
         Long userId = in.userId();
         if (userId != null) {
-            AppUser user = users.findById(userId)
-                    .filter(u -> !u.isDeleted() && driver.getFirmaId().equals(u.getFirmaId())).orElse(null);
+            AppUser user = users.findById(userId).filter(u -> !u.isDeleted() && u.getRole() == Role.DRIVER
+                    && driver.getFirmaId().equals(u.getFirmaId())).orElse(null);
             if (user == null) {
                 errors.put("userId", ErrorCodes.FIELD_INVALID_VALUE);
             } else if (drivers.findByUserIdAndDeletedFalse(userId)
