@@ -69,11 +69,11 @@ export function DebtsPage() {
                 <Table.Th className={classes.num}>{t('invoices.open')}</Table.Th>
                 <Table.Th className={classes.num}>{t('debts.overdue')}</Table.Th>
                 {BUCKETS.map((b) => (
-                  <Table.Th key={b} className={classes.num}>
+                  <Table.Th key={b} className={cx(classes.num, classes.hideSm)}>
                     {t(`debts.bucket.${b}`)}
                   </Table.Th>
                 ))}
-                <Table.Th className={classes.num}>{t('debts.invoices')}</Table.Th>
+                <Table.Th className={cx(classes.num, classes.hideSm)}>{t('debts.invoices')}</Table.Th>
                 <Table.Th>{t('debts.oldest_due')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -88,11 +88,11 @@ export function DebtsPage() {
                   <Table.Td className={classes.num}>{money(r.open, r.currency)}</Table.Td>
                   <Table.Td className={cx(classes.num, r.overdue > 0 && classes.overdue)}>{money(r.overdue, r.currency)}</Table.Td>
                   {BUCKETS.map((b) => (
-                    <Table.Td key={b} className={cx(classes.num, r.buckets[b] > 0 && bucketClass(b))}>
+                    <Table.Td key={b} className={cx(classes.num, classes.hideSm, r.buckets[b] > 0 && bucketClass(b))}>
                       {money(r.buckets[b], r.currency)}
                     </Table.Td>
                   ))}
-                  <Table.Td className={classes.num}>{r.invoices}</Table.Td>
+                  <Table.Td className={cx(classes.num, classes.hideSm)}>{r.invoices}</Table.Td>
                   <Table.Td className={classes.mono}>
                     {r.oldestDueDate ? formatDate(r.oldestDueDate, lang) : '—'}
                     {r.maxDaysOverdue > 0 && (
@@ -111,11 +111,11 @@ export function DebtsPage() {
                   <Table.Td className={classes.num}>{money(s.open, s.currency)}</Table.Td>
                   <Table.Td className={cx(classes.num, s.overdue > 0 && classes.overdue)}>{money(s.overdue, s.currency)}</Table.Td>
                   {BUCKETS.map((b) => (
-                    <Table.Td key={b} className={classes.num}>
+                    <Table.Td key={b} className={cx(classes.num, classes.hideSm)}>
                       {money(s.buckets[b], s.currency)}
                     </Table.Td>
                   ))}
-                  <Table.Td className={classes.num}>{s.invoices}</Table.Td>
+                  <Table.Td className={cx(classes.num, classes.hideSm)}>{s.invoices}</Table.Td>
                   <Table.Td />
                 </Table.Tr>
               ))}

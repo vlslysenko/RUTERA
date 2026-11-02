@@ -149,11 +149,11 @@ export function TripsPage() {
                     <Table.Th>{t('trips.number')}</Table.Th>
                     <Table.Th>{t('users.status')}</Table.Th>
                     <Table.Th>{t('trips.vehicle')}</Table.Th>
-                    <Table.Th>{t('trips.crew')}</Table.Th>
+                    <Table.Th className={classes.hideSm}>{t('trips.crew')}</Table.Th>
                     <Table.Th>{t('orders.route')}</Table.Th>
                     <Table.Th>{t('trips.planned_start')}</Table.Th>
-                    <Table.Th>{t('trips.planned_end')}</Table.Th>
-                    <Table.Th className={classes.num}>{t('trips.stops')}</Table.Th>
+                    <Table.Th className={classes.hideSm}>{t('trips.planned_end')}</Table.Th>
+                    <Table.Th className={cx(classes.num, classes.hideSm)}>{t('trips.stops')}</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -185,7 +185,7 @@ export function TripsPage() {
                             {trip.trailer && <Plate>{trip.trailer.plate}</Plate>}
                           </Group>
                         </Table.Td>
-                        <Table.Td>{trip.drivers.map((d) => d.name).join(', ') || '—'}</Table.Td>
+                        <Table.Td className={classes.hideSm}>{trip.drivers.map((d) => d.name).join(', ') || '—'}</Table.Td>
                         <Table.Td>
                           {route ? (
                             <span className={classes.route}>
@@ -198,8 +198,8 @@ export function TripsPage() {
                           )}
                         </Table.Td>
                         <Table.Td className={classes.mono}>{formatInstantShort(trip.plannedStart, lang)}</Table.Td>
-                        <Table.Td className={classes.mono}>{formatInstantShort(trip.plannedEnd, lang)}</Table.Td>
-                        <Table.Td className={classes.num}>{trip.stops.length ? `${done}/${trip.stops.length}` : '—'}</Table.Td>
+                        <Table.Td className={cx(classes.mono, classes.hideSm)}>{formatInstantShort(trip.plannedEnd, lang)}</Table.Td>
+                        <Table.Td className={cx(classes.num, classes.hideSm)}>{trip.stops.length ? `${done}/${trip.stops.length}` : '—'}</Table.Td>
                       </Table.Tr>
                     );
                   })}

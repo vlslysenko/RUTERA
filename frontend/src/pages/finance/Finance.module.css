@@ -55,3 +55,37 @@
   gap: 10px;
   align-items: center;
 }
+
+/* Phones (the office on the road): filters two per row at full width, the first column (number, name) stays in
+   view while a table scrolls sideways, secondary columns (hideSm) are left out. */
+@media (max-width: $mantine-breakpoint-sm) {
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+
+  .filters > * {
+    width: 100% !important;
+    max-width: none;
+  }
+
+  .search {
+    grid-column: 1 / -1;
+  }
+
+  .table tr > :first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--mantine-color-body);
+  }
+
+  .selected > :first-child {
+    background: var(--mantine-color-blue-0);
+  }
+
+  .hideSm {
+    display: none;
+  }
+}
