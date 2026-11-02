@@ -3,7 +3,6 @@ package com.rutera.common.repository;
 import com.rutera.common.domain.ActivationToken;
 import com.rutera.common.domain.ApiToken;
 import com.rutera.common.domain.AppSetting;
-import com.rutera.common.domain.EmailOutbox;
 import com.rutera.common.domain.FirmaSetting;
 import com.rutera.common.domain.Notification;
 import com.rutera.common.domain.RememberMeToken;
@@ -38,11 +37,6 @@ public final class SystemRepositories {
         Optional<ApiToken> findByTokenHash(String tokenHash);
 
         List<ApiToken> findByUserIdAndRevokedAtIsNull(Long userId);
-    }
-
-    public interface EmailOutboxRepository extends JpaRepository<EmailOutbox, Long> {
-        List<EmailOutbox> findTop50ByStatusAndNextAttemptAtLessThanEqualOrderByNextAttemptAtAsc(
-                EmailOutbox.Status status, Instant now);
     }
 
     public interface NotificationRepository extends JpaRepository<Notification, Long> {

@@ -36,6 +36,10 @@ public interface TransportOrderRepository extends JpaRepository<TransportOrder, 
 
     List<TransportOrder> findByTripIdIn(Collection<Long> tripIds);
 
+    List<TransportOrder> findByInvoiceIdOrderByNumberAsc(Long invoiceId);
+
+    List<TransportOrder> findByInvoiceIdIn(Collection<Long> invoiceIds);
+
     Optional<TransportOrder> findByNumber(String number);
 
     @Query("select o.number from TransportOrder o where o.number like :prefix")

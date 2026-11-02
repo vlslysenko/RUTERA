@@ -57,6 +57,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- Payment reminders and other e-mails (JavaMailSender, active when spring.mail.host is set) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
 
         <!-- Database: Flyway migrations (SQL files live in rutera-common) + MySQL driver -->
         <dependency>

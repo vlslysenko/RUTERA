@@ -323,6 +323,51 @@ for international transport, ferry/train interruptions, multi-manning specifics.
 every import, assignment or deletion of a file and after a change of a driver's card; the same violation (driver,
 rule, start) keeps its acknowledgement.
 
+### Invoices, payments, debts and reminders (`/app/invoices`, `/app/debts`, `/app/reminders`)
+
+Privileges: `finance.invoice/view` (lists, cards, debts), `finance.invoice/manage` (record, change, delete),
+`finance.payment/manage` (payments), `finance.reminder/manage` (reminders by hand, the plan). Owner and accountant
+have them by default; the API role reads.
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/invoices?direction=SALES\|PURCHASE&status=&contractorId=&q=&from=&to=&overdue=&page=&size=` | `{items: Invoice[], total, totals: [{currency, gross, open}]}`, newest issue date first; `q` searches the number and the contractor |
+| GET / POST / PUT | `/app/invoices[/{id}]` | `InvoiceDetail`; PUT is a full replacement |
+| DELETE | `/app/invoices/{id}` | 204; 409 `error.conflict` with payments (billed orders follow their trips again) |
+| POST / DELETE | `/app/invoices/{id}/payments[/{paymentId}]` | `{paidAt, amount, method?: TRANSFER\|CASH\|OFFSET, reference?, note?}` -> 201 `Payment` / 204 |
+| GET / POST | `/app/invoices/{id}/reminders` | `Reminder[]` / 201 `Reminder` queued now (open sales invoice, else 409) |
+| GET | `/app/debts?asOf=` | `DebtRow[]` per contractor and currency, most overdue first |
+| GET / PUT | `/app/reminders/schedule` | `{sendHour, ccEmails[], stopWhenPaid, steps: [{offsetDays, escalate}]}` |
+
+`Invoice = {id, direction, number, contractor: {id, name}, issueDate, dueDate, currency, net, vat, gross,
+paidAmount, openAmount, status: OPEN | PARTIAL | PAID | OVERDUE | CANCELLED, daysOverdue, orders: [{id, number}],
+trip: {id, number}, remindersOn, lastReminderAt, source: MANUAL, notes, createdAt, updatedAt}`;
+`InvoiceDetail` = `Invoice` plus `lines: [{id, seq, description, qty, unit, unitPrice, vatCode, vatRate, net, vat,
+gross}]`, `payments: Payment[]` and `reminders: Reminder[]`. Input `{direction?: SALES, number?, contractorId,
+issueDate, dueDate?, currency, lines?: [{description, qty, unit?, unitPrice, vatCode?: RATE, vatRate?}], net?, vat?,
+gross?, orderIds?, tripId?, remindersOn?, cancelled?, notes?}`. `Payment = {id, paidAt, amount, currency, method,
+reference, note, createdAt}`; `Reminder = {id, offsetDays (null = by hand), sentAt, toEmails[], subject, status:
+QUEUED | SENT | FAILED, error, createdAt}`; `DebtRow = {contractor, currency, open, overdue, invoices,
+oldestDueDate, maxDaysOverdue, buckets: {notDue, d1to30, d31to60, d61to90, over90}}`.
+
+Rules: a sales invoice without a number gets the next one of its issue month (`FV/2026/11/001`); a purchase invoice
+needs the supplier's number; numbers are unique per direction (`number: finance.invoice.number_taken`). With lines
+the totals are computed (net = qty x unit price, VAT per line for `vatCode` RATE with `vatRate` in percent; ZW
+exempt, NP not taxable here, e.g. international transport, OO reverse charge carry no VAT); without lines `net` and
+`gross` are required. The due date defaults to the issue date plus the contractor's payment days (14 without).
+Only a sales invoice bills orders: of the same contractor, not cancelled, not on another invoice; billed orders are
+INVOICED and can no longer be cancelled, orders taken off follow their trip again. The status is computed on today in
+the firma's time zone: CANCELLED, PAID (paid >= gross), OVERDUE (due date passed), PARTIAL, OPEN; a payment may not
+exceed the open amount (`amount: finance.payment.too_much`) and a cancelled invoice takes none. Reminders go to the
+contractor's invoice e-mails in the contractor's language (else the firma's), texts `finance.reminder.mail.*`; without
+e-mails a reminder by hand answers 422 `contractor: finance.reminder.no_email`. The plan (default steps -3, +1, +7,
++14 and +30 days from the due date, escalated steps copy the firma's e-mail) runs every hour from its `sendHour` in
+the firma's time zone, once per invoice and step; with `stopWhenPaid` a partly paid invoice gets no more plan
+reminders. E-mails wait in `email_outbox` and go out every minute once SMTP is configured (`SPRING_MAIL_HOST`,
+`SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`, `RUTERA_MAIL_FROM`); a failure is retried after
+5, 15, 45 and 135 minutes, then FAILED. Changes are written to `audit_log` (module `finance`). Not yet: currency
+rates (NBP) for PLN VAT, credit notes, issuing PDFs, KSeF.
+
 Service and controller methods are guarded with `@RequiresPrivilege("module.entity/action")` (AOP, module
 `core.security`); the effective set = role defaults + custom role + per-user overrides, computed at login. Every
 request carries `requestId`, `firmaId` and `userId` in the MDC (log lines) and the same `requestId` in `audit_log`.

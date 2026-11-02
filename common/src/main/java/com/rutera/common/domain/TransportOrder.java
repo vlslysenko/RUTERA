@@ -78,6 +78,10 @@ public class TransportOrder extends TenantEntity {
     @Column(name = "trip_id")
     private Long tripId;
 
+    /** The invoice that bills this order (several orders may share one); then the status is INVOICED. */
+    @Column(name = "invoice_id")
+    private Long invoiceId;
+
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "source", nullable = false, length = 32)
@@ -215,6 +219,14 @@ public class TransportOrder extends TenantEntity {
 
     public void setTripId(Long tripId) {
         this.tripId = tripId;
+    }
+
+    public Long getInvoiceId() {
+        return invoiceId;
+    }
+
+    public void setInvoiceId(Long invoiceId) {
+        this.invoiceId = invoiceId;
     }
 
     public Source getSource() {

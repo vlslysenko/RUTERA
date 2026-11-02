@@ -183,6 +183,9 @@ public class OrderService {
         o.setUnloadingDate(in.unloadingDate());
         o.setNotes(InputFields.blankToNull(in.notes()));
         if (Objects.equals(in.cancelled(), Boolean.TRUE)) {
+            if (o.getInvoiceId() != null) {
+                throw new ApiException(HttpStatus.CONFLICT, ErrorCodes.CONFLICT);
+            }
             if (o.getStatus() != TransportOrder.Status.CANCELLED) {
                 tripService.detachOrder(o);
                 o.setStatus(TransportOrder.Status.CANCELLED);
