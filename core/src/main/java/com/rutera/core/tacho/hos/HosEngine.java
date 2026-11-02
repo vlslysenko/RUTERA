@@ -185,16 +185,16 @@ public final class HosEngine {
             shift.driving = driving(shift.start, shift.end);
             dailyDriving(shift);
             breaks(shift);
-            if (shift.closing != null) {
-                if (shift.knownStart) {
-                    reduced = dailyRest(shift, reduced);
-                }
-                if (shift.closing.minutes() >= WEEKLY_REST_REDUCED) {
-                    reduced = 0;
-                }
-            } else if (shift.knownStart && shift.end.isAfter(shift.start.plus(Duration.ofHours(24)))) {
-                // The data goes on for more than 24 h without a rest of 9 h.
+            Instant dayAfterStart = shift.start.plus(Duration.ofHours(24));
+            if (shift.closing != null && shift.knownStart) {
+                reduced = dailyRest(shift, reduced);
+            } else if ((shift.closing == null ? shift.end : shift.closing.start()).isAfter(dayAfterStart)) {
+                // More than 24 h without a rest of 9 h. With an unknown start (the data begins inside the shift)
+                // the real 24-hour window started even earlier, so this is a violation either way.
                 reduced = missingDailyRest(shift, reduced);
+            }
+            if (shift.closing != null && shift.closing.minutes() >= WEEKLY_REST_REDUCED) {
+                reduced = 0;
             }
             shift.reducedAfter = reduced;
         }

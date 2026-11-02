@@ -179,6 +179,34 @@ unique in the firma (`cardNumber: driver.card.number_taken`). `defaultVehicle` i
 whose `defaultDriverId` is this driver. `nextDocument` is the earliest `validTo` among the documents and the card
 (`kind: DRIVER_CARD`). Changes are written to `audit_log` (module `driver`).
 
+### Driver HR (absences, working days, pay rates, payments)
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/drivers/{id}/absences?from=&to=` | `Absence[]`, newest first (`driver.driver/view`) |
+| POST / PUT / DELETE | `/app/drivers/{id}/absences[/{absenceId}]` | `{kind, fromDate, toDate, paid?, note?}` -> `Absence` / 204 (`driver.absence/manage`) |
+| GET | `/app/absences?from=&to=&kind=&driverId=` | `Absence[]` of the firma overlapping the range (`driver.driver/view`) |
+| GET | `/app/drivers/{id}/days?month=YYYY-MM` | `{days: DriverDay[], summary: {workDays, restDays, absenceDays, holidayDays, drivingMin, workMin}}` (`driver.driver/view`) |
+| PUT / DELETE | `/app/drivers/{id}/days/{YYYY-MM-DD}` | `{kind, note?}` -> `DriverDay` (manual entry / back to computed; `driver.driver/manage`) |
+| GET | `/app/drivers/{id}/pay-rates` | `PayRate[]`, newest `validFrom` first (`driver.payment/view`) |
+| POST / PUT / DELETE | `/app/drivers/{id}/pay-rates[/{rateId}]` | `{validFrom, monthlyBase?, perDiemHome?, perDiemAbroad?, perKm?, currency}` (`driver.payment/manage`) |
+| GET | `/app/drivers/{id}/payments?from=YYYY-MM&to=YYYY-MM` | `Payment[]` (`driver.payment/view`) |
+| POST / PUT / DELETE | `/app/drivers/{id}/payments[/{paymentId}]` | `{period, kind, amount, currency, paidAt?, note?}` (`driver.payment/manage`) |
+| GET | `/app/payments?period=&driverId=&kind=` | `{items: Payment[], totals: [{currency, amount}]}` of the firma (`driver.payment/view`) |
+
+`Absence = {id, driver: {id, name}, kind: SICK | VACATION | UNPAID | PARENTAL | OTHER, fromDate, toDate, days,
+workingDays, paid, note, approvedBy: {id, name}, approvedAt, createdAt, updatedAt}`: both dates included, `days`
+calendar days, `workingDays` Monday to Friday, `paid` false by default only for UNPAID, at most 366 days; absences of
+a driver may not overlap (`toDate: driver.absence.overlap`); an absence entered by a manager is approved by them.
+`DriverDay = {day, kind: WORK | REST | ABSENCE | HOLIDAY, source: TACHO | ABSENCE | MANUAL | NONE, absenceKind,
+drivingMin, workMin, note}`: a manual entry (`driver_day`) wins, then an absence, then the tachograph (driving or work
+= WORK, only rest recorded = REST, no data = REST with source NONE). `PayRate = {id, validFrom, monthlyBase,
+perDiemHome, perDiemAbroad, perKm, currency, createdAt, updatedAt}`: one per `validFrom` and driver
+(`validFrom: driver.pay_rate.date_taken`), at least one amount. `Payment = {id, driver, period, kind: SALARY |
+PER_DIEM | BONUS | ADVANCE | DEDUCTION, amount, currency, paidAt, note, createdAt, updatedAt}`: amount above zero;
+the totals count advances and deductions negative. Payments are hidden from roles without `driver.payment/view`
+(only owner and accountant by default). Changes are written to `audit_log` (module `driver`).
+
 ### Contractors, orders and trips (`/app/contractors`, `/app/orders`, `/app/trips`)
 
 Privileges: contractors are read with `trip.order/view` or `trip.contractor/manage` and changed with

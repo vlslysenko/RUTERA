@@ -37,6 +37,9 @@ public final class ErrorCodes {
     public static final String VEHICLE_PLATE_TAKEN = "fleet.vehicle.plate_taken";
     /** Drivers (per-field): another driver of the firma has this tachograph card. */
     public static final String DRIVER_CARD_TAKEN = "driver.card.number_taken";
+    /** Driver HR (per-field): an absence overlaps another one of the driver; a pay rate starts on a taken date. */
+    public static final String ABSENCE_OVERLAP = "driver.absence.overlap";
+    public static final String PAY_RATE_DATE_TAKEN = "driver.pay_rate.date_taken";
 
     /** Tachograph import: per-file codes of a rejected upload, and the request limits. */
     public static final String TACHO_NOT_TACHOGRAPH = "tacho.file.not_tachograph";

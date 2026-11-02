@@ -82,6 +82,7 @@ class AuthFlowTest extends AbstractIntegrationTest {
         assertThat(user.get("name").asString()).isEqualTo("Anna Kowalska");
         assertThat(user.get("role").asString()).isEqualTo("OWNER");
         assertThat(user.get("firma").get("name").asString()).isEqualTo("Test Transport");
+        assertThat(user.get("firma").get("timezone").asString()).isEqualTo("UTC");
         assertThat(user.get("language").asString()).isEqualTo("pl");
         assertThat(user.get("startScreen").isNull()).isTrue();
         assertThat(c.session).isNotNull();

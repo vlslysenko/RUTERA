@@ -151,6 +151,18 @@ public class HosService {
                 intervals);
     }
 
+    /**
+     * Daily tachograph figures of a driver for other modules (the working-day calendar): no privilege check here,
+     * the caller has checked its own. Days are cut in the firma's time zone.
+     */
+    public List<HosEngine.Day> dailyFigures(Long firmaId, Driver driver, LocalDate from, LocalDate to) {
+        ZoneId zone = zone(firmaId);
+        Instant start = from.atStartOfDay(zone).toInstant();
+        Instant end = to.plusDays(1).atStartOfDay(zone).toInstant();
+        List<Row> rows = timeline(firmaId, driver, start.minus(Duration.ofDays(LOOKBACK_DAYS)), end);
+        return HosEngine.run(rows.stream().map(Row::seg).toList(), zone).days(from, to);
+    }
+
     // --- violations ------------------------------------------------------------------------------------------
 
     @RequiresPrivilege(Privileges.TACHO_HOS_VIEW)

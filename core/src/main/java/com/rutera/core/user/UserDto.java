@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.TreeSet;
 
 /**
- * The {@code User} object of the frontend contract: {@code {id, login, name, role, firma{id,name}, language,
+ * The {@code User} object of the frontend contract: {@code {id, login, name, role, firma{id,name,timezone}, language,
  * startScreen, privileges}}. {@code firma} is {@code null} only for the service superuser, whose
  * {@code privileges} list is empty because the superuser bypasses privilege checks.
  */
@@ -23,9 +23,10 @@ public record UserDto(
         String startScreen,
         List<String> privileges) {
 
-    public record FirmaDto(Long id, String name) {
+    /** {@code timezone}: the firma's IANA zone (e.g. Europe/Warsaw); days and weeks are cut in it. */
+    public record FirmaDto(Long id, String name, String timezone) {
         public static FirmaDto of(Firma firma) {
-            return firma == null ? null : new FirmaDto(firma.getId(), firma.getName());
+            return firma == null ? null : new FirmaDto(firma.getId(), firma.getName(), firma.getTimezone());
         }
     }
 

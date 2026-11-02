@@ -140,6 +140,18 @@ class HosEngineTest {
     }
 
     @Test
+    void moreThan24HoursWithoutA9HourRestIsAViolationEvenWithAnUnknownStart() {
+        // The data begins with a 6 h rest (start unknown), then 25 h 30 with no rest longer than 6 h.
+        Plan plan = new Plan().at(MONDAY, 0).rest(360).drive(270).rest(45).drive(240).work(60);
+        plan.rest(360).drive(270).rest(45).drive(240);
+        HosEngine engine = plan.run();
+        assertThat(rules(engine)).contains(Rule.DAILY_REST_9H);
+        HosEngine.Found rest = engine.violations().stream().filter(f -> f.rule() == Rule.DAILY_REST_9H).findFirst()
+                .orElseThrow();
+        assertThat(rest.actual()).isLessThan(540);
+    }
+
+    @Test
     void weeklyDrivingAndWeeklyRest() {
         Plan plan = new Plan();
         // Seven days of 9 h driving without a weekly rest: 63 h in the week, no 24 h rest within 144 h.
