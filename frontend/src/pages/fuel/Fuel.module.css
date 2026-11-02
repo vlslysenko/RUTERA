@@ -1,0 +1,37 @@
+.previewWrap {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.preview th {
+  vertical-align: top;
+  min-width: 140px;
+  background: var(--mantine-color-body);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.preview td {
+  white-space: nowrap;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+}
+
+.header {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Columns not used by the mapping are faded; cells the server could not read are red. */
+.unused {
+  color: var(--mantine-color-dimmed);
+  opacity: 0.6;
+}
+
+.bad {
+  background: var(--mantine-color-red-0);
+  color: var(--mantine-color-red-8);
+}

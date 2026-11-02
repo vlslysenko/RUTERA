@@ -31,8 +31,9 @@ export function fromLocalInput(v: string): string | null {
   return v ? new Date(v).toISOString() : null;
 }
 
-export function formatInstantShort(iso: string | null, lang: string): string {
-  return iso ? new Intl.DateTimeFormat(lang, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso)) : '—';
+/** Short date and time; in `timeZone` (the firma's) when given, else in the browser's zone. */
+export function formatInstantShort(iso: string | null, lang: string, timeZone?: string): string {
+  return iso ? new Intl.DateTimeFormat(lang, { dateStyle: 'short', timeStyle: 'short', timeZone }).format(new Date(iso)) : '—';
 }
 
 /** Currencies offered in money fields; anything else can be typed (3 letters). */

@@ -43,6 +43,8 @@ import type { AbsenceInput, DriverPaymentInput, PayRateInput } from '@/api/hr';
 import * as hrMock from './hr';
 import type { InvoiceInput, InvoicePaymentInput, ReminderSchedule } from '@/api/finance';
 import * as financeMock from './finance';
+import type { FuelAssignment, FuelCardInput, FuelTransactionInput } from '@/api/fuel';
+import * as fuelMock from './fuel';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
  * The session lives in sessionStorage, per-user settings in localStorage; users live in memory per page load.
@@ -806,6 +808,42 @@ route('GET', '/app/reminders/schedule', withAuth((u) =>
   hasKey(u, 'finance.invoice/view') || hasKey(u, 'finance.reminder/manage') ? financeMock.getSchedule() : error(403, 'auth.access_denied')));
 route('PUT', '/app/reminders/schedule', withPrivilege('finance.reminder/manage', (_u, { body }) =>
   financeMock.saveSchedule((body ?? {}) as Partial<ReminderSchedule>)));
+
+// --- fuel cards and transactions -----------------------------------------------------------------
+
+const fuelLookup = (u: MockUser): fuelMock.FuelLookup => ({
+  vehicleByPlate: (plate) => {
+    const v = vehicles.find((x) => !x.deleted && fuelMock.plateMatches(x.plate, plate));
+    return v && { id: v.id, name: v.plate };
+  },
+  vehicle: (id) => {
+    const v = vehicles.find((x) => x.id === id && !x.deleted);
+    return v && { id: v.id, name: v.plate };
+  },
+  driverName,
+  me: { id: u.id, name: fullName(u) },
+});
+
+route('POST', '/app/fuel/imports/preview', withPrivilege('fuel.import/manage', (_u, { body }) => fuelMock.preview(body)));
+route('POST', '/app/fuel/imports', withPrivilege('fuel.import/manage', (u, { body }) => fuelMock.runImport(body, fuelLookup(u))));
+route('GET', '/app/fuel/imports', withPrivilege('fuel.transaction/view', (_u, { query }) => fuelMock.listImports(query)));
+route('GET', '/app/fuel/imports/:id', withPrivilege('fuel.transaction/view', (_u, req) => fuelMock.getImport(req.params.id)));
+route('DELETE', '/app/fuel/imports/:id', withPrivilege('fuel.import/manage', (_u, req) => fuelMock.removeImport(req.params.id)));
+route('GET', '/app/fuel/transactions', withPrivilege('fuel.transaction/view', (u, { query }) => fuelMock.listTransactions(query, fuelLookup(u))));
+route('GET', '/app/fuel/transactions/:id', withPrivilege('fuel.transaction/view', (u, req) => fuelMock.getTransaction(req.params.id, fuelLookup(u))));
+route('POST', '/app/fuel/transactions', withPrivilege('fuel.import/manage', (u, { body }) =>
+  fuelMock.saveTransaction((body ?? {}) as FuelTransactionInput, null, fuelLookup(u))));
+route('PUT', '/app/fuel/transactions/:id', withPrivilege('fuel.import/manage', (u, req) =>
+  fuelMock.saveTransaction((req.body ?? {}) as FuelTransactionInput, req.params.id, fuelLookup(u))));
+route('PATCH', '/app/fuel/transactions/:id', withPrivilege('fuel.import/manage', (u, req) =>
+  fuelMock.assign(req.params.id, (req.body ?? {}) as FuelAssignment, fuelLookup(u))));
+route('DELETE', '/app/fuel/transactions/:id', withPrivilege('fuel.import/manage', (_u, req) => fuelMock.removeTransaction(req.params.id)));
+route('GET', '/app/fuel/cards', withPrivilege('fuel.transaction/view', (u) => fuelMock.listCards(fuelLookup(u))));
+route('GET', '/app/fuel/cards/:id', withPrivilege('fuel.transaction/view', (u, req) => fuelMock.getCard(req.params.id, fuelLookup(u))));
+route('POST', '/app/fuel/cards', withPrivilege('fuel.import/manage', (u, { body }) => fuelMock.saveCard((body ?? {}) as FuelCardInput, null, fuelLookup(u))));
+route('PUT', '/app/fuel/cards/:id', withPrivilege('fuel.import/manage', (u, req) =>
+  fuelMock.saveCard((req.body ?? {}) as FuelCardInput, req.params.id, fuelLookup(u))));
+route('DELETE', '/app/fuel/cards/:id', withPrivilege('fuel.import/manage', (_u, req) => fuelMock.removeCard(req.params.id)));
 
 // --- user administration -------------------------------------------------------------------------
 

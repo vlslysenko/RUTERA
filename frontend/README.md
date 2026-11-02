@@ -67,6 +67,10 @@ the backend clears the cookie on logout, the client fetches a new one with `GET 
 | GET/POST | `/app/invoices/{id}/reminders` | reminders / one now (`finance.reminder/manage`); 422 `contractor: finance.reminder.no_email`, 409 when not an open sales invoice |
 | GET | `/app/debts?asOf` | `DebtRow[]` per contractor and currency with aging buckets |
 | GET/PUT | `/app/reminders/schedule` | `{sendHour, ccEmails, stopWhenPaid, steps: [{offsetDays, escalate}]}` |
+| POST | `/app/fuel/imports/preview`, `/app/fuel/imports` | multipart `file` + fields `provider`, `mapping` and `options` (JSON strings), `saveMapping` -> `Preview` / 201 `FuelImport` |
+| GET/DELETE | `/app/fuel/imports[/{id}]` | history / undo (its transactions go) |
+| GET/POST, PUT/PATCH/DELETE | `/app/fuel/transactions[/{id}]` | `{items, total, totals, quantities}`; PUT only for MANUAL ones, PATCH `{vehicleId, driverId, tripId, notes}` for any |
+| GET/POST, GET/PUT/DELETE | `/app/fuel/cards[/{id}]` | `FuelCard` with `cardNumberMasked`; `cardNumber` is write-only (null on PUT keeps it) |
 
 Tachograph screens are tabs: `/tacho/files` (upload and journal), `/tacho/activity?driver=&week=` (a week of one
 driver against 561/2006) and `/tacho/violations` (filters in the URL, review in the right panel). Day strips and
@@ -81,6 +85,11 @@ Stop errors come as `stops[2].address` and land on the field `stops.2.address` o
 Finance is tabs too: `/finance` (invoices, sales or purchase; card with lines, payments and reminders; form with
 lines `vatCode` RATE / ZW / NP / OO, or plain totals without lines), `/finance/debts` (aging per contractor) and
 `/finance/reminders` (the reminder plan). Line errors come as `lines[2].qty` and land on `lines.2.qty`.
+
+Fuel is tabs too: `/fuel` (transactions with sums per currency and quantities per product; card with the assignment
+set by hand), `/fuel/imports` (wizard: file -> preview with the column of each field and read options, checked again
+on the server -> result; history with undo) and `/fuel/cards`. Receipt times are shown and typed in the firma time zone
+(`src/utils/zone.ts`).
 
 Drivers are tabs as well: `/drivers` (list and cards), `/drivers/absences` (who is absent, drivers × days of a month)
 and `/drivers/payments` (payroll of a month, `driver.payment/view` only). The driver card has the tabs overview,
@@ -110,7 +119,7 @@ src/api        fetch wrapper (/app, CSRF), auth, i18n, fleet; mock/ = in-browser
 src/auth       session hooks (TanStack Query), RequireAuth, ScreenGuard (role -> screen)
 src/layout     AppLayout (AppShell), TopBar, Sidebar, LanguageMenu, UserMenu
 src/components DetailDrawer (card in the right panel + "open as page"), PageHeader, StatusChip, Plate, ...
-src/pages      Login, Overview, Settings (profile, password, users), Fleet, Drivers, Tachograph, Trips, Finance, placeholders
+src/pages      Login, Overview, Settings (profile, password, users), Fleet, Drivers, Tachograph, Trips, Finance, Fuel, placeholders
 src/i18n       i18next setup, language list, locales/
 ```
 

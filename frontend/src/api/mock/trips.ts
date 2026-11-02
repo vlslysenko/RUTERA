@@ -546,3 +546,14 @@ export function setOrdersInvoiced(ids: number[], invoiced: boolean): void {
     }
   }
 }
+
+/** For the fuel mock: the trip of a vehicle whose actual (else planned) period contains the instant, with its main driver. */
+export function tripAtForFuel(vehicleId: number, at: string): { id: number; number: string; mainDriverId: number | null } | undefined {
+  const t = trips.find((x) => {
+    if (x.vehicleId !== vehicleId || x.status === 'CANCELLED') return false;
+    const from = x.actualStart ?? x.plannedStart;
+    const to = x.actualEnd ?? x.plannedEnd ?? (x.status === 'RUNNING' ? new Date().toISOString() : null);
+    return !!from && !!to && from <= at && at <= to;
+  });
+  return t && { id: t.id, number: t.number, mainDriverId: t.mainDriverId };
+}

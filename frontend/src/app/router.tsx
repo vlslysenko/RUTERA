@@ -21,6 +21,13 @@ import { InvoiceForm } from '@/pages/finance/InvoiceForm';
 import { InvoicesPage } from '@/pages/finance/InvoicesPage';
 import { ReminderSettingsPage } from '@/pages/finance/ReminderSettingsPage';
 import { FleetPage } from '@/pages/fleet/FleetPage';
+import { CardDetail } from '@/pages/fuel/CardDetail';
+import { CardsPage } from '@/pages/fuel/CardsPage';
+import { FuelLayout } from '@/pages/fuel/FuelLayout';
+import { ImportsPage } from '@/pages/fuel/ImportsPage';
+import { TransactionDetail } from '@/pages/fuel/TransactionDetail';
+import { TransactionForm } from '@/pages/fuel/TransactionForm';
+import { TransactionsPage } from '@/pages/fuel/TransactionsPage';
 import { VehicleDetail } from '@/pages/fleet/VehicleDetail';
 import { VehicleForm } from '@/pages/fleet/VehicleForm';
 import { PasswordTab } from '@/pages/settings/PasswordTab';
@@ -250,7 +257,43 @@ export const router = createBrowserRouter([
             },
             { path: `${SCREENS.finance.path}/:id/page`, element: <InvoiceDetail mode="page" /> },
           ]),
-          placeholder('fuel'),
+          screen('fuel', [
+            {
+              path: SCREENS.fuel.path,
+              element: <FuelLayout />,
+              children: [
+                {
+                  // /fuel and the transaction cards; static "imports" / "cards" / "new" rank above ":id".
+                  element: <TransactionsPage />,
+                  children: [
+                    { index: true, element: null },
+                    { path: ':id', element: <TransactionDetail mode="drawer" /> },
+                    {
+                      element: <PrivilegeGuard privilege={PRIV.FUEL_IMPORT_MANAGE} />,
+                      children: [
+                        { path: 'new', element: <TransactionForm /> },
+                        { path: ':id/edit', element: <TransactionForm /> },
+                      ],
+                    },
+                  ],
+                },
+                { path: 'imports', element: <ImportsPage /> },
+                {
+                  path: 'cards',
+                  element: <CardsPage />,
+                  children: [
+                    { path: ':id', element: <CardDetail mode="drawer" /> },
+                    {
+                      element: <PrivilegeGuard privilege={PRIV.FUEL_IMPORT_MANAGE} />,
+                      children: [{ path: 'new', element: <CardDetail mode="drawer" /> }],
+                    },
+                  ],
+                },
+              ],
+            },
+            { path: `${SCREENS.fuel.path}/:id/page`, element: <TransactionDetail mode="page" /> },
+            { path: `${SCREENS.fuel.path}/cards/:id/page`, element: <CardDetail mode="page" /> },
+          ]),
           placeholder('reports'),
           {
             path: 'settings',

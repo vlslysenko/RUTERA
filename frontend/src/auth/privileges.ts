@@ -27,6 +27,7 @@ export const PRIV = {
   FINANCE_PAYMENT_MANAGE: 'finance.payment/manage',
   FINANCE_REMINDER_MANAGE: 'finance.reminder/manage',
   FUEL_TRANSACTION_VIEW: 'fuel.transaction/view',
+  FUEL_IMPORT_MANAGE: 'fuel.import/manage',
   REPORT_VIEW: 'report.report/view',
   PROFILE_SELF_MANAGE: 'profile.self/manage',
 } as const;
