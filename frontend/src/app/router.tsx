@@ -18,8 +18,12 @@ import { PasswordTab } from '@/pages/settings/PasswordTab';
 import { ProfileTab } from '@/pages/settings/ProfileTab';
 import { SettingsLayout } from '@/pages/settings/SettingsLayout';
 import { UserDetail } from '@/pages/settings/users/UserDetail';
+import { DriverActivityPage } from '@/pages/tacho/DriverActivityPage';
 import { TachoFileDetail } from '@/pages/tacho/TachoFileDetail';
 import { TachoFilesPage } from '@/pages/tacho/TachoFilesPage';
+import { TachoIndex, TachoLayout } from '@/pages/tacho/TachoLayout';
+import { ViolationDetail } from '@/pages/tacho/ViolationDetail';
+import { ViolationsPage } from '@/pages/tacho/ViolationsPage';
 import { UsersPage } from '@/pages/settings/users/UsersPage';
 import { SCREENS, startScreenPath } from './navigation';
 import type { ScreenKey } from './types';
@@ -88,10 +92,32 @@ export const router = createBrowserRouter([
           screen('tacho', [
             {
               path: SCREENS.tacho.path,
-              element: <TachoFilesPage />,
-              children: [{ path: ':id', element: <TachoFileDetail mode="drawer" /> }],
+              element: <TachoLayout />,
+              children: [
+                { index: true, element: <TachoIndex /> },
+                {
+                  path: 'files',
+                  element: <TachoFilesPage />,
+                  children: [{ path: ':id', element: <TachoFileDetail mode="drawer" /> }],
+                },
+                {
+                  element: <PrivilegeGuard privilege={PRIV.TACHO_HOS_VIEW} />,
+                  children: [
+                    { path: 'activity', element: <DriverActivityPage /> },
+                    {
+                      path: 'violations',
+                      element: <ViolationsPage />,
+                      children: [{ path: ':id', element: <ViolationDetail mode="drawer" /> }],
+                    },
+                  ],
+                },
+              ],
             },
-            { path: `${SCREENS.tacho.path}/:id/page`, element: <TachoFileDetail mode="page" /> },
+            { path: `${SCREENS.tacho.path}/files/:id/page`, element: <TachoFileDetail mode="page" /> },
+            {
+              element: <PrivilegeGuard privilege={PRIV.TACHO_HOS_VIEW} />,
+              children: [{ path: `${SCREENS.tacho.path}/violations/:id/page`, element: <ViolationDetail mode="page" /> }],
+            },
           ]),
           placeholder('documents'),
           placeholder('finance'),

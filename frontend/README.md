@@ -48,6 +48,12 @@ the backend clears the cookie on logout, the client fetches a new one with `GET 
 | GET | `/app/tacho/files`, `/app/tacho/files/{id}` | journal `{items, total}` with filters / `TachoFileDetail` (`tacho.hos/view` or `tacho.file/upload`) |
 | GET | `/app/tacho/files/{id}/content` | original bytes (download) |
 | PUT, POST, POST, DELETE | `.../{id}/assignment`, `.../{id}/driver`, `.../{id}/vehicle`, `.../{id}` | assign by hand, create a driver / vehicle from the file, delete |
+| GET | `/app/tacho/activity?driverId&from&to` | `{driver, timezone, days: HosDay[], intervals}` (`tacho.hos/view`; proposed contract, mock only until the backend has it) |
+| GET | `/app/tacho/violations`, `/app/tacho/violations/{id}` | `{items: Violation[], total}` with filters / one violation |
+| POST/DELETE | `/app/tacho/violations/{id}/ack` | mark as reviewed `{note?}` / undo (`tacho.violation/ack`) |
+
+Tachograph screens are tabs: `/tacho/files` (upload and journal), `/tacho/activity?driver=&week=` (a week of one
+driver against 561/2006) and `/tacho/violations` (filters in the URL, review in the right panel).
 
 The vehicle–driver link lives on the vehicle (`defaultDriverId` in the vehicle form); `Driver.defaultVehicle` is
 derived from it. Documents of vehicles and drivers share `components/DeadlineDocuments`.

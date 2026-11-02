@@ -165,7 +165,7 @@ export function TachoUpload() {
             <Table.Tbody>
               {rows.map((r) => {
                 const f = r.file;
-                const open = f ? () => void navigate(`/tacho/${f.id}`) : undefined;
+                const open = f ? () => void navigate(`/tacho/files/${f.id}`) : undefined;
                 return (
                   <Table.Tr
                     key={r.key}

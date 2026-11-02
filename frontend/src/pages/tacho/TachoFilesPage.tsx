@@ -14,7 +14,6 @@ import { useUser } from '@/auth/useAuth';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
-import { PageHeader } from '@/components/PageHeader';
 import { cx } from '@/utils/cx';
 import { formatInstant, formatPeriod } from './format';
 import { TachoKindLabel, TachoOwner, WarningsChip } from './TachoChips';
@@ -81,12 +80,12 @@ export function TachoFilesPage() {
     };
 
   const notReady = q.isError && q.error instanceof ApiError && q.error.status === 404;
-  const open = (f: TachoFile) => void navigate(`/tacho/${f.id}`);
+  const open = (f: TachoFile) => void navigate(`/tacho/files/${f.id}`);
   const pages = q.data ? Math.max(1, Math.ceil(q.data.total / PAGE_SIZE)) : 1;
 
   return (
     <>
-      <PageHeader title={t('tacho.title')} />
+      {/* The page title comes from TachoLayout. */}
       {notReady ? (
         // An older backend without the import module.
         <EmptyState icon={<IconTools size={28} stroke={1.5} />} text={t('common.in_development')} />

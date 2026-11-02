@@ -34,6 +34,8 @@ import {
   type MockUnitOwner,
 } from './tacho';
 import { TACHO_MAX_FILES, type TachoMatch } from '@/api/tacho';
+import type { Violation } from '@/api/hos';
+import { addDays, buildViolations, daysFor, intervalsFor, ymd, type MockShiftDriver } from './hos';
 import { isTrailer } from '@/api/fleet';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
@@ -627,6 +629,86 @@ route('DELETE', '/app/tacho/files/:id', withPrivilege('tacho.file/upload', (_u, 
   tachoFiles.splice(i, 1);
   recomputeDownloads();
   return { status: 204 };
+}));
+
+// --- driver activity and violations (561/2006) --------------------------------------------------------
+
+const shiftDrivers = (): MockShiftDriver[] =>
+  drivers
+    .filter((d) => !d.deleted && d.status === 'ACTIVE')
+    .map((d) => {
+      const v = vehicles.find((x) => !x.deleted && x.defaultDriverId === d.id);
+      return { id: d.id, name: `${d.firstName} ${d.lastName}`, vehicle: v ? { id: v.id, plate: v.plate } : null };
+    });
+
+let violations: Violation[] | null = null;
+/** Built on first use: 35 days back from today; older ones are partly reviewed already. */
+function violationStore(): Violation[] {
+  if (!violations) {
+    const today = ymd(new Date());
+    violations = buildViolations(shiftDrivers(), today, 35).map((v, i) => ({
+      ...v,
+      id: i + 1,
+      ack:
+        v.startAt < addDays(today, -10) && i % 3 !== 0
+          ? { by: { id: 1, name: 'Anna Kowalska' }, at: addDays(v.startAt.slice(0, 10), 1) + 'T09:12:00Z', note: i % 2 ? 'Rozmowa z kierowcą' : null }
+          : null,
+    }));
+  }
+  return violations;
+}
+
+route('GET', '/app/tacho/activity', withPrivilege('tacho.hos/view', (_u, { query }) => {
+  const d = shiftDrivers().find((x) => String(x.id) === query.driverId);
+  if (!d) return error(404, 'error.not_found');
+  if (!query.from || !query.to || query.to < query.from) return error(422, 'error.validation', { to: 'validation.invalid_value' });
+  const perDay = new Map<string, number>();
+  for (const v of violationStore()) {
+    if (v.driver.id !== d.id) continue;
+    const day = ymd(new Date(v.startAt));
+    perDay.set(day, (perDay.get(day) ?? 0) + 1);
+  }
+  return {
+    status: 200,
+    body: {
+      driver: { id: d.id, name: d.name },
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      days: daysFor(d, query.from, query.to, perDay),
+      intervals: intervalsFor(d, query.from, query.to),
+    },
+  };
+}));
+
+route('GET', '/app/tacho/violations', withPrivilege('tacho.hos/view', (_u, { query }) => {
+  const page = Number(query.page ?? 0);
+  const size = Number(query.size ?? 50);
+  const items = violationStore()
+    .filter((v) => !query.driverId || String(v.driver.id) === query.driverId)
+    .filter((v) => !query.severity || v.severity === query.severity)
+    .filter((v) => query.unacknowledged !== 'true' || !v.ack)
+    .filter((v) => !query.from || ymd(new Date(v.startAt)) >= query.from)
+    .filter((v) => !query.to || ymd(new Date(v.startAt)) <= query.to);
+  return { status: 200, body: { items: items.slice(page * size, (page + 1) * size), total: items.length } };
+}));
+
+route('GET', '/app/tacho/violations/:id', withPrivilege('tacho.hos/view', (_u, req) => {
+  const v = violationStore().find((x) => String(x.id) === req.params.id);
+  return v ? { status: 200, body: v } : error(404, 'error.not_found');
+}));
+
+route('POST', '/app/tacho/violations/:id/ack', withPrivilege('tacho.violation/ack', (u, req) => {
+  const v = violationStore().find((x) => String(x.id) === req.params.id);
+  if (!v) return error(404, 'error.not_found');
+  const note = ((req.body ?? {}) as { note?: string | null }).note?.trim() || null;
+  v.ack = { by: { id: u.id, name: `${u.firstName} ${u.lastName}` }, at: new Date().toISOString(), note };
+  return { status: 200, body: v };
+}));
+
+route('DELETE', '/app/tacho/violations/:id/ack', withPrivilege('tacho.violation/ack', (_u, req) => {
+  const v = violationStore().find((x) => String(x.id) === req.params.id);
+  if (!v) return error(404, 'error.not_found');
+  v.ack = null;
+  return { status: 200, body: v };
 }));
 
 // --- user administration -------------------------------------------------------------------------

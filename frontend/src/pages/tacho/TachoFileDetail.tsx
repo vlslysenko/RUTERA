@@ -145,7 +145,7 @@ function Assignment({ f }: { f: Detail }) {
   );
 }
 
-/** Uploaded tachograph file: in the right panel (/tacho/:id) and as a page (/tacho/:id/page). */
+/** Uploaded tachograph file: in the right panel (/tacho/files/:id) and as a page (/tacho/files/:id/page). */
 export function TachoFileDetail({ mode }: { mode: 'drawer' | 'page' }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
@@ -179,7 +179,7 @@ export function TachoFileDetail({ mode }: { mode: 'drawer' | 'page' }) {
       notifications.show({ color: 'green', message: t('tacho.deleted') });
       // Leave the card and refresh everything except the deleted file: its own queries would answer 404 (the cache
       // entry goes away by itself once the card is unmounted).
-      await navigate('/tacho', { replace: true });
+      await navigate('/tacho/files', { replace: true });
       void qc.invalidateQueries({ queryKey: TACHO_FILES_KEY, predicate: (q) => q.queryKey[TACHO_FILES_KEY.length] !== id });
       // lastDownloadAt is recomputed from the remaining files.
       void qc.invalidateQueries({ queryKey: DRIVERS_KEY });
@@ -238,8 +238,8 @@ export function TachoFileDetail({ mode }: { mode: 'drawer' | 'page' }) {
   return (
     <DetailDrawer
       mode={mode}
-      listPath="/tacho"
-      pagePath={`/tacho/${id}/page`}
+      listPath="/tacho/files"
+      pagePath={`/tacho/files/${id}/page`}
       title={f ? <TachoKindLabel kind={f.kind} /> : '…'}
       subtitle={f && <span className={classes.mono}>{f.originalName}</span>}
       status={
