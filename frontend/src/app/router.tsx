@@ -42,6 +42,9 @@ import { ViolationDetail } from '@/pages/tacho/ViolationDetail';
 import { ViolationsPage } from '@/pages/tacho/ViolationsPage';
 import { UsersPage } from '@/pages/settings/users/UsersPage';
 import { CalculatorPage } from '@/pages/trips/CalculatorPage';
+import { CmrDetail } from '@/pages/trips/CmrDetail';
+import { CmrForm } from '@/pages/trips/CmrForm';
+import { CmrPage } from '@/pages/trips/CmrPage';
 import { ContractorDetail } from '@/pages/trips/ContractorDetail';
 import { ContractorsPage } from '@/pages/trips/ContractorsPage';
 import { OrderDetail } from '@/pages/trips/OrderDetail';
@@ -114,6 +117,25 @@ export const router = createBrowserRouter([
                   ],
                 },
                 {
+                  element: <PrivilegeGuard privilege={[PRIV.TRIP_ORDER_VIEW, PRIV.TRIP_CMR_MANAGE]} />,
+                  children: [
+                    {
+                      path: 'cmr',
+                      element: <CmrPage />,
+                      children: [
+                        { path: ':id', element: <CmrDetail mode="drawer" /> },
+                        {
+                          element: <PrivilegeGuard privilege={PRIV.TRIP_CMR_MANAGE} />,
+                          children: [
+                            { path: 'new', element: <CmrForm /> },
+                            { path: ':id/edit', element: <CmrForm /> },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
                   element: <PrivilegeGuard privilege={PRIV.TRIP_ORDER_VIEW} />,
                   children: [
                     {
@@ -157,6 +179,10 @@ export const router = createBrowserRouter([
             {
               element: <PrivilegeGuard privilege={PRIV.TRIP_ORDER_VIEW} />,
               children: [{ path: `${SCREENS.trips.path}/orders/:id/page`, element: <OrderDetail mode="page" /> }],
+            },
+            {
+              element: <PrivilegeGuard privilege={[PRIV.TRIP_ORDER_VIEW, PRIV.TRIP_CMR_MANAGE]} />,
+              children: [{ path: `${SCREENS.trips.path}/cmr/:id/page`, element: <CmrDetail mode="page" /> }],
             },
             {
               element: <PrivilegeGuard privilege={[PRIV.TRIP_ORDER_VIEW, PRIV.TRIP_CONTRACTOR_MANAGE]} />,

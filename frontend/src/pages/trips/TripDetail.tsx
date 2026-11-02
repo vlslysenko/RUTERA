@@ -15,6 +15,7 @@ import { KeyValueList, type KeyValueItem } from '@/components/KeyValueList';
 import { Plate } from '@/components/Plate';
 import { countryName } from '@/utils/countries';
 import { cx } from '@/utils/cx';
+import { CmrLinks } from './CmrLinks';
 import { StopStatusChip, TripStatusChip } from './TripChips';
 import { formatInstantShort, formatMoney } from './tripFormat';
 import classes from './Trips.module.css';
@@ -333,6 +334,7 @@ export function TripDetail({ mode }: { mode: 'drawer' | 'page' }) {
             </Alert>
           )}
           <Overview trip={trip} canMark={canManage && trip.status !== 'CANCELLED'} />
+          <CmrLinks tripId={trip.id} canCreate={trip.status !== 'CANCELLED'} />
         </Stack>
       ) : null}
     </DetailDrawer>

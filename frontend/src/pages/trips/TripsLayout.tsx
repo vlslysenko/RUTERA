@@ -5,7 +5,7 @@ import { hasAnyPrivilege, hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
 import { PageHeader } from '@/components/PageHeader';
 
-/** Trips section: trips, orders and contractors as route tabs, each shown only with its privilege. */
+/** Trips section: trips, orders, CMR, contractors, calculator and tolls as route tabs, each shown only with its privilege. */
 export function TripsLayout() {
   const { t } = useTranslation();
   const user = useUser();
@@ -15,6 +15,7 @@ export function TripsLayout() {
   const tabs = [
     ...(hasPrivilege(user, PRIV.TRIP_TRIP_VIEW) ? [{ value: '/trips', label: t('trips.tab.trips') }] : []),
     ...(hasPrivilege(user, PRIV.TRIP_ORDER_VIEW) ? [{ value: '/trips/orders', label: t('trips.tab.orders') }] : []),
+    ...(hasAnyPrivilege(user, [PRIV.TRIP_ORDER_VIEW, PRIV.TRIP_CMR_MANAGE]) ? [{ value: '/trips/cmr', label: t('trips.tab.cmr') }] : []),
     ...(hasAnyPrivilege(user, [PRIV.TRIP_ORDER_VIEW, PRIV.TRIP_CONTRACTOR_MANAGE])
       ? [{ value: '/trips/contractors', label: t('trips.tab.contractors') }]
       : []),
@@ -50,5 +51,6 @@ export function TripsLayout() {
 /** Users without trip.trip/view land on the first tab they may open. */
 export function TripsFallback() {
   const user = useUser();
-  return <Navigate to={hasPrivilege(user, PRIV.TRIP_ORDER_VIEW) ? '/trips/orders' : '/trips/contractors'} replace />;
+  const to = hasPrivilege(user, PRIV.TRIP_ORDER_VIEW) ? '/trips/orders' : hasPrivilege(user, PRIV.TRIP_CMR_MANAGE) ? '/trips/cmr' : '/trips/contractors';
+  return <Navigate to={to} replace />;
 }

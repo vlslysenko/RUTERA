@@ -85,6 +85,10 @@ Stop errors come as `stops[2].address` and land on the field `stops.2.address` o
 crew of one or two, the drivers' state from the tachograph, rested or typed in; the plan shows the ETA, the timeline of
 driving, breaks and rests (561/2006) and the cost lines. `calc.missing.*` / `calc.warning.*` codes live only in the
 frontend bundles. `/trips/tolls` keeps the toll rates per km (country, optional euro class, axles and weight).
+`/trips/cmr` lists CMR consignment notes (`/app/cmr`, read with `trip.order/view` or `trip.cmr/manage`); the card shows
+the boxes with their numbers of the international form, issues and cancels the note and opens or saves the PDF (drafts
+with 1-4 copies and a DRAFT watermark). The editor (drafts only) is the right panel with all boxes; `?order=` /
+`?trip=` narrow the list. Order and trip cards list their notes and "create CMR" (`from-order`, `from-trip`).
 
 Finance is tabs too: `/finance` (invoices, sales or purchase; card with lines, payments and reminders; form with
 lines `vatCode` RATE / ZW / NP / OO, or plain totals without lines), `/finance/debts` (aging per contractor) and

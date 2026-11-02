@@ -47,6 +47,8 @@ import type { FuelAssignment, FuelCardInput, FuelTransactionInput } from '@/api/
 import * as fuelMock from './fuel';
 import type { CalcRequest, TollTariffInput } from '@/api/calc';
 import * as calcMock from './calc';
+import type { CmrInput } from '@/api/cmr';
+import * as cmrMock from './cmr';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
  * The session lives in sessionStorage, per-user settings in localStorage; users live in memory per page load.
@@ -791,6 +793,26 @@ route('DELETE', '/app/trips/:id', withPrivilege('trip.trip/manage', (_u, req) =>
 route('PATCH', '/app/trips/:id/stops/:stopId', withPrivilege('trip.trip/manage', (_u, req) =>
   tripMock.markStop(req.params.id, req.params.stopId, (req.body ?? {}) as { status?: string; actualAt?: string | null }),
 ));
+
+// --- CMR consignment notes ---------------------------------------------------------------------------
+
+const cmrLookup: cmrMock.CmrLookup = {
+  crew,
+  firma: { name: MOCK_FIRMA.name, address: 'ul. Kolejowa 12\n55-080 Kąty Wrocławskie', country: 'PL', vatId: 'PL8961000000' },
+};
+const cmrReader = (fn: (req: MockRequest) => MockResponse) =>
+  withAuth((u, req) => (hasKey(u, 'trip.order/view') || hasKey(u, 'trip.cmr/manage') ? fn(req) : error(403, 'auth.access_denied')));
+
+route('GET', '/app/cmr', cmrReader(({ query }) => cmrMock.listCmr(query, crew)));
+route('GET', '/app/cmr/:id', cmrReader(({ params }) => cmrMock.getCmr(params.id, crew)));
+route('GET', '/app/cmr/:id/pdf', cmrReader(({ params, query }) => cmrMock.cmrPdf(params.id, query.copies, crew)));
+route('POST', '/app/cmr', withPrivilege('trip.cmr/manage', (_u, { body }) => cmrMock.saveCmr((body ?? {}) as CmrInput, null, crew)));
+route('PUT', '/app/cmr/:id', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.saveCmr((req.body ?? {}) as CmrInput, req.params.id, crew)));
+route('DELETE', '/app/cmr/:id', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.removeCmr(req.params.id)));
+route('POST', '/app/cmr/from-order/:orderId', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.cmrFromOrder(req.params.orderId, cmrLookup)));
+route('POST', '/app/cmr/from-trip/:tripId', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.cmrFromTrip(req.params.tripId, cmrLookup)));
+route('POST', '/app/cmr/:id/issue', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.issueCmr(req.params.id, crew)));
+route('POST', '/app/cmr/:id/cancel', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.cancelCmr(req.params.id, crew)));
 
 // --- invoices, debts and reminders ---------------------------------------------------------------
 

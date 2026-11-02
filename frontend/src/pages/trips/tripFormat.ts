@@ -38,3 +38,6 @@ export function formatInstantShort(iso: string | null, lang: string, timeZone?: 
 
 /** Currencies offered in money fields; anything else can be typed (3 letters). */
 export const CURRENCIES = ['PLN', 'EUR', 'CZK', 'HUF', 'RON', 'BGN', 'SEK', 'DKK', 'NOK', 'CHF', 'GBP', 'UAH', 'USD'];
+
+/** "Wrocław, PL" from a place and a country, either may be missing. */
+export const placeLine = (place: string | null, country: string | null): string => [place, country].filter(Boolean).join(', ') || '—';

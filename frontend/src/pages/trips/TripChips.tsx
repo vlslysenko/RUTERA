@@ -1,5 +1,6 @@
-import { IconBan, IconCheck, IconCircleDashed, IconClock, IconFileInvoice, IconPlayerPlay, IconPlayerSkipForward, IconRoute } from '@tabler/icons-react';
+import { IconBan, IconCheck, IconCircleDashed, IconClock, IconFileInvoice, IconPencil, IconPlayerPlay, IconPlayerSkipForward, IconRoute } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import type { CmrStatus } from '@/api/cmr';
 import type { OrderStatus, StopStatus, TripStatus } from '@/api/trips';
 import { StatusChip, type StatusTone } from '@/components/StatusChip';
 
@@ -23,6 +24,12 @@ const STOP: Record<StopStatus, [StatusTone, typeof IconCheck]> = {
   PLANNED: ['neutral', IconClock],
   DONE: ['good', IconCheck],
   SKIPPED: ['warn', IconPlayerSkipForward],
+};
+
+const CMR: Record<CmrStatus, [StatusTone, typeof IconCheck]> = {
+  DRAFT: ['warn', IconPencil],
+  ISSUED: ['good', IconCheck],
+  CANCELLED: ['neutral', IconBan],
 };
 
 export function OrderStatusChip({ status }: { status: OrderStatus }) {
@@ -51,6 +58,16 @@ export function StopStatusChip({ status }: { status: StopStatus }) {
   return (
     <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
       {t(`trip.stop.status.${status}`)}
+    </StatusChip>
+  );
+}
+
+export function CmrStatusChip({ status }: { status: CmrStatus }) {
+  const { t } = useTranslation();
+  const [tone, Icon] = CMR[status];
+  return (
+    <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
+      {t(`cmr.status.${status}`)}
     </StatusChip>
   );
 }

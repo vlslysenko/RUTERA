@@ -557,3 +557,55 @@ export function tripAtForFuel(vehicleId: number, at: string): { id: number; numb
   });
   return t && { id: t.id, number: t.number, mainDriverId: t.mainDriverId };
 }
+
+// --- for the CMR mock --------------------------------------------------------------------------------
+
+export interface CmrPartyInfo {
+  id: number;
+  name: string;
+  address: string | null;
+  country: string;
+  vatId: string | null;
+}
+
+export interface CmrPlace {
+  place: string;
+  country: string;
+  date: string | null;
+  /** Stop name (a trip without orders). */
+  name?: string | null;
+}
+
+/** What a CMR draft takes from an order: the customer as sender, the places, cargo and weight, its trip. */
+export function orderForCmr(id: number):
+  | { id: number; number: string; tripId: number | null; customer: CmrPartyInfo; loading: CmrPlace; unloading: CmrPlace; cargo: string | null; weightKg: number | null }
+  | undefined {
+  const o = orders.find((x) => x.id === id);
+  if (!o) return undefined;
+  const c = contractors.find((x) => x.id === o.customerId)!;
+  return {
+    id: o.id,
+    number: o.number,
+    tripId: o.tripId,
+    customer: { id: c.id, name: c.name, address: c.address, country: c.country, vatId: c.vatId },
+    loading: o.loading,
+    unloading: o.unloading,
+    cargo: o.cargo,
+    weightKg: o.weightKg,
+  };
+}
+
+/** What a CMR draft takes from a trip: its orders, the first loading and last unloading stop, the plates. */
+export function tripForCmr(id: number, crew: CrewLookup):
+  | { id: number; number: string; orderIds: number[]; loading: CmrPlace | null; unloading: CmrPlace | null; plates: string | null }
+  | undefined {
+  const t = trips.find((x) => x.id === id);
+  if (!t) return undefined;
+  const first = t.stops.find((s) => s.kind === 'LOADING');
+  const last = [...t.stops].reverse().find((s) => s.kind === 'UNLOADING');
+  const place = (s: TripStop | undefined) => (s ? { place: s.address, country: s.country, date: s.plannedAt?.slice(0, 10) ?? null, name: s.name } : null);
+  const plates = [crew.vehicle(t.vehicleId)?.plate, t.trailerId == null ? undefined : crew.vehicle(t.trailerId)?.plate].filter(Boolean).join(' / ');
+  return { id: t.id, number: t.number, orderIds: orders.filter((o) => o.tripId === t.id).map((o) => o.id), loading: place(first), unloading: place(last), plates: plates || null };
+}
+
+export const contractorForCmr = (id: number): boolean => !!liveContractor(id);

@@ -14,6 +14,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { KeyValueList, type KeyValueItem } from '@/components/KeyValueList';
 import { countryName } from '@/utils/countries';
 import { formatDate } from '@/utils/deadline';
+import { CmrLinks } from './CmrLinks';
 import { CreateTripPanel } from './CreateTripPanel';
 import { OrderStatusChip, TripStatusChip } from './TripChips';
 import { formatMoney } from './tripFormat';
@@ -188,6 +189,7 @@ export function OrderDetail({ mode }: { mode: 'drawer' | 'page' }) {
           )}
           {planning && plannable && <CreateTripPanel order={o} onClose={() => setPlanning(false)} />}
           <Overview o={o} />
+          <CmrLinks orderId={o.id} canCreate={o.status !== 'CANCELLED'} />
         </Stack>
       ) : null}
     </DetailDrawer>
