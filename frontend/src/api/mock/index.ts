@@ -41,6 +41,8 @@ import type { ContractorInput, OrderInput, TripFromOrder, TripInput } from '@/ap
 import * as tripMock from './trips';
 import type { AbsenceInput, DriverPaymentInput, PayRateInput } from '@/api/hr';
 import * as hrMock from './hr';
+import type { InvoiceInput, InvoicePaymentInput, ReminderSchedule } from '@/api/finance';
+import * as financeMock from './finance';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
  * The session lives in sessionStorage, per-user settings in localStorage; users live in memory per page load.
@@ -785,6 +787,25 @@ route('DELETE', '/app/trips/:id', withPrivilege('trip.trip/manage', (_u, req) =>
 route('PATCH', '/app/trips/:id/stops/:stopId', withPrivilege('trip.trip/manage', (_u, req) =>
   tripMock.markStop(req.params.id, req.params.stopId, (req.body ?? {}) as { status?: string; actualAt?: string | null }),
 ));
+
+// --- invoices, debts and reminders ---------------------------------------------------------------
+
+route('GET', '/app/invoices', withPrivilege('finance.invoice/view', (_u, { query }) => financeMock.listInvoices(query)));
+route('GET', '/app/invoices/:id', withPrivilege('finance.invoice/view', (_u, req) => financeMock.getInvoice(req.params.id)));
+route('POST', '/app/invoices', withPrivilege('finance.invoice/manage', (_u, { body }) => financeMock.saveInvoice((body ?? {}) as InvoiceInput, null)));
+route('PUT', '/app/invoices/:id', withPrivilege('finance.invoice/manage', (_u, req) => financeMock.saveInvoice((req.body ?? {}) as InvoiceInput, req.params.id)));
+route('DELETE', '/app/invoices/:id', withPrivilege('finance.invoice/manage', (_u, req) => financeMock.removeInvoice(req.params.id)));
+route('POST', '/app/invoices/:id/payments', withPrivilege('finance.payment/manage', (_u, req) =>
+  financeMock.addPayment(req.params.id, (req.body ?? {}) as InvoicePaymentInput)));
+route('DELETE', '/app/invoices/:id/payments/:paymentId', withPrivilege('finance.payment/manage', (_u, req) =>
+  financeMock.removePayment(req.params.id, req.params.paymentId)));
+route('GET', '/app/invoices/:id/reminders', withPrivilege('finance.invoice/view', (_u, req) => financeMock.listReminders(req.params.id)));
+route('POST', '/app/invoices/:id/reminders', withPrivilege('finance.reminder/manage', (_u, req) => financeMock.sendReminder(req.params.id)));
+route('GET', '/app/debts', withPrivilege('finance.invoice/view', (_u, { query }) => financeMock.debts(query)));
+route('GET', '/app/reminders/schedule', withAuth((u) =>
+  hasKey(u, 'finance.invoice/view') || hasKey(u, 'finance.reminder/manage') ? financeMock.getSchedule() : error(403, 'auth.access_denied')));
+route('PUT', '/app/reminders/schedule', withPrivilege('finance.reminder/manage', (_u, { body }) =>
+  financeMock.saveSchedule((body ?? {}) as Partial<ReminderSchedule>)));
 
 // --- user administration -------------------------------------------------------------------------
 

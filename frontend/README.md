@@ -62,6 +62,11 @@ the backend clears the cookie on logout, the client fetches a new one with `GET 
 | POST | `/app/orders/{id}/trip` | `{vehicleId, trailerId?, mainDriverId?, secondDriverId?, plannedStart?}` -> 201 `Trip` (both manage keys) |
 | GET/POST, GET/PUT/DELETE | `/app/trips`, `.../{id}` | `{items: Trip[], total}` (`?status&vehicleId&driverId&q&from&to&page&size`) / card; PUT replaces crew, orders and stops |
 | PATCH | `/app/trips/{id}/stops/{stopId}` | `{status, actualAt?}` -> `TripStop` (quick marks on the trip card) |
+| GET/POST, GET/PUT/DELETE | `/app/invoices`, `.../{id}` | `{items, total, totals}` (`?direction&status&contractorId&q&from&to&overdue&page&size`) / `InvoiceDetail` with lines, payments, reminders |
+| POST/DELETE | `/app/invoices/{id}/payments[/{paymentId}]` | `{paidAt, amount, method?, reference?, note?}` (`finance.payment/manage`); 422 `amount: finance.payment.too_much` |
+| GET/POST | `/app/invoices/{id}/reminders` | reminders / one now (`finance.reminder/manage`); 422 `contractor: finance.reminder.no_email`, 409 when not an open sales invoice |
+| GET | `/app/debts?asOf` | `DebtRow[]` per contractor and currency with aging buckets |
+| GET/PUT | `/app/reminders/schedule` | `{sendHour, ccEmails, stopWhenPaid, steps: [{offsetDays, escalate}]}` |
 
 Tachograph screens are tabs: `/tacho/files` (upload and journal), `/tacho/activity?driver=&week=` (a week of one
 driver against 561/2006) and `/tacho/violations` (filters in the URL, review in the right panel). Day strips and
@@ -72,6 +77,10 @@ Trips are tabs too: `/trips` (trips; card with stops and quick marks, status but
 of the whole trip), `/trips/orders` (orders; card with "create trip") and `/trips/contractors` (customers and
 carriers). Each tab needs its own privilege; users without `trip.trip/view` land on the first tab they may open.
 Stop errors come as `stops[2].address` and land on the field `stops.2.address` of the trip form.
+
+Finance is tabs too: `/finance` (invoices, sales or purchase; card with lines, payments and reminders; form with
+lines `vatCode` RATE / ZW / NP / OO, or plain totals without lines), `/finance/debts` (aging per contractor) and
+`/finance/reminders` (the reminder plan). Line errors come as `lines[2].qty` and land on `lines.2.qty`.
 
 Drivers are tabs as well: `/drivers` (list and cards), `/drivers/absences` (who is absent, drivers × days of a month)
 and `/drivers/payments` (payroll of a month, `driver.payment/view` only). The driver card has the tabs overview,
@@ -101,7 +110,7 @@ src/api        fetch wrapper (/app, CSRF), auth, i18n, fleet; mock/ = in-browser
 src/auth       session hooks (TanStack Query), RequireAuth, ScreenGuard (role -> screen)
 src/layout     AppLayout (AppShell), TopBar, Sidebar, LanguageMenu, UserMenu
 src/components DetailDrawer (card in the right panel + "open as page"), PageHeader, StatusChip, Plate, ...
-src/pages      Login, Overview, Settings (profile, password, users), Fleet, Drivers, Tachograph, Trips, placeholders
+src/pages      Login, Overview, Settings (profile, password, users), Fleet, Drivers, Tachograph, Trips, Finance, placeholders
 src/i18n       i18next setup, language list, locales/
 ```
 

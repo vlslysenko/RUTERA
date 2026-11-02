@@ -1,0 +1,57 @@
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table th {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+}
+
+.table td {
+  white-space: nowrap;
+}
+
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.num {
+  text-align: right;
+  font-family: var(--mantine-font-family-monospace);
+  white-space: nowrap;
+}
+
+.overdue {
+  color: var(--mantine-color-red-7);
+  font-weight: 600;
+}
+
+/* Aging buckets: the older the debt, the stronger the tint. */
+.late1 {
+  background: var(--mantine-color-yellow-0);
+}
+
+.late2 {
+  background: var(--mantine-color-orange-0);
+}
+
+.late3 {
+  background: var(--mantine-color-red-0);
+  color: var(--mantine-color-red-8);
+}
+
+.totalRow td {
+  font-weight: 600;
+  border-top: 2px solid var(--mantine-color-default-border);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 120px 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+}

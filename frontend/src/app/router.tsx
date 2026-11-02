@@ -14,6 +14,12 @@ import { DriverForm } from '@/pages/drivers/DriverForm';
 import { DriversLayout } from '@/pages/drivers/DriversLayout';
 import { DriversPage } from '@/pages/drivers/DriversPage';
 import { PaymentsPage } from '@/pages/drivers/PaymentsPage';
+import { DebtsPage } from '@/pages/finance/DebtsPage';
+import { FinanceLayout } from '@/pages/finance/FinanceLayout';
+import { InvoiceDetail } from '@/pages/finance/InvoiceDetail';
+import { InvoiceForm } from '@/pages/finance/InvoiceForm';
+import { InvoicesPage } from '@/pages/finance/InvoicesPage';
+import { ReminderSettingsPage } from '@/pages/finance/ReminderSettingsPage';
 import { FleetPage } from '@/pages/fleet/FleetPage';
 import { VehicleDetail } from '@/pages/fleet/VehicleDetail';
 import { VehicleForm } from '@/pages/fleet/VehicleForm';
@@ -218,7 +224,32 @@ export const router = createBrowserRouter([
             },
           ]),
           placeholder('documents'),
-          placeholder('finance'),
+          screen('finance', [
+            {
+              path: SCREENS.finance.path,
+              element: <FinanceLayout />,
+              children: [
+                {
+                  // /finance and the invoice cards; static "debts" / "reminders" / "new" rank above ":id".
+                  element: <InvoicesPage />,
+                  children: [
+                    { index: true, element: null },
+                    { path: ':id', element: <InvoiceDetail mode="drawer" /> },
+                    {
+                      element: <PrivilegeGuard privilege={PRIV.FINANCE_INVOICE_MANAGE} />,
+                      children: [
+                        { path: 'new', element: <InvoiceForm /> },
+                        { path: ':id/edit', element: <InvoiceForm /> },
+                      ],
+                    },
+                  ],
+                },
+                { path: 'debts', element: <DebtsPage /> },
+                { path: 'reminders', element: <ReminderSettingsPage /> },
+              ],
+            },
+            { path: `${SCREENS.finance.path}/:id/page`, element: <InvoiceDetail mode="page" /> },
+          ]),
           placeholder('fuel'),
           placeholder('reports'),
           {

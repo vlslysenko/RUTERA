@@ -517,3 +517,32 @@ export function markStop(id: string, sid: string, b: { status?: string; actualAt
   t.updatedAt = new Date().toISOString();
   return { status: 200, body: s };
 }
+
+// --- for the finance mock ----------------------------------------------------------------------------
+
+/** What an invoice needs to know about a contractor. */
+export function contractorForInvoice(id: number): { id: number; name: string; paymentDays: number | null; invoiceEmails: string[] } | undefined {
+  const c = liveContractor(id);
+  return c && { id: c.id, name: c.name, paymentDays: c.paymentDays, invoiceEmails: c.invoiceEmails };
+}
+
+export function orderForInvoice(id: number): { id: number; number: string; customerId: number; status: OrderStatus } | undefined {
+  const o = orders.find((x) => x.id === id);
+  return o && { id: o.id, number: o.number, customerId: o.customerId, status: o.status };
+}
+
+export function tripForInvoice(id: number): { id: number; number: string } | undefined {
+  const t = trips.find((x) => x.id === id);
+  return t && { id: t.id, number: t.number };
+}
+
+/** Linked orders become INVOICED; unlinked ones go back to the status their trip gives them. */
+export function setOrdersInvoiced(ids: number[], invoiced: boolean): void {
+  for (const o of orders.filter((x) => ids.includes(x.id))) {
+    if (invoiced) o.status = 'INVOICED';
+    else if (o.status === 'INVOICED') {
+      o.status = 'NEW';
+      followTrip(o);
+    }
+  }
+}
