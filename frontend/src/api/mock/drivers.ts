@@ -96,7 +96,7 @@ export function toDriver(d: MockDriver, vehicles: (VehicleRef & { defaultDriverI
   };
 }
 
-const cardOf = (v: string | null | undefined) => (v ?? '').replace(/\s+/g, '').toUpperCase();
+const cardOf = (v: string | null | undefined) => (v ?? '').replace(/[\s-]+/g, '').toUpperCase();
 
 /** Same checks as the backend should make; returns per-field codes. */
 export function validateDriver(b: Partial<DriverInput>, all: MockDriver[], selfId: number | null): Record<string, string> {

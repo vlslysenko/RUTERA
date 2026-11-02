@@ -14,10 +14,10 @@ import { applyServerErrors } from '@/forms/serverErrors';
 import { countryOptions } from '@/utils/countries';
 import classes from './DriversPage.module.css';
 
-/* Same rules as the backend. Card number: spaces removed, letters uppercased, letters and digits only. */
+/* Same rules as the backend. Card number: spaces and hyphens removed, letters uppercased, letters and digits only. */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CARD_RE = /^[A-Z0-9]{1,32}$/;
-const cardOf = (v: string) => v.replace(/\s+/g, '').toUpperCase();
+const cardOf = (v: string) => v.replace(/[\s-]+/g, '').toUpperCase();
 
 const schema = z
   .object({
