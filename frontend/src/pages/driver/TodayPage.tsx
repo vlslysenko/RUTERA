@@ -12,6 +12,7 @@ import { useUser } from '@/auth/useAuth';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { formatMinutes, shiftDays, ymdIn } from '@/pages/tacho/hosFormat';
 import { TripStatusChip } from '@/pages/trips/TripChips';
+import { TripFiles } from '@/pages/trips/TripFiles';
 import { formatInstantShort } from '@/pages/trips/tripFormat';
 import { countryName } from '@/utils/countries';
 import { cx } from '@/utils/cx';
@@ -94,6 +95,10 @@ function TripCard({ trip, title }: { trip: Trip; title: string }) {
             </li>
           ))}
         </ol>
+        <h3 className={classes.cardTitle} style={{ marginTop: 8 }}>
+          {t('trip_files.title')}
+        </h3>
+        <TripFiles trip={trip} canUpload canDeleteAll={false} driver />
       </Stack>
     </Card>
   );

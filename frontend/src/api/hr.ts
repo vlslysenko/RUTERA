@@ -16,10 +16,17 @@ export interface PersonRef {
 export const ABSENCE_KINDS = ['SICK', 'VACATION', 'UNPAID', 'PARENTAL', 'OTHER'] as const;
 export type AbsenceKind = (typeof ABSENCE_KINDS)[number];
 
+/** A driver's request from the cabinet is REQUESTED until the office decides; only APPROVED absences count. */
+export const ABSENCE_STATUSES = ['REQUESTED', 'APPROVED', 'REJECTED'] as const;
+export type AbsenceStatus = (typeof ABSENCE_STATUSES)[number];
+
 export interface Absence {
   id: number;
   driver: PersonRef;
   kind: AbsenceKind;
+  status: AbsenceStatus;
+  /** Note of the office's decision (e.g. why a request was rejected). */
+  decisionNote: string | null;
   /** YYYY-MM-DD, both included */
   fromDate: string;
   toDate: string;
@@ -115,16 +122,22 @@ export interface PaymentTotal {
 }
 
 export const hrApi = {
-  absences: (driverId: number | string, from?: string, to?: string) =>
-    api<Absence[]>(`/drivers/${driverId}/absences`, { query: { from, to } }),
+  absences: (driverId: number | string, from?: string, to?: string, status?: AbsenceStatus) =>
+    api<Absence[]>(`/drivers/${driverId}/absences`, { query: { from, to, status } }),
   createAbsence: (driverId: number | string, body: AbsenceInput) =>
     api<Absence>(`/drivers/${driverId}/absences`, { method: 'POST', body }),
   updateAbsence: (driverId: number | string, id: number, body: AbsenceInput) =>
     api<Absence>(`/drivers/${driverId}/absences/${id}`, { method: 'PUT', body }),
+  /** By the office: a new one is APPROVED; by the driver for himself (driver app): REQUESTED, deletable only then (409). */
   removeAbsence: (driverId: number | string, id: number) => api<void>(`/drivers/${driverId}/absences/${id}`, { method: 'DELETE' }),
+  /** The office approves or rejects a request (driver.absence/manage). */
+  decideAbsence: (driverId: number | string, id: number, body: { status: 'APPROVED' | 'REJECTED'; note: string | null }) =>
+    api<Absence>(`/drivers/${driverId}/absences/${id}`, { method: 'PATCH', body }),
   /** Absences of the firma overlapping the range (always pass one: without it the backend returns all). */
-  firmAbsences: (from: string, to: string, kind?: AbsenceKind, driverId?: number) =>
-    api<Absence[]>('/absences', { query: { from, to, kind, driverId } }),
+  firmAbsences: (from: string, to: string, kind?: AbsenceKind, driverId?: number, status?: AbsenceStatus) =>
+    api<Absence[]>('/absences', { query: { from, to, kind, driverId, status } }),
+  /** Open requests of all drivers, for the office. */
+  requests: () => api<Absence[]>('/absences', { query: { status: 'REQUESTED' } }),
 
   month: (driverId: number | string, month: string) => api<DriverMonth>(`/drivers/${driverId}/days`, { query: { month } }),
   setDay: (driverId: number | string, day: string, body: { kind: DayKind; note: string | null }) =>

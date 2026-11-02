@@ -7,13 +7,14 @@ import { ApiError } from '@/api/client';
 import { driverHrKey, hrApi } from '@/api/hr';
 import { useLogout, useUser } from '@/auth/useAuth';
 import { LanguageMenu } from '@/layout/LanguageMenu';
-import { AbsenceKindChip, PaymentKindChip } from '@/pages/drivers/HrChips';
-import { formatAmount, formatMonth, formatPayment, formatRange, monthOf, shiftMonth } from '@/pages/drivers/hrFormat';
+import { PaymentKindChip } from '@/pages/drivers/HrChips';
+import { formatAmount, formatMonth, formatPayment, monthOf, shiftMonth } from '@/pages/drivers/hrFormat';
 import { formatMinutes, ymdIn } from '@/pages/tacho/hosFormat';
 import { Card, PartError, Stat } from './DriverParts';
+import { MyAbsences } from './MyAbsences';
 import classes from './DriverApp.module.css';
 
-/** "Me": absences of the year, work days of the month, own payments of three months, language and sign-out. */
+/** "Me": absences and requests, work days of the month, own payments of three months, language and sign-out. */
 export function MePage() {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
@@ -22,24 +23,19 @@ export function MePage() {
   const navigate = useNavigate();
   const driverId = user.driver!.id;
   const today = ymdIn(new Date().toISOString(), user.firma?.timezone ?? 'UTC');
-  const year = today.slice(0, 4);
   const month = monthOf(new Date(`${today}T12:00:00`));
   const firstMonth = shiftMonth(month, -2);
 
-  const absences = useQuery({
-    queryKey: [...driverHrKey(driverId, 'absences'), `${year}-01-01`, `${year}-12-31`],
-    queryFn: () => hrApi.absences(driverId, `${year}-01-01`, `${year}-12-31`),
-    retry: false,
-  });
   const days = useQuery({ queryKey: [...driverHrKey(driverId, 'days'), month], queryFn: () => hrApi.month(driverId, month), retry: false });
+  // The firma decides whether drivers see their pay (firma settings).
+  const seePay = user.firma?.driversSeePay === true;
   const payments = useQuery({
     queryKey: [...driverHrKey(driverId, 'payments'), firstMonth, month],
     queryFn: () => hrApi.payments(driverId, firstMonth, month),
     retry: false,
+    enabled: seePay,
   });
 
-  const coming = (absences.data ?? []).filter((a) => a.toDate >= today).sort((a, b) => a.fromDate.localeCompare(b.fromDate));
-  const vacationDays = (absences.data ?? []).filter((a) => a.kind === 'VACATION').reduce((n, a) => n + a.workingDays, 0);
   const totals = new Map<string, number>();
   for (const p of payments.data ?? []) {
     const signed = p.kind === 'ADVANCE' || p.kind === 'DEDUCTION' ? -p.amount : p.amount;
@@ -47,35 +43,11 @@ export function MePage() {
   }
   const s = days.data?.summary;
   // Pay is shown only when the backend lets this login read it.
-  const payHidden = payments.error instanceof ApiError && payments.error.status === 403;
+  const payHidden = !seePay || (payments.error instanceof ApiError && payments.error.status === 403);
 
   return (
     <Stack gap="sm">
-      <Card title={t('driver_app.absences')}>
-        {absences.isPending ? (
-          <Text size="sm" c="dimmed">…</Text>
-        ) : absences.isError ? (
-          <PartError error={absences.error} />
-        ) : (
-          <>
-            <Text size="sm" mb={4}>
-              {t('driver_app.vacation_used', { n: vacationDays, year })}
-            </Text>
-            {coming.length === 0 ? (
-              <Text size="sm" c="dimmed">
-                {t('driver_app.no_absences')}
-              </Text>
-            ) : (
-              coming.map((a) => (
-                <div key={a.id} className={classes.row}>
-                  <Text size="sm">{formatRange(a.fromDate, a.toDate, lang)}</Text>
-                  <AbsenceKindChip kind={a.kind} />
-                </div>
-              ))
-            )}
-          </>
-        )}
-      </Card>
+      <MyAbsences driverId={driverId} today={today} />
 
       <Card title={`${t('drivers.tab.days')} · ${formatMonth(month, lang)}`}>
         {days.isPending ? (

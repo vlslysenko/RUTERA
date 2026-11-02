@@ -7,10 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { DRIVERS_KEY, driversApi } from '@/api/drivers';
 import { errorCode } from '@/api/errors';
 import { ABSENCE_KINDS, HR_KEY, hrApi, type Absence, type AbsenceKind } from '@/api/hr';
+import { hasPrivilege, PRIV } from '@/auth/privileges';
+import { useUser } from '@/auth/useAuth';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { cx } from '@/utils/cx';
+import { AbsenceRequests } from './AbsenceRequests';
 import { formatMonth, formatRange, monthOf, monthRange, shiftMonth, weekdayIndex } from './hrFormat';
 import classes from './Hr.module.css';
 
@@ -20,13 +23,17 @@ interface Row {
   absences: Absence[];
 }
 
-/** Who is absent when: drivers × days of a month, a coloured bar per absence; a name opens the driver's absences. */
+/**
+ * Who is absent when: drivers × days of a month, a coloured bar per approved absence; a name opens the driver's absences.
+ * Above it, the open requests from the driver cabinet for those who decide them.
+ */
 export function AbsenceCalendarPage() {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
   const [month, setMonth] = useState(monthOf());
   const [kind, setKind] = useState<AbsenceKind | null>(null);
   const [onlyAbsent, setOnlyAbsent] = useState(false);
+  const canDecide = hasPrivilege(useUser(), PRIV.DRIVER_ABSENCE_MANAGE);
   const [from, to] = monthRange(month);
   const days = useMemo(() => {
     const n = Number(to.slice(8));
@@ -36,7 +43,7 @@ export function AbsenceCalendarPage() {
   const drivers = useQuery({ queryKey: DRIVERS_KEY, queryFn: driversApi.list });
   const absences = useQuery({
     queryKey: [...HR_KEY, 'absences', month, kind],
-    queryFn: () => hrApi.firmAbsences(from, to, kind ?? undefined),
+    queryFn: () => hrApi.firmAbsences(from, to, kind ?? undefined, undefined, 'APPROVED'),
   });
 
   const rows: Row[] = useMemo(() => {
@@ -58,6 +65,7 @@ export function AbsenceCalendarPage() {
 
   return (
     <Stack gap="sm">
+      {canDecide && <AbsenceRequests />}
       <Group justify="space-between" wrap="wrap">
         <Group gap={4} wrap="nowrap">
           <Tooltip label={t('days.prev_month')}>

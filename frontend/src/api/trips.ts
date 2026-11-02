@@ -1,5 +1,5 @@
 import type { VehicleRef } from './fleet';
-import { api } from './client';
+import { api, apiDownload } from './client';
 
 /*
  * Contractors, orders and trips (backend b821f01, README "Contractors, orders and trips").
@@ -197,6 +197,27 @@ export interface TripFilter {
   size?: number;
 }
 
+// --- trip files (photos and documents from the road) --------------------------------------------------
+
+export const TRIP_FILE_KINDS = ['CMR_PHOTO', 'DELIVERY_NOTE', 'RECEIPT', 'OTHER'] as const;
+export type TripFileKind = (typeof TRIP_FILE_KINDS)[number];
+
+/** JPEG, PNG, WebP, HEIC or PDF (checked by content), at most 15 MB. */
+export const TRIP_FILE_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf';
+export const TRIP_FILE_MAX_BYTES = 15 * 1024 * 1024;
+
+export interface TripFile {
+  id: number;
+  kind: TripFileKind;
+  note: string | null;
+  stop: { id: number; seq: number } | null;
+  fileName: string;
+  contentType: string;
+  size: number;
+  uploadedBy: { id: number; name: string };
+  createdAt: string;
+}
+
 export interface Page<T> {
   items: T[];
   total: number;
@@ -225,6 +246,18 @@ export const tripsApi = {
   create: (body: TripInput) => api<Trip>('/trips', { method: 'POST', body }),
   update: (id: number | string, body: TripInput) => api<Trip>(`/trips/${id}`, { method: 'PUT', body }),
   remove: (id: number | string) => api<void>(`/trips/${id}`, { method: 'DELETE' }),
+  files: (id: number | string) => api<TripFile[]>(`/trips/${id}/files`),
+  /** Multipart: file, kind, note?, stopId?; a driver uploads only while the trip is open (409 trip.file.trip_closed). */
+  uploadFile: (id: number | string, file: File, kind: TripFileKind, note: string | null, stopId: number | null) => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('kind', kind);
+    if (note) form.append('note', note);
+    if (stopId != null) form.append('stopId', String(stopId));
+    return api<TripFile>(`/trips/${id}/files`, { method: 'POST', body: form });
+  },
+  fileContent: (id: number | string, fileId: number) => apiDownload(`/trips/${id}/files/${fileId}/content`),
+  removeFile: (id: number | string, fileId: number) => api<void>(`/trips/${id}/files/${fileId}`, { method: 'DELETE' }),
   markStop: (id: number | string, stopId: number, status: StopStatus, actualAt?: string | null) =>
     api<TripStop>(`/trips/${id}/stops/${stopId}`, { method: 'PATCH', body: { status, actualAt: actualAt ?? null } }),
 };

@@ -51,6 +51,7 @@ import * as routeMock from './route';
 import type { CmrInput } from '@/api/cmr';
 import * as cmrMock from './cmr';
 import type { ApiTokenInput } from '@/api/tokens';
+import type { FirmaSettings, FirmaSettingsInput } from '@/api/admin';
 import * as tokenMock from './tokens';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
@@ -115,6 +116,13 @@ function fullName(u: MockUser): string {
   return `${u.firstName} ${u.lastName}`.trim();
 }
 
+/** Firma settings (GET / PUT /app/admin/firma); plan, limit and AI access are billing data, read-only. */
+const firmaSettings: FirmaSettings = {
+  id: MOCK_FIRMA.id, name: MOCK_FIRMA.name, shortCode: 'TRANSPOL', country: 'PL', vatId: 'PL8961000000',
+  address: 'ul. Kolejowa 12\n55-080 Kąty Wrocławskie', email: 'biuro@transpol.example', lang: 'pl',
+  timezone: MOCK_FIRMA.timezone ?? 'Europe/Warsaw', baseCurrency: 'PLN', plan: 'PRO', vehicleLimit: 30, aiAccess: true, driversSeePay: false,
+};
+
 function toUser(u: MockUser): User {
   const saved = readSettings()[String(u.id)] ?? {};
   return {
@@ -122,7 +130,7 @@ function toUser(u: MockUser): User {
     login: u.login,
     name: fullName(u),
     role: u.role,
-    firma: MOCK_FIRMA,
+    firma: { ...MOCK_FIRMA, name: firmaSettings.name, timezone: firmaSettings.timezone, driversSeePay: firmaSettings.driversSeePay },
     language: saved.language ?? u.language,
     startScreen: saved.startScreen ?? null,
     privileges: ROLE_PRIVILEGES[u.role],
@@ -786,10 +794,15 @@ const forOwnDriver = (key: string, fn: (u: MockUser, id: number, req: MockReques
 const me = (u: MockUser) => ({ id: u.id, name: fullName(u) });
 
 route('GET', '/app/drivers/:id/absences', forOwnDriver('driver.driver/view', (_u, id, { query }) => hrMock.listAbsences(id, query, hr)));
-route('POST', '/app/drivers/:id/absences', forDriver('driver.absence/manage', (u, id, { body }) => hrMock.saveAbsence(id, (body ?? {}) as AbsenceInput, null, hr, me(u))));
+// The office enters approved absences; the driver asks for himself in the cabinet (REQUESTED).
+route('POST', '/app/drivers/:id/absences', withPrivilegeOrSelf('driver.absence/manage', ownPathDriver, (u, req) =>
+  hrMock.saveAbsence(Number(req.params.id), (req.body ?? {}) as AbsenceInput, null, hr, hasKey(u, 'driver.absence/manage') ? me(u) : null)));
 route('PUT', '/app/drivers/:id/absences/:absenceId', forDriver('driver.absence/manage', (u, id, req) =>
   hrMock.saveAbsence(id, (req.body ?? {}) as AbsenceInput, req.params.absenceId, hr, me(u))));
-route('DELETE', '/app/drivers/:id/absences/:absenceId', forDriver('driver.absence/manage', (_u, id, req) => hrMock.removeAbsence(id, req.params.absenceId)));
+route('DELETE', '/app/drivers/:id/absences/:absenceId', withPrivilegeOrSelf('driver.absence/manage', ownPathDriver, (u, req) =>
+  hrMock.removeAbsence(Number(req.params.id), req.params.absenceId, !hasKey(u, 'driver.absence/manage'))));
+route('PATCH', '/app/drivers/:id/absences/:absenceId', forDriver('driver.absence/manage', (u, id, req) =>
+  hrMock.decideAbsence(id, req.params.absenceId, (req.body ?? {}) as { status?: string; note?: string | null }, hr, me(u))));
 route('GET', '/app/absences', withPrivilege('driver.driver/view', (_u, { query }) => hrMock.firmAbsences(query, hr)));
 
 route('GET', '/app/drivers/:id/days', forOwnDriver('driver.driver/view', (_u, id, { query }) => hrMock.month(id, query)));
@@ -803,7 +816,9 @@ route('PUT', '/app/drivers/:id/pay-rates/:rateId', forDriver('driver.payment/man
   hrMock.saveRate(id, (req.body ?? {}) as PayRateInput, req.params.rateId)));
 route('DELETE', '/app/drivers/:id/pay-rates/:rateId', forDriver('driver.payment/manage', (_u, id, req) => hrMock.removeRate(id, req.params.rateId)));
 
-route('GET', '/app/drivers/:id/payments', forOwnDriver('driver.payment/view', (_u, id, { query }) => hrMock.listPayments(id, query, hr)));
+// A driver sees its own payments only when the firma allows it (driversSeePay).
+route('GET', '/app/drivers/:id/payments', withPrivilegeOrSelf('driver.payment/view', (req, own) => ownPathDriver(req, own) && firmaSettings.driversSeePay, (_u, req) =>
+  liveDriver(Number(req.params.id)) ? hrMock.listPayments(Number(req.params.id), req.query, hr) : error(404, 'error.not_found')));
 route('POST', '/app/drivers/:id/payments', forDriver('driver.payment/manage', (_u, id, { body }) =>
   hrMock.savePayment(id, (body ?? {}) as DriverPaymentInput, null, hr)));
 route('PUT', '/app/drivers/:id/payments/:paymentId', forDriver('driver.payment/manage', (_u, id, req) =>
@@ -844,6 +859,13 @@ route('GET', '/app/trips/:id', withPrivilegeOrSelf('trip.trip/view', (req, own) 
 route('POST', '/app/trips', withPrivilege('trip.trip/manage', (_u, { body }) => tripMock.saveTrip((body ?? {}) as TripInput, null, crew)));
 route('PUT', '/app/trips/:id', withPrivilege('trip.trip/manage', (_u, req) => tripMock.saveTrip((req.body ?? {}) as TripInput, req.params.id, crew)));
 route('DELETE', '/app/trips/:id', withPrivilege('trip.trip/manage', (_u, req) => tripMock.removeTrip(req.params.id)));
+const onTrip = (req: MockRequest, own: number) => tripMock.tripHasDriver(req.params.id, own);
+route('GET', '/app/trips/:id/files', withPrivilegeOrSelf('trip.trip/view', onTrip, (_u, req) => tripMock.listTripFiles(req.params.id)));
+route('GET', '/app/trips/:id/files/:fileId/content', withPrivilegeOrSelf('trip.trip/view', onTrip, (_u, req) => tripMock.tripFileContent(req.params.id, req.params.fileId)));
+route('POST', '/app/trips/:id/files', withPrivilegeOrSelf('trip.cmr/upload', onTrip, (u, req) =>
+  tripMock.uploadTripFile(req.params.id, req.body, { id: u.id, name: fullName(u) }, !hasKey(u, 'trip.cmr/upload') && !hasKey(u, 'trip.trip/manage'))));
+route('DELETE', '/app/trips/:id/files/:fileId', withPrivilegeOrSelf('trip.trip/manage', onTrip, (u, req) =>
+  tripMock.removeTripFile(req.params.id, req.params.fileId, u, !hasKey(u, 'trip.trip/manage'))));
 route('PATCH', '/app/trips/:id/stops/:stopId', withPrivilegeOrSelf('trip.trip/manage', (req, own) => tripMock.tripHasDriver(req.params.id, own), (_u, req) =>
   tripMock.markStop(req.params.id, req.params.stopId, (req.body ?? {}) as { status?: string; actualAt?: string | null }),
 ));
@@ -867,6 +889,31 @@ route('POST', '/app/cmr/from-order/:orderId', withPrivilege('trip.cmr/manage', (
 route('POST', '/app/cmr/from-trip/:tripId', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.cmrFromTrip(req.params.tripId, cmrLookup)));
 route('POST', '/app/cmr/:id/issue', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.issueCmr(req.params.id, crew)));
 route('POST', '/app/cmr/:id/cancel', withPrivilege('trip.cmr/manage', (_u, req) => cmrMock.cancelCmr(req.params.id, crew)));
+
+// --- firma settings --------------------------------------------------------------------------------
+
+route('GET', '/app/admin/firma', withPrivilege('admin.firma/manage', () => ({ status: 200, body: firmaSettings })));
+route('PUT', '/app/admin/firma', withPrivilege('admin.firma/manage', (_u, { body }) => {
+  const b = (body ?? {}) as Partial<FirmaSettingsInput>;
+  const errors: Record<string, string> = {};
+  const name = (b.name ?? '').trim();
+  if (!name) errors.name = 'validation.required';
+  else if (name.length > 200) errors.name = 'validation.too_long';
+  if (b.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email)) errors.email = 'validation.invalid_format';
+  if (!b.lang || !isLanguageCode(b.lang)) errors.lang = b.lang ? 'validation.invalid_value' : 'validation.required';
+  try {
+    new Intl.DateTimeFormat('en', { timeZone: b.timezone ?? '' });
+  } catch {
+    errors.timezone = 'validation.invalid_value';
+  }
+  if (!/^[A-Z]{3}$/.test(b.baseCurrency ?? '')) errors.baseCurrency = 'validation.invalid_format';
+  if (Object.keys(errors).length) return error(422, 'error.validation', errors);
+  Object.assign(firmaSettings, {
+    name, vatId: b.vatId ?? null, address: b.address ?? null, email: b.email ?? null, lang: b.lang, timezone: b.timezone,
+    baseCurrency: b.baseCurrency, driversSeePay: b.driversSeePay ?? firmaSettings.driversSeePay,
+  });
+  return { status: 200, body: firmaSettings };
+}));
 
 // --- personal API tokens (the mock firma has the AI access add-on) ---------------------------------------
 

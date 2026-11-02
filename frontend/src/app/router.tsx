@@ -42,6 +42,7 @@ import { ViolationDetail } from '@/pages/tacho/ViolationDetail';
 import { ViolationsPage } from '@/pages/tacho/ViolationsPage';
 import { UsersPage } from '@/pages/settings/users/UsersPage';
 import { DocumentsPage } from '@/pages/driver/DocumentsPage';
+import { FirmaTab } from '@/pages/settings/FirmaTab';
 import { AllTokensPage } from '@/pages/settings/tokens/AllTokensPage';
 import { TokensPage } from '@/pages/settings/tokens/TokensPage';
 import { DriverShell } from '@/pages/driver/DriverShell';
@@ -361,6 +362,10 @@ export const router = createBrowserRouter([
               {
                 element: <PrivilegeGuard privilege={PRIV.ADMIN_API_TOKEN_MANAGE} />,
                 children: [{ path: 'api-tokens', element: <AllTokensPage /> }],
+              },
+              {
+                element: <PrivilegeGuard privilege={PRIV.ADMIN_FIRMA_MANAGE} />,
+                children: [{ path: 'firma', element: <FirmaTab /> }],
               },
               {
                 element: <PrivilegeGuard privilege={PRIV.ADMIN_USER_VIEW} />,

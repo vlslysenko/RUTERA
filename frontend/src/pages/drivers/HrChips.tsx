@@ -1,6 +1,6 @@
-import { IconBabyCarriage, IconBeach, IconCash, IconCircleDot, IconCoin, IconFirstAidKit, IconGift, IconMinus, IconReceipt, IconWallet } from '@tabler/icons-react';
+import { IconBabyCarriage, IconBan, IconBeach, IconCash, IconCheck, IconCircleDot, IconCoin, IconFirstAidKit, IconGift, IconHourglass, IconMinus, IconReceipt, IconWallet } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import type { AbsenceKind, PaymentKind } from '@/api/hr';
+import type { AbsenceKind, AbsenceStatus, PaymentKind } from '@/api/hr';
 import { StatusChip, type StatusTone } from '@/components/StatusChip';
 
 const ABSENCE: Record<AbsenceKind, [StatusTone, typeof IconBeach]> = {
@@ -9,6 +9,12 @@ const ABSENCE: Record<AbsenceKind, [StatusTone, typeof IconBeach]> = {
   UNPAID: ['neutral', IconWallet],
   PARENTAL: ['good', IconBabyCarriage],
   OTHER: ['neutral', IconCircleDot],
+};
+
+const ABSENCE_STATUS: Record<AbsenceStatus, [StatusTone, typeof IconBeach]> = {
+  REQUESTED: ['warn', IconHourglass],
+  APPROVED: ['good', IconCheck],
+  REJECTED: ['neutral', IconBan],
 };
 
 const PAYMENT: Record<PaymentKind, [StatusTone, typeof IconBeach]> = {
@@ -35,6 +41,16 @@ export function PaymentKindChip({ kind }: { kind: PaymentKind }) {
   return (
     <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
       {t(`payment.kind.${kind}`)}
+    </StatusChip>
+  );
+}
+
+export function AbsenceStatusChip({ status }: { status: AbsenceStatus }) {
+  const { t } = useTranslation();
+  const [tone, Icon] = ABSENCE_STATUS[status];
+  return (
+    <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
+      {t(`absence.status.${status}`)}
     </StatusChip>
   );
 }

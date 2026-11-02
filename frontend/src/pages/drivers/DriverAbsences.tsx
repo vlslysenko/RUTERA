@@ -13,7 +13,8 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { applyServerErrors } from '@/forms/serverErrors';
-import { AbsenceKindChip } from './HrChips';
+import { DecisionButtons } from './AbsenceRequests';
+import { AbsenceKindChip, AbsenceStatusChip } from './HrChips';
 import { formatRange } from './hrFormat';
 import classes from './DriversPage.module.css';
 
@@ -119,7 +120,8 @@ function AbsenceForm({ driverId, absence, onDone }: { driverId: string; absence:
   );
 }
 
-/** Absences of one driver (driver card tab): newest first, added and changed with driver.absence/manage. */
+/** Absences of one driver (driver card tab): newest first, added and changed with driver.absence/manage; requests from
+ * the driver cabinet are approved or rejected here too. */
 export function DriverAbsences({ driverId, canManage }: { driverId: string; canManage: boolean }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
@@ -171,6 +173,7 @@ export function DriverAbsences({ driverId, canManage }: { driverId: string; canM
                   <Stack gap={4}>
                     <Group gap={6} wrap="wrap">
                       <AbsenceKindChip kind={a.kind} />
+                      {a.status !== 'APPROVED' && <AbsenceStatusChip status={a.status} />}
                       <Text size="sm" fw={500} className={classes.mono}>
                         {formatRange(a.fromDate, a.toDate, lang)}
                       </Text>
@@ -179,13 +182,19 @@ export function DriverAbsences({ driverId, canManage }: { driverId: string; canM
                       {t('absences.days', { days: a.days, working: a.workingDays })}
                       {' · '}
                       {t(a.paid ? 'absences.paid' : 'absences.unpaid')}
-                      {a.approvedBy ? ` · ${t('absences.approved_by', { name: a.approvedBy.name })}` : ''}
+                      {a.status === 'APPROVED' && a.approvedBy ? ` · ${t('absences.approved_by', { name: a.approvedBy.name })}` : ''}
                     </Text>
                     {a.note && (
                       <Text size="sm" className={classes.notes}>
                         {a.note}
                       </Text>
                     )}
+                    {a.decisionNote && (
+                      <Text size="sm" c="dimmed" className={classes.notes}>
+                        {t('absences.decision_note', { note: a.decisionNote })}
+                      </Text>
+                    )}
+                    {canManage && a.status === 'REQUESTED' && <DecisionButtons absence={a} />}
                     {deleting === a.id && (
                       <Alert color="red" variant="light" p="xs">
                         <Group gap="xs">

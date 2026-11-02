@@ -115,10 +115,17 @@ the add-on), revokes it and shows its call log; with `admin.api_token/manage` th
 the `claude mcp add` command; the dev server proxies `/api` and `/mcp` to the backend as well.
 
 The driver cabinet `/driver` is a separate shell for the phone (tabs Today / Hours / Documents / Me at the bottom, no
-side menu); users with role DRIVER start there. It reads the driver linked to the login (`User.driver`, proposed) through
-the existing endpoints with that driver's id: trips (`?driverId=`, stop marks), `/tacho/activity` and violations,
-the driver with documents, absences, work days and payments. The backend does not grant `driver_app.self/use` on them
-yet and `/app/auth/me` has no `driver`; the mock implements that contract (`withPrivilegeOrSelf`).
+side menu); users with role DRIVER start there. It reads the driver linked to the login (`User.driver` from
+`/app/auth/me`, set by `userId` in the driver form) through the existing endpoints with that driver's id: trips
+(`?driverId=`, stop marks), `/tacho/activity` and violations, the driver with documents, absences, work days and
+payments; `driver_app.self/use` opens them for the own driver only (backend 4dfa4cb). Step 2 (backend
+3828f0c): the driver asks for an absence (REQUESTED, withdrawable until decided; "Me" tab), the office approves or
+rejects it in the absences screen (list of open requests) or the driver card (`PATCH .../absences/{id}`), only
+APPROVED ones fill the calendars; trip files (`/app/trips/{id}/files`: camera or file from the cabinet's trip card, a
+"Documents and photos" section in the office trip card); the pay block of the cabinet shows when
+`firma.driversSeePay`. Settings -> Company (`/settings/firma`, `admin.firma/manage`) edits the firma (name, VAT id,
+address, e-mail, document language, time zone, base currency, drivers see pay); plan, vehicle limit and AI access are
+read-only. The mock implements all of it (`withPrivilegeOrSelf`).
 
 The vehicle–driver link lives on the vehicle (`defaultDriverId` in the vehicle form); `Driver.defaultVehicle` is
 derived from it. Documents of vehicles and drivers share `components/DeadlineDocuments`.

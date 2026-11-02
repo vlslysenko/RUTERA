@@ -24,3 +24,34 @@ export const adminUsersApi = {
 };
 
 export const ADMIN_USERS_KEY = ['admin', 'users'] as const;
+
+/** Firma settings (admin.firma/manage); plan, vehicle limit and the AI access add-on belong to billing (read-only). */
+export interface FirmaSettings {
+  id: number;
+  name: string;
+  shortCode: string;
+  /** ISO alpha-2 */
+  country: string;
+  vatId: string | null;
+  address: string | null;
+  email: string | null;
+  /** Language of documents and e-mails of the firma. */
+  lang: string;
+  /** IANA zone the firma's days are cut in. */
+  timezone: string;
+  baseCurrency: string;
+  plan: string;
+  vehicleLimit: number | null;
+  aiAccess: boolean;
+  /** Drivers see their own pay rates and payments in the cabinet. */
+  driversSeePay: boolean;
+}
+
+export type FirmaSettingsInput = Pick<FirmaSettings, 'name' | 'vatId' | 'address' | 'email' | 'lang' | 'timezone' | 'baseCurrency' | 'driversSeePay'>;
+
+export const firmaApi = {
+  get: () => api<FirmaSettings>('/admin/firma'),
+  update: (body: FirmaSettingsInput) => api<FirmaSettings>('/admin/firma', { method: 'PUT', body }),
+};
+
+export const FIRMA_KEY = ['admin', 'firma'] as const;

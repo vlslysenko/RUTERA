@@ -9,9 +9,12 @@ import type {
   TripFilter,
   TripFromOrder,
   TripInput,
+  TripFile,
+  TripFileKind,
   TripStatus,
   TripStop,
 } from '@/api/trips';
+import { TRIP_FILE_KINDS } from '@/api/trips';
 
 /*
  * Contractors, orders and trips for the in-browser mock API, with the rules of OrderService / TripService:
@@ -614,4 +617,79 @@ export const contractorForCmr = (id: number): boolean => !!liveContractor(id);
 export function tripHasDriver(id: string, driverId: number): boolean {
   const t = trips.find((x) => x.id === Number(id));
   return !!t && (t.mainDriverId === driverId || t.secondDriverId === driverId);
+}
+
+// --- trip files --------------------------------------------------------------------------------------
+
+interface StoredTripFile extends TripFile {
+  tripId: number;
+  blob: Blob;
+}
+const tripFiles: StoredTripFile[] = [];
+const FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
+const tripClosed = (t: MockTrip) => t.status === 'DONE' || t.status === 'CANCELLED';
+const fileView = ({ tripId: _t, blob: _b, ...rest }: StoredTripFile): TripFile => rest;
+
+export function listTripFiles(id: string): MockReply {
+  const t = trips.find((x) => x.id === Number(id));
+  if (!t) return notFound();
+  return { status: 200, body: tripFiles.filter((f) => f.tripId === t.id).sort((a, b) => b.id - a.id).map(fileView) };
+}
+
+/** `driver`: an upload from the driver cabinet, refused on a DONE or CANCELLED trip. */
+export function uploadTripFile(id: string, body: unknown, user: { id: number; name: string }, driver: boolean): MockReply {
+  const t = trips.find((x) => x.id === Number(id));
+  if (!t) return notFound();
+  if (driver && tripClosed(t)) return fail(409, 'trip.file.trip_closed');
+  const form = body instanceof FormData ? body : new FormData();
+  const file = form.get('file');
+  const errors: Record<string, string> = {};
+  if (!(file instanceof File) || file.size === 0) errors.file = 'validation.required';
+  else if (!FILE_TYPES.includes(file.type)) errors.file = 'trip.file.type';
+  else if (file.size > 15 * 1024 * 1024) errors.file = 'trip.file.too_large';
+  const kind = String(form.get('kind') ?? 'OTHER');
+  if (!(TRIP_FILE_KINDS as readonly string[]).includes(kind)) errors.kind = 'validation.invalid_value';
+  const stopId = form.get('stopId') ? Number(form.get('stopId')) : null;
+  const stop = stopId == null ? null : t.stops.find((s) => s.id === stopId);
+  if (stopId != null && !stop) errors.stopId = 'validation.invalid_value';
+  if (Object.keys(errors).length) return invalid(errors);
+  const f = file as File;
+  const stored: StoredTripFile = {
+    id: Math.max(0, ...tripFiles.map((x) => x.id)) + 1,
+    tripId: t.id,
+    kind: kind as TripFileKind,
+    note: blank(String(form.get('note') ?? '')),
+    stop: stop ? { id: stop.id, seq: stop.seq } : null,
+    fileName: f.name,
+    contentType: f.type,
+    size: f.size,
+    uploadedBy: user,
+    createdAt: new Date().toISOString(),
+    blob: f,
+  };
+  tripFiles.push(stored);
+  return { status: 201, body: fileView(stored) };
+}
+
+export function tripFileContent(id: string, fileId: string): MockReply & { headers?: Record<string, string> } {
+  const f = tripFiles.find((x) => x.tripId === Number(id) && x.id === Number(fileId));
+  if (!f) return notFound();
+  return {
+    status: 200,
+    body: f.blob,
+    headers: { 'Content-Type': f.contentType, 'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(f.fileName)}` },
+  };
+}
+
+/** The office deletes any file; a driver only its own uploads while the trip is open. */
+export function removeTripFile(id: string, fileId: string, user: { id: number }, driver: boolean): MockReply {
+  const t = trips.find((x) => x.id === Number(id));
+  const i = tripFiles.findIndex((x) => x.tripId === Number(id) && x.id === Number(fileId));
+  if (!t || i < 0) return notFound();
+  if (driver) {
+    if (tripClosed(t)) return fail(409, 'trip.file.trip_closed');
+    if (tripFiles[i].uploadedBy.id !== user.id) return fail(403, 'auth.access_denied');
+  }
+  tripFiles.splice(i, 1);
+  return { status: 204 };
 }

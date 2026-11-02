@@ -29,6 +29,8 @@ export interface Firma {
   name: string;
   /** IANA zone the firma's days are cut in (tachograph days, 561/2006); "UTC" for now. */
   timezone?: string;
+  /** Drivers see their own pay in the cabinet (firma settings). */
+  driversSeePay?: boolean;
 }
 
 export interface User {

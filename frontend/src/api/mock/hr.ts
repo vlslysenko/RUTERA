@@ -68,11 +68,14 @@ interface StoredAbsence extends Omit<Absence, 'driver' | 'days' | 'workingDays' 
 const MANAGER: PersonRef = { id: 1, name: 'Anna Kowalska' };
 let nextId = 100;
 
+const approved = { status: 'APPROVED' as const, decisionNote: null, approvedBy: MANAGER, approvedAt: T0 };
 const absences: StoredAbsence[] = [
-  { id: ++nextId, driverId: 2, kind: 'VACATION', fromDate: inDays(3), toDate: inDays(9), paid: true, note: 'Urlop wypoczynkowy', approvedBy: MANAGER, approvedAt: T0, createdAt: T0, updatedAt: T0 },
-  { id: ++nextId, driverId: 4, kind: 'SICK', fromDate: inDays(-4), toDate: inDays(1), paid: true, note: 'L4', approvedBy: MANAGER, approvedAt: T0, createdAt: T0, updatedAt: T0 },
-  { id: ++nextId, driverId: 3, kind: 'UNPAID', fromDate: inDays(12), toDate: inDays(13), paid: false, note: null, approvedBy: MANAGER, approvedAt: T0, createdAt: T0, updatedAt: T0 },
-  { id: ++nextId, driverId: 1, kind: 'VACATION', fromDate: inDays(-40), toDate: inDays(-30), paid: true, note: null, approvedBy: MANAGER, approvedAt: T0, createdAt: T0, updatedAt: T0 },
+  { id: ++nextId, driverId: 2, kind: 'VACATION', fromDate: inDays(3), toDate: inDays(9), paid: true, note: 'Urlop wypoczynkowy', ...approved, createdAt: T0, updatedAt: T0 },
+  { id: ++nextId, driverId: 4, kind: 'SICK', fromDate: inDays(-4), toDate: inDays(1), paid: true, note: 'L4', ...approved, createdAt: T0, updatedAt: T0 },
+  { id: ++nextId, driverId: 3, kind: 'UNPAID', fromDate: inDays(12), toDate: inDays(13), paid: false, note: null, ...approved, createdAt: T0, updatedAt: T0 },
+  { id: ++nextId, driverId: 1, kind: 'VACATION', fromDate: inDays(-40), toDate: inDays(-30), paid: true, note: null, ...approved, createdAt: T0, updatedAt: T0 },
+  // Requests from the driver cabinet, waiting for the office.
+  { id: ++nextId, driverId: 3, kind: 'VACATION', fromDate: inDays(20), toDate: inDays(27), paid: true, note: 'Wesele brata', status: 'REQUESTED', decisionNote: null, approvedBy: null, approvedAt: null, createdAt: T0, updatedAt: T0 },
 ];
 
 /** Manual days: driverId -> day -> entry. */
@@ -113,6 +116,7 @@ function toAbsence(a: StoredAbsence, hr: HrLookup): Absence {
 export function listAbsences(driverId: number, query: Record<string, string>, hr: HrLookup): MockReply {
   const items = absences
     .filter((a) => a.driverId === driverId)
+    .filter((a) => !query.status || a.status === query.status)
     .filter((a) => (!query.to || a.fromDate <= query.to) && (!query.from || a.toDate >= query.from))
     .sort((a, b) => b.fromDate.localeCompare(a.fromDate));
   return { status: 200, body: items.map((a) => toAbsence(a, hr)) };
@@ -122,13 +126,15 @@ export function firmAbsences(query: Record<string, string>, hr: HrLookup): MockR
   const items = absences
     .filter((a) => (!query.to || a.fromDate <= query.to) && (!query.from || a.toDate >= query.from))
     .filter((a) => !query.kind || a.kind === query.kind)
+    .filter((a) => !query.status || a.status === query.status)
     .filter((a) => !query.driverId || String(a.driverId) === query.driverId)
     .filter((a) => hr.driverName(a.driverId) !== null)
     .sort((a, b) => a.fromDate.localeCompare(b.fromDate));
   return { status: 200, body: items.map((a) => toAbsence(a, hr)) };
 }
 
-export function saveAbsence(driverId: number, b: AbsenceInput, id: string | null, hr: HrLookup, approver: PersonRef): MockReply {
+/** `approver` null: the driver asks for himself in the cabinet (REQUESTED); otherwise the office enters it (APPROVED). */
+export function saveAbsence(driverId: number, b: AbsenceInput, id: string | null, hr: HrLookup, approver: PersonRef | null): MockReply {
   const target = id == null ? undefined : absences.find((a) => String(a.id) === id && a.driverId === driverId);
   if (id != null && !target) return notFound();
   const errors: Record<string, string> = {};
@@ -137,7 +143,7 @@ export function saveAbsence(driverId: number, b: AbsenceInput, id: string | null
   if (!b.toDate) errors.toDate = 'validation.required';
   else if (b.fromDate) {
     if (b.toDate < b.fromDate || dayCount(b.fromDate, b.toDate) > 366) errors.toDate = 'validation.invalid_value';
-    else if (absences.some((a) => a.driverId === driverId && a.id !== target?.id && a.fromDate <= b.toDate && a.toDate >= b.fromDate)) {
+    else if (absences.some((a) => a.driverId === driverId && a.id !== target?.id && a.status !== 'REJECTED' && a.fromDate <= b.toDate && a.toDate >= b.fromDate)) {
       errors.toDate = 'driver.absence.overlap';
     }
   }
@@ -149,16 +155,33 @@ export function saveAbsence(driverId: number, b: AbsenceInput, id: string | null
     Object.assign(target, value);
     return { status: 200, body: toAbsence(target, hr) };
   }
-  const created: StoredAbsence = { ...value, id: ++nextId, driverId, approvedBy: approver, approvedAt: now, createdAt: now };
+  const created: StoredAbsence = approver
+    ? { ...value, id: ++nextId, driverId, status: 'APPROVED', decisionNote: null, approvedBy: approver, approvedAt: now, createdAt: now }
+    : { ...value, id: ++nextId, driverId, status: 'REQUESTED', decisionNote: null, approvedBy: null, approvedAt: null, createdAt: now };
   absences.push(created);
   return { status: 201, body: toAbsence(created, hr) };
 }
 
-export function removeAbsence(driverId: number, id: string): MockReply {
+/** `own`: the driver withdraws his request, possible only while it is REQUESTED (409 otherwise). */
+export function removeAbsence(driverId: number, id: string, own = false): MockReply {
   const i = absences.findIndex((a) => String(a.id) === id && a.driverId === driverId);
   if (i < 0) return notFound();
+  if (own && absences[i].status !== 'REQUESTED') return { status: 409, body: { status: 409, code: 'error.conflict', message: 'error.conflict' } };
   absences.splice(i, 1);
   return { status: 204 };
+}
+
+export function decideAbsence(driverId: number, id: string, b: { status?: string; note?: string | null }, hr: HrLookup, approver: PersonRef): MockReply {
+  const target = absences.find((a) => String(a.id) === id && a.driverId === driverId);
+  if (!target) return notFound();
+  if (b.status !== 'APPROVED' && b.status !== 'REJECTED') return invalid({ status: b.status ? 'validation.invalid_value' : 'validation.required' });
+  if ((b.note ?? '').length > 500) return invalid({ note: 'validation.too_long' });
+  if (b.status === 'APPROVED' && absences.some((a) => a !== target && a.driverId === driverId && a.status !== 'REJECTED' && a.fromDate <= target.toDate && a.toDate >= target.fromDate)) {
+    return invalid({ status: 'driver.absence.overlap' });
+  }
+  const now = new Date().toISOString();
+  Object.assign(target, { status: b.status, decisionNote: blank(b.note), approvedBy: approver, approvedAt: now, updatedAt: now });
+  return { status: 200, body: toAbsence(target, hr) };
 }
 
 // --- work days ---------------------------------------------------------------------------------------
@@ -174,7 +197,7 @@ function tachoDay(driverId: number, day: string): { drivingMin: number; workMin:
 function computeDay(driverId: number, day: string): DriverDay {
   const manual = manualDays.get(driverId)?.get(day);
   const tacho = tachoDay(driverId, day);
-  const absence = absences.find((a) => a.driverId === driverId && a.fromDate <= day && day <= a.toDate);
+  const absence = absences.find((a) => a.driverId === driverId && a.status === 'APPROVED' && a.fromDate <= day && day <= a.toDate);
   const minutes = { drivingMin: tacho?.drivingMin ?? 0, workMin: tacho?.workMin ?? 0 };
   if (manual) return { day, kind: manual.kind, source: 'MANUAL', absenceKind: manual.kind === 'ABSENCE' ? (absence?.kind ?? null) : null, ...minutes, note: manual.note };
   if (absence) return { day, kind: 'ABSENCE', source: 'ABSENCE', absenceKind: absence.kind, ...minutes, note: absence.note };

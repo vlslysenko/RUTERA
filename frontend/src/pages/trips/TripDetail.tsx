@@ -7,7 +7,7 @@ import { IconArrowBackUp, IconBan, IconCheck, IconFlag, IconPencil, IconPlayerPl
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
 import { ORDERS_KEY, TRIPS_KEY, tripsApi, tripToInput, type StopStatus, type Trip, type TripStatus, type TripStop } from '@/api/trips';
-import { hasPrivilege, PRIV } from '@/auth/privileges';
+import { hasAnyPrivilege, hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
 import { DetailDrawer } from '@/components/DetailDrawer';
 import { ErrorState } from '@/components/ErrorState';
@@ -16,6 +16,7 @@ import { Plate } from '@/components/Plate';
 import { countryName } from '@/utils/countries';
 import { cx } from '@/utils/cx';
 import { CmrLinks } from './CmrLinks';
+import { TripFiles } from './TripFiles';
 import { StopStatusChip, TripStatusChip } from './TripChips';
 import { formatInstantShort, formatMoney } from './tripFormat';
 import classes from './Trips.module.css';
@@ -335,6 +336,14 @@ export function TripDetail({ mode }: { mode: 'drawer' | 'page' }) {
           )}
           <Overview trip={trip} canMark={canManage && trip.status !== 'CANCELLED'} />
           <CmrLinks tripId={trip.id} canCreate={trip.status !== 'CANCELLED'} />
+          <section className={classes.section}>
+            <h3 className={classes.sectionTitle}>{t('trip_files.title')}</h3>
+            <TripFiles
+              trip={trip}
+              canUpload={hasAnyPrivilege(me, [PRIV.TRIP_TRIP_MANAGE, PRIV.TRIP_CMR_UPLOAD])}
+              canDeleteAll={hasPrivilege(me, PRIV.TRIP_TRIP_MANAGE)}
+            />
+          </section>
         </Stack>
       ) : null}
     </DetailDrawer>

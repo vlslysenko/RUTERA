@@ -17,6 +17,7 @@ export function SettingsLayout() {
     { value: '/settings/password', label: t('settings.tab.password') },
     ...(hasPrivilege(user, PRIV.PROFILE_SELF_MANAGE) ? [{ value: '/settings/tokens', label: t('settings.tab.tokens') }] : []),
     ...(hasPrivilege(user, PRIV.ADMIN_USER_VIEW) ? [{ value: '/settings/users', label: t('settings.tab.users') }] : []),
+    ...(hasPrivilege(user, PRIV.ADMIN_FIRMA_MANAGE) ? [{ value: '/settings/firma', label: t('settings.tab.firma') }] : []),
     ...(hasPrivilege(user, PRIV.ADMIN_API_TOKEN_MANAGE) ? [{ value: '/settings/api-tokens', label: t('settings.tab.api_tokens') }] : []),
   ];
   const active =
