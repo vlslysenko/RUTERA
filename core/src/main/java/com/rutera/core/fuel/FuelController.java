@@ -41,7 +41,7 @@ public class FuelController {
         this.service = service;
     }
 
-    @GetMapping("/app/fuel/transactions")
+    @GetMapping({"/app/fuel/transactions", "/api/v1/fuel/transactions"})
     public FuelDto.Page list(@RequestParam(required = false) LocalDate from,
                              @RequestParam(required = false) LocalDate to,
                              @RequestParam(required = false) Long vehicleId,
@@ -59,50 +59,50 @@ public class FuelController {
                 page, size);
     }
 
-    @GetMapping("/app/fuel/transactions/{id}")
+    @GetMapping({"/app/fuel/transactions/{id}", "/api/v1/fuel/transactions/{id}"})
     public FuelDto.Transaction get(@PathVariable Long id) {
         return service.get(id);
     }
 
-    @PostMapping("/app/fuel/transactions")
+    @PostMapping({"/app/fuel/transactions", "/api/v1/fuel/transactions"})
     @ResponseStatus(HttpStatus.CREATED)
     public FuelDto.Transaction create(@Valid @RequestBody FuelDto.TransactionInput input) {
         return service.create(input);
     }
 
-    @PutMapping("/app/fuel/transactions/{id}")
+    @PutMapping({"/app/fuel/transactions/{id}", "/api/v1/fuel/transactions/{id}"})
     public FuelDto.Transaction update(@PathVariable Long id, @Valid @RequestBody FuelDto.TransactionInput input) {
         return service.update(id, input);
     }
 
-    @PatchMapping("/app/fuel/transactions/{id}")
+    @PatchMapping({"/app/fuel/transactions/{id}", "/api/v1/fuel/transactions/{id}"})
     public FuelDto.Transaction assign(@PathVariable Long id, @Valid @RequestBody FuelDto.AssignInput input) {
         return service.assign(id, input);
     }
 
-    @DeleteMapping("/app/fuel/transactions/{id}")
+    @DeleteMapping({"/app/fuel/transactions/{id}", "/api/v1/fuel/transactions/{id}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
 
-    @GetMapping("/app/fuel/cards")
+    @GetMapping({"/app/fuel/cards", "/api/v1/fuel/cards"})
     public List<FuelDto.Card> cards() {
         return service.cards();
     }
 
-    @PostMapping("/app/fuel/cards")
+    @PostMapping({"/app/fuel/cards", "/api/v1/fuel/cards"})
     @ResponseStatus(HttpStatus.CREATED)
     public FuelDto.Card createCard(@Valid @RequestBody FuelDto.CardInput input) {
         return service.createCard(input);
     }
 
-    @PutMapping("/app/fuel/cards/{id}")
+    @PutMapping({"/app/fuel/cards/{id}", "/api/v1/fuel/cards/{id}"})
     public FuelDto.Card updateCard(@PathVariable Long id, @Valid @RequestBody FuelDto.CardInput input) {
         return service.updateCard(id, input);
     }
 
-    @DeleteMapping("/app/fuel/cards/{id}")
+    @DeleteMapping({"/app/fuel/cards/{id}", "/api/v1/fuel/cards/{id}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCard(@PathVariable Long id) {
         service.deleteCard(id);

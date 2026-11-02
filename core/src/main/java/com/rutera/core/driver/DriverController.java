@@ -30,7 +30,7 @@ import java.util.List;
  * 422 {@code error.validation} with per-field codes, e.g. {@code cardNumber: driver.card.number_taken}.
  */
 @RestController
-@RequestMapping("/app/drivers")
+@RequestMapping({"/app/drivers", "/api/v1/drivers"})
 public class DriverController {
 
     private final DriverService service;

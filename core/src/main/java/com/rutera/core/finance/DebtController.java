@@ -29,17 +29,17 @@ public class DebtController {
         this.reminders = reminders;
     }
 
-    @GetMapping("/app/debts")
+    @GetMapping({"/app/debts", "/api/v1/debts"})
     public List<FinanceDto.DebtRow> debts(@RequestParam(required = false) LocalDate asOf) {
         return invoices.debts(asOf);
     }
 
-    @GetMapping("/app/reminders/schedule")
+    @GetMapping({"/app/reminders/schedule", "/api/v1/reminders/schedule"})
     public FinanceDto.Schedule schedule() {
         return reminders.schedule();
     }
 
-    @PutMapping("/app/reminders/schedule")
+    @PutMapping({"/app/reminders/schedule", "/api/v1/reminders/schedule"})
     public FinanceDto.Schedule updateSchedule(@Valid @RequestBody FinanceDto.ScheduleInput input) {
         return reminders.updateSchedule(input);
     }

@@ -40,7 +40,7 @@ import java.util.List;
  * </pre>
  */
 @RestController
-@RequestMapping("/app/tacho/files")
+@RequestMapping({"/app/tacho/files", "/api/v1/tacho/files"})
 public class TachoFileController {
 
     private final TachoImportService service;

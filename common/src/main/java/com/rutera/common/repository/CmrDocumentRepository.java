@@ -2,6 +2,7 @@ package com.rutera.common.repository;
 
 import com.rutera.common.domain.CmrDocument;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -35,4 +36,14 @@ public interface CmrDocumentRepository extends JpaRepository<CmrDocument, Long> 
 
     @Query("select c.number from CmrDocument c where c.number like :prefix")
     List<String> numbersLike(@Param("prefix") String prefix);
+
+    /** A deleted trip leaves its CMR notes as documents without the link. */
+    @Modifying
+    @Query("update CmrDocument c set c.tripId = null where c.tripId = :tripId")
+    int detachTrip(@Param("tripId") Long tripId);
+
+    /** A deleted order leaves its CMR notes as documents without the link. */
+    @Modifying
+    @Query("update CmrDocument c set c.orderId = null where c.orderId = :orderId")
+    int detachOrder(@Param("orderId") Long orderId);
 }

@@ -2,6 +2,7 @@ package com.rutera.common.repository;
 
 import com.rutera.common.domain.Invoice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -30,6 +31,10 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
                          @Param("from") LocalDate from, @Param("to") LocalDate to, @Param("q") String q);
 
     Optional<Invoice> findByDirectionAndNumber(Invoice.Direction direction, String number);
+
+    @Modifying
+    @Query("update Invoice i set i.tripId = null where i.tripId = :tripId")
+    int detachTrip(@Param("tripId") Long tripId);
 
     /** Numbers of the direction starting with {@code prefix} (for the next number of a series). */
     @Query("select i.number from Invoice i where i.direction = :direction and i.number like concat(:prefix, '%')")

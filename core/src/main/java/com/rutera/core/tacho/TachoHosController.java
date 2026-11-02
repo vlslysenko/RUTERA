@@ -22,7 +22,7 @@ import java.time.LocalDate;
  * </pre>
  */
 @RestController
-@RequestMapping("/app/tacho")
+@RequestMapping({"/app/tacho", "/api/v1/tacho"})
 public class TachoHosController {
 
     private final HosService service;

@@ -64,4 +64,8 @@ public interface FuelTransactionRepository extends JpaRepository<FuelTransaction
     @Modifying
     @Query("update FuelTransaction t set t.cardId = null where t.cardId = :cardId")
     int detachCard(@Param("cardId") Long cardId);
+
+    @Modifying
+    @Query("update FuelTransaction t set t.tripId = null where t.tripId = :tripId")
+    int detachTrip(@Param("tripId") Long tripId);
 }

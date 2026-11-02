@@ -3,6 +3,7 @@ package com.rutera.core.trip;
 import com.rutera.common.domain.Contractor;
 import com.rutera.common.domain.TransportOrder;
 import com.rutera.common.domain.Trip;
+import com.rutera.common.repository.CmrDocumentRepository;
 import com.rutera.common.repository.ContractorRepository;
 import com.rutera.common.repository.TransportOrderRepository;
 import com.rutera.common.repository.TripRepository;
@@ -49,10 +50,13 @@ public class OrderService {
     private final TripRepository trips;
     private final ContractorService contractorService;
     private final TripService tripService;
+    private final CmrDocumentRepository cmrs;
     private final AuditService audit;
 
     public OrderService(TransportOrderRepository orders, ContractorRepository contractors, TripRepository trips,
-                        ContractorService contractorService, TripService tripService, AuditService audit) {
+                        ContractorService contractorService, TripService tripService, CmrDocumentRepository cmrs,
+                        AuditService audit) {
+        this.cmrs = cmrs;
         this.orders = orders;
         this.contractors = contractors;
         this.trips = trips;
@@ -113,6 +117,7 @@ public class OrderService {
         if (o.getTripId() != null || o.getStatus() == TransportOrder.Status.INVOICED) {
             throw new ApiException(HttpStatus.CONFLICT, ErrorCodes.CONFLICT);
         }
+        cmrs.detachOrder(o.getId());
         orders.delete(o);
         audit.record(AuditEvent.of(MODULE, "order_deleted", "Deleted order " + o.getNumber())
                 .entity("transport_order", o.getId()));

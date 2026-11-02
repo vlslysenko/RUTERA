@@ -1,5 +1,11 @@
 package com.rutera.core.config;
 
+import com.rutera.common.repository.ApiCallRepository;
+import com.rutera.common.repository.ApiTokenRepository;
+import com.rutera.common.repository.AppUserRepository;
+import com.rutera.common.repository.FirmaRepository;
+import com.rutera.core.api.ApiRateLimiter;
+import com.rutera.core.api.ApiTokenFilter;
 import com.rutera.core.auth.AuditLogoutHandler;
 import com.rutera.core.security.JsonSecurityErrors;
 import com.rutera.core.security.RuteraSecurityProperties;
@@ -10,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,6 +33,7 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.Map;
 
@@ -52,7 +60,37 @@ public class SecurityConfig {
     public static final String LOGOUT_PATH = "/app/auth/logout";
     public static final String SESSION_COOKIE = "RUTERA_SESSION";
 
+    /**
+     * The public API ({@code /api/**}): stateless bearer tokens ({@link ApiTokenFilter}), no session, no CSRF; the
+     * OpenAPI document is public. Checked before the session chain below.
+     */
     @Bean
+    @Order(1)
+    SecurityFilterChain apiFilterChain(HttpSecurity http, JsonSecurityErrors errors, ApiTokenRepository tokens,
+                                       ApiCallRepository calls, AppUserRepository users, FirmaRepository firmas,
+                                       SessionUserService sessionUsers, ApiRateLimiter limiter,
+                                       PlatformTransactionManager transactionManager) throws Exception {
+        http
+                .securityMatcher("/api/**")
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .requestCache(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(eh -> eh
+                        .authenticationEntryPoint(errors)
+                        .accessDeniedHandler(errors))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/v1/openapi.json").permitAll()
+                        .anyRequest().authenticated())
+                .addFilterAfter(new ApiTokenFilter(tokens, calls, users, firmas, sessionUsers, limiter, errors,
+                        transactionManager), SecurityContextHolderFilter.class);
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     SecurityFilterChain securityFilterChain(HttpSecurity http,
                                             JsonSecurityErrors errors,
                                             SessionUserService sessionUsers,

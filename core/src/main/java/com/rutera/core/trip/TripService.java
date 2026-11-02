@@ -7,8 +7,11 @@ import com.rutera.common.domain.Trip;
 import com.rutera.common.domain.TripDriver;
 import com.rutera.common.domain.TripStop;
 import com.rutera.common.domain.Vehicle;
+import com.rutera.common.repository.CmrDocumentRepository;
 import com.rutera.common.repository.ContractorRepository;
 import com.rutera.common.repository.DriverRepository;
+import com.rutera.common.repository.FuelTransactionRepository;
+import com.rutera.common.repository.InvoiceRepository;
 import com.rutera.common.repository.TransportOrderRepository;
 import com.rutera.common.repository.TripDriverRepository;
 import com.rutera.common.repository.TripRepository;
@@ -61,11 +64,18 @@ public class TripService {
     private final ContractorRepository contractors;
     private final VehicleRepository vehicles;
     private final DriverRepository drivers;
+    private final CmrDocumentRepository cmrs;
+    private final FuelTransactionRepository fuel;
+    private final InvoiceRepository invoices;
     private final AuditService audit;
 
     public TripService(TripRepository trips, TripDriverRepository crew, TripStopRepository stops,
                        TransportOrderRepository orders, ContractorRepository contractors, VehicleRepository vehicles,
-                       DriverRepository drivers, AuditService audit) {
+                       DriverRepository drivers, CmrDocumentRepository cmrs, FuelTransactionRepository fuel,
+                       InvoiceRepository invoices, AuditService audit) {
+        this.cmrs = cmrs;
+        this.fuel = fuel;
+        this.invoices = invoices;
         this.trips = trips;
         this.crew = crew;
         this.stops = stops;
@@ -138,6 +148,10 @@ public class TripService {
         }
         stops.deleteAll(stops.findByTripIdOrderBySeqAsc(trip.getId()));
         crew.deleteAll(crew.findByTripId(trip.getId()));
+        // CMR notes, fuel transactions and invoices keep their data, only the link to the trip goes
+        cmrs.detachTrip(trip.getId());
+        fuel.detachTrip(trip.getId());
+        invoices.detachTrip(trip.getId());
         stops.flush();
         crew.flush();
         orders.flush();

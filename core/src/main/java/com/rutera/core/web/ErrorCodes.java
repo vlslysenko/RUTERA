@@ -61,6 +61,11 @@ public final class ErrorCodes {
     public static final String FUEL_COLUMNS_MISSING = "fuel.import.columns_missing";
     public static final String FUEL_CARD_TAKEN = "fuel.card.number_taken";
 
+    /** Public API: the firma has no AI access add-on (403), too many calls (429), too many tokens (per-field). */
+    public static final String API_AI_ACCESS_REQUIRED = "api.ai_access_required";
+    public static final String API_RATE_LIMITED = "api.rate_limited";
+    public static final String API_TOKEN_LIMIT = "api.token.limit";
+
     /** Trips and orders (per-field): the VAT id or the number is already used in the firma. */
     public static final String CONTRACTOR_VAT_TAKEN = "trip.contractor.vat_taken";
     public static final String ORDER_NUMBER_TAKEN = "trip.order.number_taken";

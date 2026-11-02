@@ -142,7 +142,7 @@ public class CmrService {
         if (copies < 1 || copies > 4) {
             throw ApiException.validation(Map.of("copies", ErrorCodes.FIELD_INVALID_VALUE));
         }
-        String name = "CMR " + c.getNumber().replace('/', '-') + ".pdf";
+        String name = c.getNumber().replace('/', '-') + ".pdf";
         if (c.getFileId() != null) {
             StoredFile f = storedFiles.findById(c.getFileId()).orElse(null);
             if (f != null) {
@@ -216,7 +216,7 @@ public class CmrService {
         c.setIssuedAt(Instant.now());
         c.setIssuedBy(CurrentUser.require().id());
         byte[] bytes = pdf.render(toDtos(List.of(c)).getFirst(), ISSUED_COPIES, false);
-        StoredFile f = storage.store(c.getFirmaId(), STORED_KIND, "CMR " + c.getNumber().replace('/', '-') + ".pdf",
+        StoredFile f = storage.store(c.getFirmaId(), STORED_KIND, c.getNumber().replace('/', '-') + ".pdf",
                 "application/pdf", bytes, sha256(bytes), CurrentUser.require().id());
         c.setFileId(f.getId());
         cmrs.save(c);

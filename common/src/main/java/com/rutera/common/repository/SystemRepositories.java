@@ -1,7 +1,6 @@
 package com.rutera.common.repository;
 
 import com.rutera.common.domain.ActivationToken;
-import com.rutera.common.domain.ApiToken;
 import com.rutera.common.domain.AppSetting;
 import com.rutera.common.domain.FirmaSetting;
 import com.rutera.common.domain.Notification;
@@ -31,12 +30,6 @@ public final class SystemRepositories {
 
     public interface TotpRecoveryCodeRepository extends JpaRepository<TotpRecoveryCode, Long> {
         List<TotpRecoveryCode> findByUserIdAndUsedAtIsNull(Long userId);
-    }
-
-    public interface ApiTokenRepository extends JpaRepository<ApiToken, Long> {
-        Optional<ApiToken> findByTokenHash(String tokenHash);
-
-        List<ApiToken> findByUserIdAndRevokedAtIsNull(Long userId);
     }
 
     public interface NotificationRepository extends JpaRepository<Notification, Long> {

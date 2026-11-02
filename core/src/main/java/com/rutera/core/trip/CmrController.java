@@ -37,7 +37,7 @@ import java.util.List;
  * </pre>
  */
 @RestController
-@RequestMapping("/app/cmr")
+@RequestMapping({"/app/cmr", "/api/v1/cmr"})
 public class CmrController {
 
     private final CmrService service;

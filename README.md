@@ -526,6 +526,39 @@ Service and controller methods are guarded with `@RequiresPrivilege("module.enti
 `core.security`); the effective set = role defaults + custom role + per-user overrides, computed at login. Every
 request carries `requestId`, `firmaId` and `userId` in the MDC (log lines) and the same `requestId` in `audit_log`.
 
+## Public API (`/api/v1`, paid AI access add-on)
+
+The same resources as the web application, for scripts and integrations, available while the firma has the AI
+access add-on (`firma.ai_access`). Personal tokens act as their user with the user's current privileges, inside the
+user's firma; auth, profile, administration and the i18n dictionaries are not part of the public API. The MCP
+server for AI assistants (same operations as tools, same tokens) is the next step.
+
+Tokens (web application, session):
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/me/tokens` | `Token[]` of the signed-in user (`profile.self/manage`) |
+| POST | `/app/me/tokens` | `{name, expiresAt?}` -> 201 `Token` with `token` (shown only here); 403 `api.ai_access_required` without the add-on; at most 10 active tokens per user (`name: api.token.limit`) |
+| DELETE | `/app/me/tokens/{id}` | 204: revoked |
+| GET | `/app/me/tokens/{id}/calls?page=&size=` | `{items: [{at, method, path, status, durationMs, ip}], total}`, newest first (own tokens, or any with `admin.api_token/manage`) |
+| GET / DELETE | `/app/admin/tokens[/{id}]` | all tokens of the firma with `user: {id, name}` / revoke (`admin.api_token/manage`) |
+
+`Token = {id, name, prefix, user, createdAt, expiresAt, lastUsedAt, revokedAt, active, token}`. A token is `rtr_` plus
+43 random base64url characters; only its first 12 characters (`prefix`) and its SHA-256 hash are stored.
+
+Calls: `Authorization: Bearer rtr_...` on every request; no session, no CSRF. Answers and errors are the ones of the
+web API (`{code, message, details}`): 401 `auth.unauthenticated` (no, unknown, expired or revoked token, or a user or
+firma that can no longer sign in), 403 `api.ai_access_required` (no add-on), 403 `auth.access_denied` (privilege),
+429 `api.rate_limited` with `Retry-After` (fixed window per token, `RUTERA_API_RATE_PER_MINUTE`, default 120 per
+minute). Every call with a known token is written to `api_call` (token, user, method, path, status, duration, IP).
+
+Resources (paths, bodies and privileges as described in the sections above, `/app` replaced by `/api/v1`):
+`/api/v1/vehicles` (the web path is `/app/fleet/vehicles`), `/drivers` with absences, days, pay rates and payments,
+`/absences`, `/payments`, `/contractors`, `/orders`, `/trips`, `/cmr`, `/invoices`, `/debts`, `/reminders/schedule`,
+`/fuel/transactions`, `/fuel/cards`, `/fuel/imports`, `/fuel/mappings`, `/calc/trip`, `/calc/toll-tariffs`,
+`/tacho/files`, `/tacho/activity`, `/tacho/violations`. The OpenAPI 3 document of these paths with the bearer scheme
+is public at `GET /api/v1/openapi.json` (springdoc-openapi 3.0.3).
+
 ## Conventions
 
 - SMDP (`C:\IQ_VSL\GIT\pc-server-new\pc-server`) is a read-only source of ideas and code; nothing is copied 1:1.

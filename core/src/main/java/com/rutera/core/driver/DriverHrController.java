@@ -44,31 +44,31 @@ public class DriverHrController {
 
     // --- absences
 
-    @GetMapping("/app/drivers/{id}/absences")
+    @GetMapping({"/app/drivers/{id}/absences", "/api/v1/drivers/{id}/absences"})
     public List<HrDto.Absence> absences(@PathVariable Long id, @RequestParam(required = false) LocalDate from,
                                         @RequestParam(required = false) LocalDate to) {
         return service.absences(id, from, to);
     }
 
-    @PostMapping("/app/drivers/{id}/absences")
+    @PostMapping({"/app/drivers/{id}/absences", "/api/v1/drivers/{id}/absences"})
     @ResponseStatus(HttpStatus.CREATED)
     public HrDto.Absence createAbsence(@PathVariable Long id, @Valid @RequestBody HrDto.AbsenceInput input) {
         return service.createAbsence(id, input);
     }
 
-    @PutMapping("/app/drivers/{id}/absences/{absenceId}")
+    @PutMapping({"/app/drivers/{id}/absences/{absenceId}", "/api/v1/drivers/{id}/absences/{absenceId}"})
     public HrDto.Absence updateAbsence(@PathVariable Long id, @PathVariable Long absenceId,
                                        @Valid @RequestBody HrDto.AbsenceInput input) {
         return service.updateAbsence(id, absenceId, input);
     }
 
-    @DeleteMapping("/app/drivers/{id}/absences/{absenceId}")
+    @DeleteMapping({"/app/drivers/{id}/absences/{absenceId}", "/api/v1/drivers/{id}/absences/{absenceId}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAbsence(@PathVariable Long id, @PathVariable Long absenceId) {
         service.deleteAbsence(id, absenceId);
     }
 
-    @GetMapping("/app/absences")
+    @GetMapping({"/app/absences", "/api/v1/absences"})
     public List<HrDto.Absence> allAbsences(@RequestParam(required = false) LocalDate from,
                                            @RequestParam(required = false) LocalDate to,
                                            @RequestParam(required = false) String kind,
@@ -78,42 +78,42 @@ public class DriverHrController {
 
     // --- working days
 
-    @GetMapping("/app/drivers/{id}/days")
+    @GetMapping({"/app/drivers/{id}/days", "/api/v1/drivers/{id}/days"})
     public HrDto.Month month(@PathVariable Long id, @RequestParam(required = false) String month) {
         return service.month(id, month);
     }
 
-    @PutMapping("/app/drivers/{id}/days/{day}")
+    @PutMapping({"/app/drivers/{id}/days/{day}", "/api/v1/drivers/{id}/days/{day}"})
     public HrDto.Day setDay(@PathVariable Long id, @PathVariable LocalDate day,
                             @Valid @RequestBody HrDto.DayInput input) {
         return service.setDay(id, day, input);
     }
 
-    @DeleteMapping("/app/drivers/{id}/days/{day}")
+    @DeleteMapping({"/app/drivers/{id}/days/{day}", "/api/v1/drivers/{id}/days/{day}"})
     public HrDto.Day clearDay(@PathVariable Long id, @PathVariable LocalDate day) {
         return service.clearDay(id, day);
     }
 
     // --- pay rates
 
-    @GetMapping("/app/drivers/{id}/pay-rates")
+    @GetMapping({"/app/drivers/{id}/pay-rates", "/api/v1/drivers/{id}/pay-rates"})
     public List<HrDto.PayRate> rates(@PathVariable Long id) {
         return service.rates(id);
     }
 
-    @PostMapping("/app/drivers/{id}/pay-rates")
+    @PostMapping({"/app/drivers/{id}/pay-rates", "/api/v1/drivers/{id}/pay-rates"})
     @ResponseStatus(HttpStatus.CREATED)
     public HrDto.PayRate createRate(@PathVariable Long id, @Valid @RequestBody HrDto.PayRateInput input) {
         return service.createRate(id, input);
     }
 
-    @PutMapping("/app/drivers/{id}/pay-rates/{rateId}")
+    @PutMapping({"/app/drivers/{id}/pay-rates/{rateId}", "/api/v1/drivers/{id}/pay-rates/{rateId}"})
     public HrDto.PayRate updateRate(@PathVariable Long id, @PathVariable Long rateId,
                                     @Valid @RequestBody HrDto.PayRateInput input) {
         return service.updateRate(id, rateId, input);
     }
 
-    @DeleteMapping("/app/drivers/{id}/pay-rates/{rateId}")
+    @DeleteMapping({"/app/drivers/{id}/pay-rates/{rateId}", "/api/v1/drivers/{id}/pay-rates/{rateId}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRate(@PathVariable Long id, @PathVariable Long rateId) {
         service.deleteRate(id, rateId);
@@ -121,31 +121,31 @@ public class DriverHrController {
 
     // --- payments
 
-    @GetMapping("/app/drivers/{id}/payments")
+    @GetMapping({"/app/drivers/{id}/payments", "/api/v1/drivers/{id}/payments"})
     public List<HrDto.Payment> payments(@PathVariable Long id, @RequestParam(required = false) String from,
                                         @RequestParam(required = false) String to) {
         return service.payments(id, from, to);
     }
 
-    @PostMapping("/app/drivers/{id}/payments")
+    @PostMapping({"/app/drivers/{id}/payments", "/api/v1/drivers/{id}/payments"})
     @ResponseStatus(HttpStatus.CREATED)
     public HrDto.Payment createPayment(@PathVariable Long id, @Valid @RequestBody HrDto.PaymentInput input) {
         return service.createPayment(id, input);
     }
 
-    @PutMapping("/app/drivers/{id}/payments/{paymentId}")
+    @PutMapping({"/app/drivers/{id}/payments/{paymentId}", "/api/v1/drivers/{id}/payments/{paymentId}"})
     public HrDto.Payment updatePayment(@PathVariable Long id, @PathVariable Long paymentId,
                                        @Valid @RequestBody HrDto.PaymentInput input) {
         return service.updatePayment(id, paymentId, input);
     }
 
-    @DeleteMapping("/app/drivers/{id}/payments/{paymentId}")
+    @DeleteMapping({"/app/drivers/{id}/payments/{paymentId}", "/api/v1/drivers/{id}/payments/{paymentId}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePayment(@PathVariable Long id, @PathVariable Long paymentId) {
         service.deletePayment(id, paymentId);
     }
 
-    @GetMapping("/app/payments")
+    @GetMapping({"/app/payments", "/api/v1/payments"})
     public HrDto.PaymentList allPayments(@RequestParam(required = false) String period,
                                          @RequestParam(required = false) Long driverId,
                                          @RequestParam(required = false) String kind) {

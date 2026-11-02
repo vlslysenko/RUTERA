@@ -41,7 +41,7 @@ public class FuelImportController {
         this.service = service;
     }
 
-    @PostMapping(value = "/app/fuel/imports/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = {"/app/fuel/imports/preview", "/api/v1/fuel/imports/preview"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public FuelDto.Preview preview(@RequestPart(value = "file", required = false) MultipartFile file,
                                    @RequestParam(required = false) String provider,
                                    @RequestParam(required = false) String mapping,
@@ -49,7 +49,7 @@ public class FuelImportController {
         return service.preview(name(file), bytes(file), provider, mapping, options);
     }
 
-    @PostMapping(value = "/app/fuel/imports", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = {"/app/fuel/imports", "/api/v1/fuel/imports"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public FuelDto.Import importFile(@RequestPart(value = "file", required = false) MultipartFile file,
                                      @RequestParam(required = false) String provider,
@@ -59,29 +59,29 @@ public class FuelImportController {
         return service.importFile(name(file), bytes(file), provider, mapping, options, saveMapping);
     }
 
-    @GetMapping("/app/fuel/imports")
+    @GetMapping({"/app/fuel/imports", "/api/v1/fuel/imports"})
     public FuelDto.ImportPage list(@RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "50") int size) {
         return service.list(page, size);
     }
 
-    @GetMapping("/app/fuel/imports/{id}")
+    @GetMapping({"/app/fuel/imports/{id}", "/api/v1/fuel/imports/{id}"})
     public FuelDto.Import get(@PathVariable Long id) {
         return service.get(id);
     }
 
-    @DeleteMapping("/app/fuel/imports/{id}")
+    @DeleteMapping({"/app/fuel/imports/{id}", "/api/v1/fuel/imports/{id}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
 
-    @GetMapping("/app/fuel/mappings/{provider}")
+    @GetMapping({"/app/fuel/mappings/{provider}", "/api/v1/fuel/mappings/{provider}"})
     public FuelDto.Mapping mapping(@PathVariable String provider) {
         return service.mapping(provider);
     }
 
-    @PutMapping("/app/fuel/mappings/{provider}")
+    @PutMapping({"/app/fuel/mappings/{provider}", "/api/v1/fuel/mappings/{provider}"})
     public FuelDto.Mapping updateMapping(@PathVariable String provider,
                                          @Valid @RequestBody FuelDto.MappingInput input) {
         return service.updateMapping(provider, input);

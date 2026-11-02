@@ -32,7 +32,7 @@ import java.util.List;
  * </pre>
  */
 @RestController
-@RequestMapping("/app/invoices")
+@RequestMapping({"/app/invoices", "/api/v1/invoices"})
 public class InvoiceController {
 
     private final InvoiceService service;

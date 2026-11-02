@@ -25,7 +25,8 @@ import java.util.Map;
  *       so a new release is picked up at once.</li>
  *   <li>SPA fallback: a GET for a client-side route ({@code /fleet}, {@code /settings/users}) has no file of its
  *       own and gets {@code index.html}; the router in the browser takes over. A path whose last segment has an
- *       extension is a file and stays 404 when missing. {@code /app/**}, {@code /actuator/**} and {@code /error}
+ *       extension is a file and stays 404 when missing. {@code /app/**}, {@code /api/**}, {@code /mcp/**},
+ *       {@code /actuator/**} and {@code /error}
  *       never get the page, so an unknown API path keeps answering the JSON error.</li>
  * </ul>
  * Without a built client (plain {@code mvn package}) there is no {@code index.html} and these paths answer 404.
@@ -61,7 +62,8 @@ public class FrontendConfig implements WebMvcConfigurer {
     /** Is {@code path} (relative, without the leading slash) a client-side route rather than a file or the API? */
     static boolean isClientRoute(String path) {
         String first = path.contains("/") ? path.substring(0, path.indexOf('/')) : path;
-        if (first.equals("app") || first.equals("actuator") || first.equals("error")) {
+        if (first.equals("app") || first.equals("api") || first.equals("mcp") || first.equals("actuator")
+                || first.equals("error")) {
             return false;
         }
         String last = path.substring(path.lastIndexOf('/') + 1);

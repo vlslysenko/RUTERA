@@ -26,7 +26,7 @@ import java.util.List;
  * </pre>
  */
 @RestController
-@RequestMapping("/app/contractors")
+@RequestMapping({"/app/contractors", "/api/v1/contractors"})
 public class ContractorController {
 
     private final ContractorService service;

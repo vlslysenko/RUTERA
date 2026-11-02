@@ -27,7 +27,7 @@ import java.time.LocalDate;
  * </pre>
  */
 @RestController
-@RequestMapping("/app/orders")
+@RequestMapping({"/app/orders", "/api/v1/orders"})
 public class OrderController {
 
     private final OrderService service;

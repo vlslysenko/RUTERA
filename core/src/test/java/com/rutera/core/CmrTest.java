@@ -112,6 +112,8 @@ class CmrTest extends AbstractIntegrationTest {
         MvcResult draftPdf = c.get("/app/cmr/" + cmrId + "/pdf?copies=3");
         assertThat(draftPdf.getResponse().getStatus()).isEqualTo(200);
         assertThat(draftPdf.getResponse().getContentType()).isEqualTo("application/pdf");
+        assertThat(draftPdf.getResponse().getHeader("Content-Disposition")).contains("CMR-" + YEAR + "-0001.pdf")
+                .doesNotContain("CMR CMR");
         int[] pages = new int[1];
         String text = pdfText(draftPdf.getResponse().getContentAsByteArray(), pages);
         assertThat(pages[0]).isEqualTo(3);
@@ -201,6 +203,10 @@ class CmrTest extends AbstractIntegrationTest {
         assertThat(drafts.get(0).get("sender").get("name").asString()).isEqualTo("Magazyn Centralny");
         assertThat(drafts.get(0).get("deliveryPlace").asString()).isEqualTo("München, Industriestraße 9");
         assertThat(drafts.get(0).get("establishedPlace").asString()).isEqualTo("Września");
+        long draftId = drafts.get(0).get("id").asLong();
+        assertThat(c.delete("/app/trips/" + tripId).getResponse().getStatus()).as("the CMR only loses the link")
+                .isEqualTo(204);
+        assertThat(body(c.get("/app/cmr/" + draftId)).get("trip").isNull()).isTrue();
         assertThat(c.delete("/app/cmr/" + empty).getResponse().getStatus()).isEqualTo(204);
     }
 }

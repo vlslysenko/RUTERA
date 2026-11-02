@@ -35,28 +35,28 @@ public class CalcController {
         this.tariffs = tariffs;
     }
 
-    @PostMapping("/app/calc/trip")
+    @PostMapping({"/app/calc/trip", "/api/v1/calc/trip"})
     public CalcDto.Plan plan(@Valid @RequestBody CalcDto.TripInput input) {
         return calc.plan(input);
     }
 
-    @GetMapping("/app/calc/toll-tariffs")
+    @GetMapping({"/app/calc/toll-tariffs", "/api/v1/calc/toll-tariffs"})
     public List<CalcDto.TollTariff> tariffs() {
         return tariffs.list();
     }
 
-    @PostMapping("/app/calc/toll-tariffs")
+    @PostMapping({"/app/calc/toll-tariffs", "/api/v1/calc/toll-tariffs"})
     @ResponseStatus(HttpStatus.CREATED)
     public CalcDto.TollTariff create(@Valid @RequestBody CalcDto.TollTariffInput input) {
         return tariffs.create(input);
     }
 
-    @PutMapping("/app/calc/toll-tariffs/{id}")
+    @PutMapping({"/app/calc/toll-tariffs/{id}", "/api/v1/calc/toll-tariffs/{id}"})
     public CalcDto.TollTariff update(@PathVariable Long id, @Valid @RequestBody CalcDto.TollTariffInput input) {
         return tariffs.update(id, input);
     }
 
-    @DeleteMapping("/app/calc/toll-tariffs/{id}")
+    @DeleteMapping({"/app/calc/toll-tariffs/{id}", "/api/v1/calc/toll-tariffs/{id}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         tariffs.delete(id);

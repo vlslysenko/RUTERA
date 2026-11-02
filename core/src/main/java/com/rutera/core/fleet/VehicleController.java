@@ -30,7 +30,7 @@ import java.util.List;
  * 422 {@code error.validation} with per-field codes, e.g. {@code plate: fleet.vehicle.plate_taken}.
  */
 @RestController
-@RequestMapping("/app/fleet/vehicles")
+@RequestMapping({"/app/fleet/vehicles", "/api/v1/vehicles"})
 public class VehicleController {
 
     private final VehicleService service;
