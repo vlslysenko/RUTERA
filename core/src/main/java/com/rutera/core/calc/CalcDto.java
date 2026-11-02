@@ -1,0 +1,91 @@
+package com.rutera.core.calc;
+
+import com.rutera.common.domain.Vehicle;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Size;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+
+/** Trip calculator and toll tariffs (contract of 2026-11-02). */
+public final class CalcDto {
+
+    private CalcDto() {
+    }
+
+    public record CountryKm(String country, BigDecimal km) {
+    }
+
+    /** A leg of the route: distance, driving time (else distance / avgSpeedKmh), km per country, service at its end. */
+    public record LegInput(@Size(max = 200) String name, BigDecimal distanceKm, Integer durationMin,
+                           @Size(max = 30) List<CountryKm> countries, Integer serviceMin) {
+    }
+
+    /** Counters of {@code driverState: MANUAL}, applied to every driver of the crew; null counts as zero. */
+    public record ManualState(Integer drivingSinceBreakMin, Integer drivingInShiftMin, Instant shiftStart,
+                              Integer weekDrivingMin, Integer fortnightDrivingMin, Integer extensionsLeft,
+                              Integer reducedRestsLeft, Instant lastWeeklyRestEnd) {
+    }
+
+    public record OtherCost(@Size(max = 100) String label, @Digits(integer = 10, fraction = 2) BigDecimal amount,
+                            String currency) {
+    }
+
+    public record Options(Integer avgSpeedKmh, Boolean extendedDriving, Boolean reducedRests,
+                          Boolean reducedWeeklyRest,
+                          @DecimalMin("0.0") @Digits(integer = 3, fraction = 2) BigDecimal consumptionL100km,
+                          @DecimalMin("0.0") @Digits(integer = 4, fraction = 4) BigDecimal fuelPrice,
+                          String fuelCurrency, String country, @Valid @Size(max = 20) List<OtherCost> otherCosts) {
+    }
+
+    /** Body of {@code POST /app/calc/trip}. */
+    public record TripInput(Instant start, Long vehicleId, @Size(max = 2) List<Long> driverIds, Integer crewSize,
+                            String driverState, ManualState manualState, @Valid @Size(max = 50) List<LegInput> legs,
+                            @Valid Options options) {
+    }
+
+    public record Totals(BigDecimal distanceKm, int drivingMin, int breakMin, int restMin, int workMin,
+                         long durationMin, int dailyRests, int weeklyRests, int days) {
+    }
+
+    /** kind: DRIVE, BREAK, DAILY_REST, REDUCED_DAILY_REST, WEEKLY_REST, REDUCED_WEEKLY_REST, SERVICE. */
+    public record Event(String kind, Instant start, Instant end, int minutes, BigDecimal kmFrom, BigDecimal kmTo,
+                        int legIndex, Integer driver) {
+    }
+
+    public record DriverState(Long driverId, String source, Instant dataUntil, int drivingSinceBreakMin,
+                              int drivingInShiftMin, Instant shiftStart, int weekDrivingMin,
+                              int fortnightDrivingMin, int extensionsLeft, int reducedRestsLeft,
+                              Instant weeklyRestDueAt) {
+    }
+
+    /** kind: FUEL, DRIVER_KM, DRIVER_PER_DIEM, DRIVER_BASE, TOLL, OTHER; rate and amount null when unknown. */
+    public record CostLine(String kind, String label, String country, BigDecimal quantity, String unit,
+                           BigDecimal rate, BigDecimal amount, String currency) {
+    }
+
+    public record CurrencyTotal(String currency, BigDecimal amount) {
+    }
+
+    public record Costs(List<CostLine> lines, List<CurrencyTotal> totals, List<String> missing) {
+    }
+
+    public record Plan(Instant start, Instant eta, Totals totals, List<Event> timeline,
+                       List<DriverState> driverStates, Costs costs, boolean payHidden, List<String> warnings) {
+    }
+
+    public record TollTariff(Long id, String country, Vehicle.EuroClass euroClass, Integer axlesMin,
+                             Integer weightMinKg, BigDecimal ratePerKm, String currency, LocalDate validFrom,
+                             String notes, Instant createdAt, Instant updatedAt) {
+    }
+
+    /** Body of {@code POST}/{@code PUT /app/calc/toll-tariffs}. */
+    public record TollTariffInput(String country, String euroClass, Integer axlesMin, Integer weightMinKg,
+                                  @DecimalMin("0.0") @Digits(integer = 5, fraction = 4) BigDecimal ratePerKm,
+                                  String currency, LocalDate validFrom, @Size(max = 500) String notes) {
+    }
+}

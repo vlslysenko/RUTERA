@@ -78,7 +78,7 @@ public final class ColumnMapper {
         SYNONYMS.put(Field.UNIT, List.of("unit", "uom", "einheit", "mengeneinheit", "jednostka", "jm", "unite"));
         SYNONYMS.put(Field.UNIT_PRICE, List.of("unit price", "price per unit", "price per litre", "price l",
                 "einzelpreis", "preis je einheit", "literpreis", "cena jednostkowa", "cena za litr",
-                "prix unitaire", "price"));
+                "prix unitaire", "price", "preis", "cena", "prix"));
         SYNONYMS.put(Field.NET, List.of("net amount", "net", "net value", "amount excl vat", "amount net",
                 "netto", "nettobetrag", "betrag netto", "kwota netto", "wartosc netto", "montant ht", "ht",
                 "netto bedrag"));

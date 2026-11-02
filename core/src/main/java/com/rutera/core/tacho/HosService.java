@@ -163,6 +163,11 @@ public class HosService {
         return HosEngine.run(rows.stream().map(Row::seg).toList(), zone).days(from, to);
     }
 
+    /** The recorded segments of a driver within [from, to) for other modules (trip calculator); no privilege check. */
+    public List<HosEngine.Seg> recorded(Long firmaId, Driver driver, Instant from, Instant to) {
+        return timeline(firmaId, driver, from, to).stream().map(Row::seg).toList();
+    }
+
     // --- violations ------------------------------------------------------------------------------------------
 
     @RequiresPrivilege(Privileges.TACHO_HOS_VIEW)

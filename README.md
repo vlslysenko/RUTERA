@@ -409,7 +409,8 @@ Reading: CSV (separator `;` `,` or tab detected, quotes, UTF-8 with or without B
 Windows-1250) or XLSX (first sheet; date-formatted cells become `yyyy-MM-dd HH:mm:ss`); old binary `.xls` is rejected;
 at most 20 MB and 50 000 rows. The header row is the one among the first 15 where most columns are recognised (at
 least three); the given mapping, else the firma's saved mapping of the provider, overrides the recognition by
-header names (English, German, Polish, French and other common names). Dates: `yyyy-MM-dd`, `dd.MM.yyyy`,
+header names (English, German, Polish, French and other common names). A given mapping is merged field by field over
+the saved or recognised one; a field mapped to null or "" is left out. Dates: `yyyy-MM-dd`, `dd.MM.yyyy`,
 `dd/MM/yyyy`, `dd-MM-yyyy`, `yyyy/MM/dd`, two-digit years, with `HH:mm[:ss]` in the same cell or the time column;
 `options.dateFormat` (a Java `DateTimeFormatter` pattern) overrides the guess. The time is the station's local time
 read in the firma's time zone and stored as an instant. Amounts: spaces and apostrophes are ignored; with both `,`
@@ -429,6 +430,60 @@ with `validation.required`, `validation.invalid_format` or `validation.invalid_v
 `columns.<field>: validation.required` per missing field), `provider: validation.invalid_value`, `mapping` or
 `options: validation.invalid_format`. Changes are written to `audit_log` (module `fuel`). Not yet: provider APIs,
 VAT/excise refund reports, consumption per 100 km, `trip.cost_fuel`.
+
+### Trip calculator (`/app/calc/trip`, `/app/calc/toll-tariffs`)
+
+Privileges: `trip.trip/view` calculates and reads tariffs, `trip.trip/manage` edits tariffs; driver pay lines need
+`driver.payment/view` (otherwise they are left out and `payHidden` is true).
+
+| Method | Path | Body / result |
+|---|---|---|
+| POST | `/app/calc/trip` | `TripInput` -> `Plan` |
+| GET | `/app/calc/toll-tariffs` | `TollTariff[]` by country, newest `validFrom` first |
+| POST / PUT / DELETE | `/app/calc/toll-tariffs[/{id}]` | `{country, euroClass?, axlesMin?, weightMinKg?, ratePerKm, currency, validFrom?, notes?}` -> `TollTariff` / 204 |
+
+`TripInput = {start (instant), vehicleId?, driverIds?: [id, id?], crewSize?: 1 | 2 (default: number of drivers or
+1), driverState?: TACHO | FRESH | MANUAL (default TACHO with drivers, else FRESH), manualState?: {drivingSinceBreakMin,
+drivingInShiftMin, shiftStart, weekDrivingMin, fortnightDrivingMin, extensionsLeft, reducedRestsLeft,
+lastWeeklyRestEnd} (for every driver), legs: [{name?, distanceKm, durationMin? (else distance / avgSpeedKmh),
+countries?: [{country, km}] (must add up to the distance within 1 km; else all km in options.country or the firma's
+country), serviceMin? (loading or unloading at the end of the leg)}], options?: {avgSpeedKmh? (70), extendedDriving?
+(true), reducedRests? (true), reducedWeeklyRest? (false), consumptionL100km?, fuelPrice?, fuelCurrency?, country?,
+otherCosts?: [{label, amount, currency?}]}}`.
+
+`Plan = {start, eta, totals: {distanceKm, drivingMin, breakMin, restMin, workMin, durationMin, dailyRests,
+weeklyRests, days}, timeline: [{kind: DRIVE | BREAK | DAILY_REST | REDUCED_DAILY_REST | WEEKLY_REST |
+REDUCED_WEEKLY_REST | SERVICE, start, end, minutes, kmFrom, kmTo, legIndex, driver: 1 | 2 | null}], driverStates:
+[{driverId, source, dataUntil, drivingSinceBreakMin, drivingInShiftMin, shiftStart, weekDrivingMin,
+fortnightDrivingMin, extensionsLeft, reducedRestsLeft, weeklyRestDueAt}], costs: {lines: [{kind: FUEL | DRIVER_KM |
+DRIVER_PER_DIEM | DRIVER_BASE | TOLL | OTHER, label, country, quantity, unit, rate, amount, currency}], totals:
+[{currency, amount}], missing: [code]}, payHidden, warnings: [code]}`.
+
+Breaks and rests (`core.calc.plan`, pure Java): the state of each driver comes from the merged tachograph activity
+of the last 35 days (gaps and the time up to the start count as rest), FRESH = just after a regular weekly rest, or
+MANUAL. The planner drives while every limit allows and then inserts what the binding limit needs: a 45 min break
+after 4.5 h, a daily rest after 9 h (10 h while extensions are left and allowed) or when the 24 h shift window would
+close (11 h rest, 9 h while reductions are left and allowed; loading or unloading counts inside the shift and moves
+behind the rest when it would not fit), a weekly rest when it is due (144 h after the last one) or the 56 h / 90 h
+driving is used up (45 h, 24 h when allowed, longer until Monday when only the new week frees the driving). A crew
+of two swaps at the wheel, co-driving counts as the passive driver's break and the crew rests 9 h within 30 h. Not
+modelled: split daily rest, ferries and trains, compensation of reduced weekly rests, opening hours of loading places.
+
+Costs: fuel = km x consumption (options, else the vehicle's `avgL100km`) / 100 x price (options, else the average
+net price per litre of the firma's DIESEL fuel transactions of the last 30 days in the base currency); per driver
+with the pay rate valid on the start day: `perKm` x km, per diem (abroad when any km is outside the firma's
+country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = km per country x the
+matching tariff (rows whose Euro class, axles and weight conditions hold for the vehicle; a condition on a value
+the vehicle lacks, or without a vehicle, does not hold; the most specific row, then the latest `validFrom`); other
+costs as given. Units of the cost lines: FUEL `L`, DRIVER_KM and TOLL `KM`, DRIVER_PER_DIEM and DRIVER_BASE `DAY`;
+`days` = started 24 h periods from the start to the arrival (at least 1). Loading before the first drive: a first
+leg with `distanceKm: 0` and `serviceMin`. `timeline.driver` and `driverStates` follow the crew order (`driverIds[0]`
+= 1, `driverIds[1]` = 2; a crew slot without an id is planned FRESH). No currency conversion: totals per currency.
+`missing`: `calc.missing.consumption`, `calc.missing.fuel_price`, `calc.missing.pay_rate`,
+`calc.missing.toll_tariff` (the TOLL line of that country has no rate), `calc.missing.tacho_data` (the driver is
+planned as FRESH); `warnings`: `calc.warning.tacho_old` (newest record older than 24 h),
+`calc.warning.weekly_rest_needed`. Routing is pluggable (`core.calc.RouteProvider`); until a routing server exists
+the legs come with the request. Nothing is saved yet (trip_plan and `trip.cost_*` come later).
 
 Service and controller methods are guarded with `@RequiresPrivilege("module.entity/action")` (AOP, module
 `core.security`); the effective set = role defaults + custom role + per-user overrides, computed at login. Every

@@ -265,7 +265,7 @@ public class FuelImportService {
         audit.record(AuditEvent.of(MODULE, "fuel_imported", "Imported fuel export " + name)
                 .entity("fuel_import", imp.getId()).detail("provider", read.provider().name())
                 .detail("rowsNew", rowsNew).detail("rowsDup", rowsDup).detail("rowsError", rowsError));
-        return toDto(imp, null);
+        return toDto(imp, users.findById(imp.getImportedBy()).orElse(null));
     }
 
     private FuelCard newCard(Long firmaId, FuelProvider provider, FuelRows.Parsed p, String hash,
@@ -314,8 +314,12 @@ public class FuelImportService {
         }
         FuelProvider provider = given != null ? given : ColumnMapper.detectProvider(fileName, rows);
         FuelMapping saved = mappings.findByProvider(provider).orElse(null);
-        if (explicit == null && saved != null) {
-            explicit = json.readValue(saved.getColumnsJson(), STRING_MAP);
+        if (saved != null) {
+            Map<String, String> merged = new LinkedHashMap<>(json.readValue(saved.getColumnsJson(), STRING_MAP));
+            if (explicit != null) {
+                merged.putAll(explicit);
+            }
+            explicit = merged;
         }
         if (options == null && saved != null && saved.getOptionsJson() != null) {
             options = json.readValue(saved.getOptionsJson(), FuelDto.Options.class);

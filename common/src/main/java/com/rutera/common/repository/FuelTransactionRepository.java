@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -47,6 +48,16 @@ public interface FuelTransactionRepository extends JpaRepository<FuelTransaction
                                      @Param("externalIds") Collection<String> externalIds);
 
     List<FuelTransaction> findByImportId(Long importId);
+
+    /**
+     * Average price per unit of a product in a currency since {@code from}: net amounts (gross when net is unknown)
+     * divided by the quantity; null without such transactions.
+     */
+    @Query("""
+            select sum(coalesce(t.net, t.gross)) / sum(t.quantity) from FuelTransaction t
+            where t.product = :product and t.currency = :currency and t.at >= :from and t.quantity > 0""")
+    BigDecimal averagePrice(@Param("product") FuelTransaction.Product product,
+                             @Param("currency") String currency, @Param("from") Instant from);
 
     boolean existsByCardId(Long cardId);
 
