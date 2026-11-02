@@ -50,6 +50,15 @@ Volumes are named `rutera-standalone_<volume>`; `docker compose ... down` keeps 
 `RUTERA_PUBLIC_URL=https://<host>` (the OAuth issuer of the claude.ai connector). The proxy has
 to allow request bodies of 200 MB (tachograph import).
 
+**Paid options.** A standalone installation has no operator console: `RUTERA_AI_ACCESS=true` (public API, MCP
+server, claude.ai connector), `RUTERA_PLAN` and `RUTERA_VEHICLE_LIMIT` in `.env` are written to the firma at every
+start; left empty, the database keeps its values, which can also be set with SQL:
+
+```bash
+docker compose -f docker-compose.standalone.yml exec mysql sh -c \
+  'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "UPDATE firma SET ai_access = TRUE"'
+```
+
 **E-mail.** Payment reminders go out once `SPRING_MAIL_HOST` (and port, user, password, STARTTLS or SSL) is set;
 until then they wait in the outbox and are sent afterwards.
 
@@ -108,12 +117,13 @@ Prerequisites: JDK 25, Maven 3.9+, Docker; Node 22+ for the client.
 
 ```bash
 docker compose up -d mysql    # MySQL 8.4 only, on localhost:3307 (3306 is often taken by another MySQL)
-mvn verify                    # builds both modules (API only, no client in the jar)
-java -jar core/target/rutera.jar
+mvn verify                    # builds common, core and tacho (API only, no client in the jar)
+RUTERA_PORT=18082 java -jar core/target/rutera.jar   # default port 8080; any free port works
 ```
 
 The client runs from the Vite dev server (`cd frontend && npm run dev`, http://localhost:5173), which proxies
-`/app` to the backend (`VITE_API_PROXY` in `frontend/.env.local`, see `frontend/README.md`).
+`/app` to the backend (`VITE_API_PROXY` in `frontend/.env.local`, e.g. `http://localhost:18082`, see
+`frontend/README.md`).
 `mvn -Pfrontend package` also runs `npm ci` + `npm run build` in `frontend/` and puts `frontend/dist` into the jar
 (`classpath:/static/`); with `-Dexec.skip=true` npm is skipped and an existing `frontend/dist` is taken. The jar
 then serves the client itself (`core.config.FrontendConfig`): files from the build, hashed `/assets/**` cached for
@@ -156,7 +166,8 @@ mirrored in header `X-XSRF-TOKEN` on every POST/PUT/PATCH/DELETE, login included
 | GET | `/app/i18n/{lang}` | flat `{key: text}` dictionary of `messages_<lang>.properties` (public) |
 | GET | `/actuator/health` | liveness (public) |
 
-`User = {id, login, name, role, firma: {id, name} | null, language, startScreen | null, privileges: string[]}`;
+`User = {id, login, name, role, firma: {id, name, timezone, driversSeePay} | null, language, startScreen | null,
+privileges: string[], driver: {id, name} | null}` (`driver`: the driver record linked to a DRIVER login);
 `privileges` is the effective set of `module.entity/action` keys (empty for the superuser, who bypasses checks),
 so the client can hide what the user may not do. Every 4xx/5xx body is `{code, message?, details?}` where
 `code` is an i18n key; `message` is that text in the language of the request (the user's language, otherwise
@@ -246,7 +257,7 @@ VISA, WORK_PERMIT, OTHER`; input `{kind, number?, validFrom?, validTo?, remindDa
 Rules: first and last name are required (up to 100); `country` and `cardIssuingCountry` are ISO alpha-2,
 upper-cased; `email` must look like an address; `employmentTo` / `validTo` may not lie before their start. The
 card is edited with the driver: an empty `cardNumber` removes it, a new number overwrites it and resets
-`lastDownloadAt` (written by the DDD import later); the number loses spaces and hyphens, is upper-cased, and is
+`lastDownloadAt` (written by the tachograph import); the number loses spaces and hyphens, is upper-cased, and is
 unique in the firma (`cardNumber: driver.card.number_taken`). `defaultVehicle` is the first vehicle (by plate)
 whose `defaultDriverId` is this driver. `nextDocument` is the earliest `validTo` among the documents and the card
 (`kind: DRIVER_CARD`). Changes are written to `audit_log` (module `driver`).
@@ -400,7 +411,7 @@ e-CMR, linking a CMR to an invoice.
 ### Tachograph files (`/app/tacho/files`, privileges `tacho.file/upload` and `tacho.hos/view`)
 
 Step A of `docs/TACHO_IMPORT_API.md` (project files): the uploaded DDD file, its summary, the driver or vehicle it
-belongs to and `lastDownloadAt`; facts (activities, places, events) and 561/2006 come in later steps. The parser is
+belongs to and `lastDownloadAt`; the facts read from it and the 561/2006 check are in the next section. The parser is
 module `tacho/` (plain Java). Real downloads hold personal data: they never go into the repository (`.gitignore`,
 `.dockerignore`); the tests use the synthetic files of the tacho test-jar (`TachoTestFiles`).
 
@@ -531,7 +542,8 @@ undoes imports, edits cards, mappings and transactions (owner and accountant by 
 | PUT | `/app/fuel/transactions/{id}` | full replacement of a MANUAL transaction; 409 for imported ones |
 | PATCH | `/app/fuel/transactions/{id}` | `{vehicleId, driverId, tripId, notes}` replaces the assignment of any transaction (match MANUAL, or NONE when cleared) |
 | DELETE | `/app/fuel/transactions/{id}` | 204 |
-| GET / POST / PUT / DELETE | `/app/fuel/cards[/{id}]` | `FuelCard`; input `{provider, cardNumber, vehicleId?, driverId?, validTo?, active?, notes?}`; DELETE leaves its transactions without a card |
+| GET / POST | `/app/fuel/cards` | `FuelCard[]` / 201 `FuelCard` |
+| PUT / DELETE | `/app/fuel/cards/{id}` | `FuelCard` / 204; input `{provider, cardNumber, vehicleId?, driverId?, validTo?, active?, notes?}`; DELETE leaves its transactions without a card |
 
 Providers: DKV, UTA, SHELL, BP, ORLEN, E100, AS24, OMV, OTHER. Fields (keys of `mapping`, `values` and row errors):
 cardNumber, plate, date, time, transactionId, station, country, product, quantity, unit, unitPrice, net, vat, gross,
@@ -644,8 +656,9 @@ leg with `distanceKm: 0` and `serviceMin`. `timeline.driver` and `driverStates` 
 `missing`: `calc.missing.consumption`, `calc.missing.fuel_price`, `calc.missing.pay_rate`,
 `calc.missing.toll_tariff` (the TOLL line of that country has no rate), `calc.missing.tacho_data` (the driver is
 planned as FRESH); `warnings`: `calc.warning.tacho_old` (newest record older than 24 h),
-`calc.warning.weekly_rest_needed`. Routing is pluggable (`core.calc.RouteProvider`); until a routing server exists
-the legs come with the request. Nothing is saved yet (trip_plan and `trip.cost_*` come later).
+`calc.warning.weekly_rest_needed`. Routing is pluggable (`core.calc.RouteProvider`): `POST /app/calc/route` computes
+the legs with Valhalla when `rutera.routing.url` is set, otherwise the legs come with the request. Nothing is saved
+yet (trip_plan and `trip.cost_*` come later).
 
 Service and controller methods are guarded with `@RequiresPrivilege("module.entity/action")` (AOP, module
 `core.security`); the effective set = role defaults + custom role + per-user overrides, computed at login. Every
@@ -681,8 +694,9 @@ minute). Every call with a known token is written to `api_call` (token, user, me
 
 Resources (paths, bodies and privileges as described in the sections above, `/app` replaced by `/api/v1`):
 `/api/v1/vehicles` (the web path is `/app/fleet/vehicles`), `/drivers` with absences, days, pay rates and payments,
-`/absences`, `/payments`, `/contractors`, `/orders`, `/trips`, `/cmr`, `/invoices`, `/debts`, `/reminders/schedule`,
-`/fuel/transactions`, `/fuel/cards`, `/fuel/imports`, `/fuel/mappings`, `/calc/trip`, `/calc/toll-tariffs`,
+`/absences`, `/payments`, `/contractors`, `/orders`, `/trips` with their files, `/cmr`, `/invoices`, `/debts`,
+`/reminders/schedule`, `/fuel/transactions`, `/fuel/cards`, `/fuel/imports`, `/fuel/mappings`, `/calc/trip`,
+`/calc/route`, `/calc/toll-tariffs`,
 `/tacho/files`, `/tacho/activity`, `/tacho/violations`. The OpenAPI 3 document of these paths with the bearer scheme
 is public at `GET /api/v1/openapi.json` (springdoc-openapi 3.0.3).
 
