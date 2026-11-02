@@ -12,6 +12,7 @@ import com.rutera.common.repository.DriverDayRepository;
 import com.rutera.common.repository.DriverPayRateRepository;
 import com.rutera.common.repository.DriverPaymentRepository;
 import com.rutera.common.repository.DriverRepository;
+import com.rutera.common.repository.FirmaRepository;
 import com.rutera.common.security.Privileges;
 import com.rutera.common.security.RequiresPrivilege;
 import com.rutera.core.audit.AuditEvent;
@@ -23,6 +24,7 @@ import com.rutera.core.web.ApiException;
 import com.rutera.core.web.ErrorCodes;
 import com.rutera.core.web.InputFields;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,12 +70,14 @@ public class DriverHrService {
     private final AppUserRepository users;
     private final HosService hos;
     private final DriverSelf self;
+    private final FirmaRepository firmas;
     private final AuditService audit;
 
     public DriverHrService(DriverRepository drivers, DriverAbsenceRepository absences, DriverDayRepository days,
                            DriverPayRateRepository rates, DriverPaymentRepository payments, AppUserRepository users,
-                           HosService hos, DriverSelf self, AuditService audit) {
+                           HosService hos, DriverSelf self, FirmaRepository firmas, AuditService audit) {
         this.self = self;
+        this.firmas = firmas;
         this.drivers = drivers;
         this.absences = absences;
         this.days = days;
@@ -88,35 +92,58 @@ public class DriverHrService {
 
     @RequiresPrivilege({Privileges.DRIVER_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
-    public List<HrDto.Absence> absences(Long driverId, LocalDate from, LocalDate to) {
+    public List<HrDto.Absence> absences(Long driverId, LocalDate from, LocalDate to, String status) {
         self.check(Privileges.DRIVER_VIEW, driverId);
+        DriverAbsence.Status s = status(status);
         Driver driver = load(driverId);
-        return toAbsences(absences.search(driver.getId(), null, from, to));
+        return toAbsences(absences.search(driver.getId(), null, from, to).stream()
+                .filter(a -> s == null || a.getStatus() == s).toList());
+    }
+
+    private static DriverAbsence.Status status(String raw) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        DriverAbsence.Status s = InputFields.parseEnum(DriverAbsence.Status.class, "status", raw, false, errors);
+        if (!errors.isEmpty()) {
+            throw ApiException.validation(errors);
+        }
+        return s;
     }
 
     /** Absences of the whole firma overlapping [from, to], for the "who is away" calendar. */
     @RequiresPrivilege(Privileges.DRIVER_VIEW)
     @Transactional(readOnly = true)
-    public List<HrDto.Absence> allAbsences(LocalDate from, LocalDate to, String kind, Long driverId) {
+    public List<HrDto.Absence> allAbsences(LocalDate from, LocalDate to, String kind, Long driverId, String status) {
         InputFields.requireFirmaId();
         Map<String, String> errors = new LinkedHashMap<>();
         DriverAbsence.Kind k = InputFields.parseEnum(DriverAbsence.Kind.class, "kind", kind, false, errors);
+        DriverAbsence.Status s = InputFields.parseEnum(DriverAbsence.Status.class, "status", status, false, errors);
         if (!errors.isEmpty()) {
             throw ApiException.validation(errors);
         }
-        return toAbsences(absences.search(driverId, k, from, to));
+        return toAbsences(absences.search(driverId, k, from, to).stream()
+                .filter(a -> s == null || a.getStatus() == s).toList());
     }
 
-    @RequiresPrivilege(Privileges.DRIVER_ABSENCE_MANAGE)
+    /** By the office: APPROVED at once; by the driver itself (cabinet): a REQUESTED absence for the office to decide. */
+    @RequiresPrivilege({Privileges.DRIVER_ABSENCE_MANAGE, Privileges.DRIVER_APP_SELF_USE})
     @Transactional
     public HrDto.Absence createAbsence(Long driverId, HrDto.AbsenceInput input) {
+        boolean office = self.full(Privileges.DRIVER_ABSENCE_MANAGE);
+        if (!office) {
+            self.requireOwn(driverId);
+        }
         Driver driver = load(driverId);
         DriverAbsence a = new DriverAbsence();
         a.setFirmaId(driver.getFirmaId());
         a.setDriverId(driver.getId());
         apply(a, input);
-        a.setApprovedBy(CurrentUser.require().id());
-        a.setApprovedAt(Instant.now());
+        if (office) {
+            a.setStatus(DriverAbsence.Status.APPROVED);
+            a.setApprovedBy(CurrentUser.require().id());
+            a.setApprovedAt(Instant.now());
+        } else {
+            a.setStatus(DriverAbsence.Status.REQUESTED);
+        }
         a = absences.save(a);
         audit.record(AuditEvent.of(MODULE, "absence_created", "Added " + a.getKind().name() + " of driver "
                 + driver.getFullName()).entity("driver_absence", a.getId()).detail("driverId", driver.getId()));
@@ -135,11 +162,49 @@ public class DriverHrService {
         return toAbsences(List.of(a)).getFirst();
     }
 
+    /** The office decides on a request (or changes its decision): APPROVED or REJECTED, with an optional note. */
     @RequiresPrivilege(Privileges.DRIVER_ABSENCE_MANAGE)
     @Transactional
-    public void deleteAbsence(Long driverId, Long absenceId) {
+    public HrDto.Absence decideAbsence(Long driverId, Long absenceId, HrDto.AbsenceDecision decision) {
         Driver driver = load(driverId);
         DriverAbsence a = loadAbsence(driver, absenceId);
+        Map<String, String> errors = new LinkedHashMap<>();
+        DriverAbsence.Status s = InputFields.parseEnum(DriverAbsence.Status.class, "status",
+                decision == null ? null : decision.status(), true, errors);
+        if (s == DriverAbsence.Status.REQUESTED) {
+            errors.put("status", ErrorCodes.FIELD_INVALID_VALUE);
+        }
+        if (s == DriverAbsence.Status.APPROVED && absences.search(a.getDriverId(), null, a.getFromDate(),
+                a.getToDate()).stream().anyMatch(o -> !o.getId().equals(a.getId())
+                && o.getStatus() != DriverAbsence.Status.REJECTED)) {
+            errors.put("status", ErrorCodes.ABSENCE_OVERLAP);
+        }
+        if (!errors.isEmpty()) {
+            throw ApiException.validation(errors);
+        }
+        a.setStatus(s);
+        a.setDecisionNote(InputFields.blankToNull(decision.note()));
+        a.setApprovedBy(CurrentUser.require().id());
+        a.setApprovedAt(Instant.now());
+        DriverAbsence saved = absences.save(a);
+        audit.record(AuditEvent.of(MODULE, "absence_decided", s.name() + " " + saved.getKind().name() + " of driver "
+                + driver.getFullName()).entity("driver_absence", saved.getId()).detail("driverId", driver.getId()));
+        return toAbsences(List.of(saved)).getFirst();
+    }
+
+    /** By the office; the driver may withdraw its own request while it is REQUESTED (else 409). */
+    @RequiresPrivilege({Privileges.DRIVER_ABSENCE_MANAGE, Privileges.DRIVER_APP_SELF_USE})
+    @Transactional
+    public void deleteAbsence(Long driverId, Long absenceId) {
+        boolean office = self.full(Privileges.DRIVER_ABSENCE_MANAGE);
+        if (!office) {
+            self.requireOwn(driverId);
+        }
+        Driver driver = load(driverId);
+        DriverAbsence a = loadAbsence(driver, absenceId);
+        if (!office && a.getStatus() != DriverAbsence.Status.REQUESTED) {
+            throw new ApiException(HttpStatus.CONFLICT, ErrorCodes.CONFLICT);
+        }
         absences.delete(a);
         audit.record(AuditEvent.of(MODULE, "absence_deleted", "Deleted " + a.getKind().name() + " of driver "
                 + driver.getFullName()).entity("driver_absence", a.getId()).detail("driverId", driver.getId()));
@@ -158,7 +223,7 @@ public class DriverHrService {
                     || ChronoUnit.DAYS.between(in.fromDate(), in.toDate()) >= MAX_ABSENCE_DAYS) {
                 errors.put("toDate", ErrorCodes.FIELD_INVALID_VALUE);
             } else if (absences.search(a.getDriverId(), null, in.fromDate(), in.toDate()).stream()
-                    .anyMatch(o -> !o.getId().equals(a.getId()))) {
+                    .anyMatch(o -> !o.getId().equals(a.getId()) && o.getStatus() != DriverAbsence.Status.REJECTED)) {
                 errors.put("toDate", ErrorCodes.ABSENCE_OVERLAP);
             }
         }
@@ -188,7 +253,7 @@ public class DriverHrService {
         return list.stream().map(a -> new HrDto.Absence(a.getId(), ref(driverOf.get(a.getDriverId()), a.getDriverId()),
                 a.getKind(), a.getFromDate(), a.getToDate(), a.getDays(), workingDays(a.getFromDate(), a.getToDate()),
                 a.isPaid(), a.getNote(), a.getApprovedBy() == null ? null : user(userOf.get(a.getApprovedBy())),
-                a.getApprovedAt(), a.getCreatedAt(), a.getUpdatedAt())).toList();
+                a.getApprovedAt(), a.getCreatedAt(), a.getUpdatedAt(), a.getStatus(), a.getDecisionNote())).toList();
     }
 
     /** Monday to Friday, both ends included. */
@@ -272,7 +337,8 @@ public class DriverHrService {
     private List<HrDto.Day> calendar(Driver driver, LocalDate from, LocalDate to) {
         Map<LocalDate, DriverDay> manual = days.findByDriverIdAndDayBetween(driver.getId(), from, to).stream()
                 .collect(Collectors.toMap(DriverDay::getDay, Function.identity()));
-        List<DriverAbsence> away = absences.search(driver.getId(), null, from, to);
+        List<DriverAbsence> away = absences.search(driver.getId(), null, from, to).stream()
+                .filter(a -> a.getStatus() == DriverAbsence.Status.APPROVED).toList();
         Map<LocalDate, HosEngine.Day> tacho = new HashMap<>();
         for (HosEngine.Day d : hos.dailyFigures(driver.getFirmaId(), driver, from, to)) {
             tacho.put(d.day(), d);
@@ -306,9 +372,10 @@ public class DriverHrService {
 
     // --- pay rates -----------------------------------------------------------------------------------------
 
-    @RequiresPrivilege(Privileges.DRIVER_PAYMENT_VIEW)
+    @RequiresPrivilege({Privileges.DRIVER_PAYMENT_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
     public List<HrDto.PayRate> rates(Long driverId) {
+        ownPay(driverId);
         Driver driver = load(driverId);
         return rates.findByDriverIdOrderByValidFromDesc(driver.getId()).stream().map(DriverHrService::toRate).toList();
     }
@@ -389,9 +456,10 @@ public class DriverHrService {
 
     // --- payments ------------------------------------------------------------------------------------------
 
-    @RequiresPrivilege(Privileges.DRIVER_PAYMENT_VIEW)
+    @RequiresPrivilege({Privileges.DRIVER_PAYMENT_VIEW, Privileges.DRIVER_APP_SELF_USE})
     @Transactional(readOnly = true)
     public List<HrDto.Payment> payments(Long driverId, String from, String to) {
+        ownPay(driverId);
         Driver driver = load(driverId);
         String f = from == null || from.isBlank() ? null : parseMonth("from", from).toString();
         String t = to == null || to.isBlank() ? null : parseMonth("to", to).toString();
@@ -497,6 +565,17 @@ public class DriverHrService {
         return list.stream().map(p -> new HrDto.Payment(p.getId(), ref(driverOf.get(p.getDriverId()), p.getDriverId()),
                 p.getPeriod(), p.getKind(), p.getAmount(), p.getCurrency(), p.getPaidAt(), p.getNote(),
                 p.getCreatedAt(), p.getUpdatedAt())).toList();
+    }
+
+    /** Without driver.payment/view: only the own driver, and only when the firma lets drivers see their pay. */
+    private void ownPay(Long driverId) {
+        if (self.full(Privileges.DRIVER_PAYMENT_VIEW)) {
+            return;
+        }
+        self.requireOwn(driverId);
+        if (!firmas.findById(InputFields.requireFirmaId()).map(f -> f.isDriversSeePay()).orElse(false)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.ACCESS_DENIED);
+        }
     }
 
     // --- helpers -------------------------------------------------------------------------------------------

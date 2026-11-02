@@ -21,9 +21,14 @@ public final class HrDto {
     public record Ref(Long id, String name) {
     }
 
+    /** {@code approvedBy}/{@code approvedAt}: who decided and when (also for REJECTED). */
     public record Absence(Long id, Ref driver, DriverAbsence.Kind kind, LocalDate fromDate, LocalDate toDate, int days,
                           int workingDays, boolean paid, String note, Ref approvedBy, Instant approvedAt,
-                          Instant createdAt, Instant updatedAt) {
+                          Instant createdAt, Instant updatedAt, DriverAbsence.Status status, String decisionNote) {
+    }
+
+    /** Body of {@code PATCH .../absences/{absenceId}}: the office's decision on a request. */
+    public record AbsenceDecision(String status, @Size(max = 500) String note) {
     }
 
     /** Body of {@code POST}/{@code PUT .../absences}; {@code paid} defaults to false for UNPAID, true otherwise. */

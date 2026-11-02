@@ -122,10 +122,7 @@ public class TripService {
 
     /** 403 unless the caller's own driver is MAIN or SECOND on the trip (driver cabinet). */
     private void requireCrew(Trip trip) {
-        Long own = self.ownDriverId();
-        if (crew.findByTripId(trip.getId()).stream().noneMatch(d -> own.equals(d.getDriverId()))) {
-            throw new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.ACCESS_DENIED);
-        }
+        self.requireCrew(trip.getId());
     }
 
     // --- write ---------------------------------------------------------------------------------------------

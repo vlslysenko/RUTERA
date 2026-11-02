@@ -54,6 +54,10 @@ public class Firma extends BaseEntity {
     @Column(name = "ai_access", nullable = false)
     private boolean aiAccess;
 
+    /** Drivers see their own pay rates and payments in the cabinet. */
+    @Column(name = "drivers_see_pay", nullable = false)
+    private boolean driversSeePay;
+
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
@@ -149,6 +153,14 @@ public class Firma extends BaseEntity {
 
     public void setVehicleLimit(int vehicleLimit) {
         this.vehicleLimit = vehicleLimit;
+    }
+
+    public boolean isDriversSeePay() {
+        return driversSeePay;
+    }
+
+    public void setDriversSeePay(boolean driversSeePay) {
+        this.driversSeePay = driversSeePay;
     }
 
     public boolean isAiAccess() {

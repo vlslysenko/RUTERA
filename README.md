@@ -189,7 +189,33 @@ a login reads only its own driver, on the usual endpoints: `GET /app/drivers/{ow
 `/absences`, `/days?month=`; `GET /app/trips?driverId={own}` (driverId required) and `GET /app/trips/{id}` of trips
 where it is MAIN or SECOND driver; `PATCH /app/trips/{id}/stops/{stopId}` with DONE or SKIPPED on those trips;
 `GET /app/tacho/activity` and `/app/tacho/violations` with `driverId={own}`. Anything else answers 403
-`auth.access_denied` (pay data included).
+`auth.access_denied`; pay rates and payments of the own driver only when the firma allows it (`driversSeePay`).
+
+Absence requests: the driver's `POST /app/drivers/{own}/absences` creates an absence with `status: REQUESTED`
+(entries of the office are APPROVED at once). The office decides with `PATCH /app/drivers/{id}/absences/{absenceId}`
+`{status: APPROVED | REJECTED, note?}` (`driver.absence/manage`; `approvedBy`/`approvedAt` = who decided and when,
+`decisionNote`); the driver may withdraw its request while REQUESTED (`DELETE`, else 409). REQUESTED and APPROVED
+absences block overlapping ones (`driver.absence.overlap`), REJECTED do not; only APPROVED ones count in the
+working-day calendar. `GET /app/absences` and `/app/drivers/{id}/absences` filter with `status=`.
+
+Trip files (photos and documents from the road):
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/trips/{id}/files` | `[{id, kind, note, stop: {id, seq}, fileName, contentType, size, uploadedBy: {id, name}, createdAt}]` |
+| POST | `/app/trips/{id}/files` | multipart: `file`, `kind?` (CMR_PHOTO, DELIVERY_NOTE, RECEIPT, OTHER), `note?`, `stopId?` -> 201 |
+| GET | `/app/trips/{id}/files/{fileId}/content` | the file inline |
+| DELETE | `/app/trips/{id}/files/{fileId}` | 204 |
+
+The office (`trip.trip/view` to read, `trip.trip/manage` or `trip.cmr/upload` to upload, `trip.trip/manage` to
+delete) sees all files; a driver only those of trips where it is on the crew, uploads while the trip is not DONE or
+CANCELLED (409 `trip.file.trip_closed`) and deletes only its own uploads then. JPEG, PNG, WebP, HEIC and PDF by
+content (`file: trip.file.type`), at most 15 MB (`file: trip.file.too_large`).
+
+Firma settings (`admin.firma/manage`): `GET /app/admin/firma` -> `{id, name, shortCode, country, vatId, address,
+email, lang, timezone, baseCurrency, plan, vehicleLimit, aiAccess, driversSeePay}`; `PUT` the editable part `{name,
+vatId?, address?, email?, lang, timezone, baseCurrency, driversSeePay?}` (plan, vehicle limit and the AI access add-on
+belong to billing). `/app/auth/me` carries `firma.driversSeePay`.
 
 ### Driver HR (absences, working days, pay rates, payments)
 

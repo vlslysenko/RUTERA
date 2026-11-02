@@ -2,6 +2,7 @@ package com.rutera.core.driver;
 
 import com.rutera.common.domain.Driver;
 import com.rutera.common.repository.DriverRepository;
+import com.rutera.common.repository.TripDriverRepository;
 import com.rutera.core.security.CurrentUser;
 import com.rutera.core.web.ApiException;
 import com.rutera.core.web.ErrorCodes;
@@ -20,9 +21,11 @@ import java.util.Optional;
 public class DriverSelf {
 
     private final DriverRepository drivers;
+    private final TripDriverRepository crew;
 
-    public DriverSelf(DriverRepository drivers) {
+    public DriverSelf(DriverRepository drivers, TripDriverRepository crew) {
         this.drivers = drivers;
+        this.crew = crew;
     }
 
     /** Whether the caller has {@code privilege} itself (else the caller only sees its own driver). */
@@ -44,6 +47,14 @@ public class DriverSelf {
     /** 403 unless {@code driverId} is the caller's own driver. */
     public void requireOwn(Long driverId) {
         if (!Objects.equals(driverId, ownDriverId())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.ACCESS_DENIED);
+        }
+    }
+
+    /** 403 unless the caller's own driver is MAIN or SECOND on the trip. */
+    public void requireCrew(Long tripId) {
+        Long own = ownDriverId();
+        if (crew.findByTripId(tripId).stream().noneMatch(d -> own.equals(d.getDriverId()))) {
             throw new ApiException(HttpStatus.FORBIDDEN, ErrorCodes.ACCESS_DENIED);
         }
     }

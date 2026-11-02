@@ -79,6 +79,10 @@ public final class ErrorCodes {
     public static final String CONTRACTOR_VAT_TAKEN = "trip.contractor.vat_taken";
     public static final String ORDER_NUMBER_TAKEN = "trip.order.number_taken";
     public static final String TRIP_NUMBER_TAKEN = "trip.trip.number_taken";
+    /** Trip files: the trip is DONE or CANCELLED (409), not an image or PDF, larger than 15 MB (per-field). */
+    public static final String TRIP_FILE_TRIP_CLOSED = "trip.file.trip_closed";
+    public static final String TRIP_FILE_TYPE = "trip.file.type";
+    public static final String TRIP_FILE_TOO_LARGE = "trip.file.too_large";
     /** CMR (per-field): the number is already used in the firma. */
     public static final String CMR_NUMBER_TAKEN = "trip.cmr.number_taken";
 

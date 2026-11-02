@@ -27,10 +27,14 @@ public record UserDto(
     public record DriverRef(Long id, String name) {
     }
 
-    /** {@code timezone}: the firma's IANA zone (e.g. Europe/Warsaw); days and weeks are cut in it. */
-    public record FirmaDto(Long id, String name, String timezone) {
+    /**
+     * {@code timezone}: the firma's IANA zone (e.g. Europe/Warsaw); days and weeks are cut in it. {@code driversSeePay}:
+     * drivers see their own pay rates and payments in the cabinet.
+     */
+    public record FirmaDto(Long id, String name, String timezone, boolean driversSeePay) {
         public static FirmaDto of(Firma firma) {
-            return firma == null ? null : new FirmaDto(firma.getId(), firma.getName(), firma.getTimezone());
+            return firma == null ? null : new FirmaDto(firma.getId(), firma.getName(), firma.getTimezone(),
+                    firma.isDriversSeePay());
         }
     }
 

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -46,8 +47,9 @@ public class DriverHrController {
 
     @GetMapping({"/app/drivers/{id}/absences", "/api/v1/drivers/{id}/absences"})
     public List<HrDto.Absence> absences(@PathVariable Long id, @RequestParam(required = false) LocalDate from,
-                                        @RequestParam(required = false) LocalDate to) {
-        return service.absences(id, from, to);
+                                        @RequestParam(required = false) LocalDate to,
+                                        @RequestParam(required = false) String status) {
+        return service.absences(id, from, to, status);
     }
 
     @PostMapping({"/app/drivers/{id}/absences", "/api/v1/drivers/{id}/absences"})
@@ -62,6 +64,12 @@ public class DriverHrController {
         return service.updateAbsence(id, absenceId, input);
     }
 
+    @PatchMapping({"/app/drivers/{id}/absences/{absenceId}", "/api/v1/drivers/{id}/absences/{absenceId}"})
+    public HrDto.Absence decideAbsence(@PathVariable Long id, @PathVariable Long absenceId,
+                                       @Valid @RequestBody HrDto.AbsenceDecision decision) {
+        return service.decideAbsence(id, absenceId, decision);
+    }
+
     @DeleteMapping({"/app/drivers/{id}/absences/{absenceId}", "/api/v1/drivers/{id}/absences/{absenceId}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAbsence(@PathVariable Long id, @PathVariable Long absenceId) {
@@ -72,8 +80,9 @@ public class DriverHrController {
     public List<HrDto.Absence> allAbsences(@RequestParam(required = false) LocalDate from,
                                            @RequestParam(required = false) LocalDate to,
                                            @RequestParam(required = false) String kind,
-                                           @RequestParam(required = false) Long driverId) {
-        return service.allAbsences(from, to, kind, driverId);
+                                           @RequestParam(required = false) Long driverId,
+                                           @RequestParam(required = false) String status) {
+        return service.allAbsences(from, to, kind, driverId, status);
     }
 
     // --- working days

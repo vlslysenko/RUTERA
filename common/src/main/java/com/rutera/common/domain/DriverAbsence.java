@@ -16,6 +16,11 @@ import java.time.LocalDate;
 @Table(name = "driver_absence")
 public class DriverAbsence extends TenantEntity {
 
+    /** REQUESTED by the driver until the office decides; office entries are APPROVED at once. */
+    public enum Status {
+        REQUESTED, APPROVED, REJECTED
+    }
+
     public enum Kind {
         SICK, VACATION, UNPAID, PARENTAL, OTHER
     }
@@ -47,6 +52,14 @@ public class DriverAbsence extends TenantEntity {
     /** Scan of the document (sick note); uploads come later. */
     @Column(name = "file_id")
     private Long fileId;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "status", nullable = false, length = 16)
+    private Status status = Status.APPROVED;
+
+    @Column(name = "decision_note", length = 500)
+    private String decisionNote;
 
     @Column(name = "approved_by")
     private Long approvedBy;
@@ -132,5 +145,21 @@ public class DriverAbsence extends TenantEntity {
 
     public void setApprovedAt(Instant approvedAt) {
         this.approvedAt = approvedAt;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public String getDecisionNote() {
+        return decisionNote;
+    }
+
+    public void setDecisionNote(String decisionNote) {
+        this.decisionNote = decisionNote;
     }
 }
