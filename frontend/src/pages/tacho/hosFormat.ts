@@ -31,3 +31,41 @@ export function dayStart(ymd: string): number {
   const [y, m, d] = ymd.split('-').map(Number);
   return new Date(y, m - 1, d).getTime();
 }
+
+/** Offset of a time zone from UTC at an instant, in milliseconds (Europe/Warsaw in summer: +2 h). */
+function zoneOffset(ms: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(new Date(ms));
+  const n = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  return Date.UTC(n('year'), n('month') - 1, n('day'), n('hour'), n('minute'), n('second')) - Math.floor(ms / 1000) * 1000;
+}
+
+/**
+ * Midnight of a YYYY-MM-DD day in the given time zone (the firma's: days are cut there), as epoch milliseconds.
+ * Days around a DST change are 23 or 25 hours long: take the length as the next day's start minus this one.
+ */
+export function zonedDayStart(ymd: string, timeZone: string): number {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const guess = Date.UTC(y, m - 1, d);
+  const first = guess - zoneOffset(guess, timeZone);
+  return guess - zoneOffset(first, timeZone);
+}
+
+/** YYYY-MM-DD of an instant in a time zone. */
+export function ymdIn(iso: string, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));
+}
+
+/** Monday (YYYY-MM-DD) of the week that contains a YYYY-MM-DD day. */
+export function mondayOfDay(ymd: string): string {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return shiftDays(ymd, -((new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7));
+}

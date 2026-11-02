@@ -42,10 +42,10 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 92px minmax(320px, 1fr) repeat(4, 76px) 96px;
+  grid-template-columns: 92px minmax(320px, 1fr) repeat(4, minmax(96px, max-content)) 96px;
   align-items: center;
   column-gap: 10px;
-  min-width: 860px;
+  min-width: 940px;
 }
 
 .head {

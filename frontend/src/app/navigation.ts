@@ -38,7 +38,13 @@ export interface NavGroup {
 export const SCREENS: Record<ScreenKey, NavItem> = {
   overview: { key: 'overview', path: '/overview', icon: IconHome, labelKey: 'nav.overview' },
   map: { key: 'map', path: '/map', icon: IconMap, labelKey: 'nav.map', privileges: [PRIV.MAP_POSITION_VIEW] },
-  trips: { key: 'trips', path: '/trips', icon: IconRoute, labelKey: 'nav.trips', privileges: [PRIV.TRIP_TRIP_VIEW] },
+  trips: {
+    key: 'trips',
+    path: '/trips',
+    icon: IconRoute,
+    labelKey: 'nav.trips',
+    privileges: [PRIV.TRIP_TRIP_VIEW, PRIV.TRIP_ORDER_VIEW, PRIV.TRIP_CONTRACTOR_MANAGE],
+  },
   fleet: { key: 'fleet', path: '/fleet', icon: IconTruck, labelKey: 'nav.fleet', privileges: [PRIV.FLEET_VEHICLE_VIEW] },
   drivers: { key: 'drivers', path: '/drivers', icon: IconUsers, labelKey: 'nav.drivers', privileges: [PRIV.DRIVER_VIEW] },
   tacho: { key: 'tacho', path: '/tacho', icon: IconClockHour4, labelKey: 'nav.tacho', privileges: [PRIV.TACHO_HOS_VIEW, PRIV.TACHO_FILE_UPLOAD] },

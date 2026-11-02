@@ -37,6 +37,8 @@ import { TACHO_MAX_FILES, type TachoMatch } from '@/api/tacho';
 import type { Violation } from '@/api/hos';
 import { addDays, buildViolations, daysFor, intervalsFor, ymd, type MockShiftDriver } from './hos';
 import { isTrailer } from '@/api/fleet';
+import type { ContractorInput, OrderInput, TripFromOrder, TripInput } from '@/api/trips';
+import * as tripMock from './trips';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
  * The session lives in sessionStorage, per-user settings in localStorage; users live in memory per page load.
@@ -710,6 +712,43 @@ route('DELETE', '/app/tacho/violations/:id/ack', withPrivilege('tacho.violation/
   v.ack = null;
   return { status: 200, body: v };
 }));
+
+// --- contractors, orders and trips --------------------------------------------------------------
+
+const hasKey = (u: MockUser, key: string) => u.role === 'SUPERUSER' || ROLE_PRIVILEGES[u.role].includes(key);
+const crew: tripMock.CrewLookup = {
+  vehicle: (id) => {
+    const v = vehicles.find((x) => x.id === id && !x.deleted);
+    return v && { id: v.id, plate: v.plate, trailer: isTrailer(v.kind) };
+  },
+  driverName,
+};
+const contractorReader = (fn: (req: MockRequest) => MockResponse) =>
+  withAuth((u, req) => (hasKey(u, 'trip.order/view') || hasKey(u, 'trip.contractor/manage') ? fn(req) : error(403, 'auth.access_denied')));
+
+route('GET', '/app/contractors', contractorReader(({ query }) => tripMock.listContractors(query.q, query.role)));
+route('GET', '/app/contractors/:id', contractorReader(({ params }) => tripMock.getContractor(params.id)));
+route('POST', '/app/contractors', withPrivilege('trip.contractor/manage', (_u, { body }) => tripMock.saveContractor((body ?? {}) as ContractorInput, null)));
+route('PUT', '/app/contractors/:id', withPrivilege('trip.contractor/manage', (_u, req) => tripMock.saveContractor((req.body ?? {}) as ContractorInput, req.params.id)));
+route('DELETE', '/app/contractors/:id', withPrivilege('trip.contractor/manage', (_u, req) => tripMock.removeContractor(req.params.id)));
+
+route('GET', '/app/orders', withPrivilege('trip.order/view', (_u, { query }) => tripMock.listOrders(query)));
+route('GET', '/app/orders/:id', withPrivilege('trip.order/view', (_u, req) => tripMock.getOrder(req.params.id)));
+route('POST', '/app/orders', withPrivilege('trip.order/manage', (_u, { body }) => tripMock.saveOrder((body ?? {}) as OrderInput, null)));
+route('PUT', '/app/orders/:id', withPrivilege('trip.order/manage', (_u, req) => tripMock.saveOrder((req.body ?? {}) as OrderInput, req.params.id)));
+route('DELETE', '/app/orders/:id', withPrivilege('trip.order/manage', (_u, req) => tripMock.removeOrder(req.params.id)));
+route('POST', '/app/orders/:id/trip', withPrivilege('trip.order/manage', (u, req) =>
+  hasKey(u, 'trip.trip/manage') ? tripMock.createTripForOrder(req.params.id, (req.body ?? {}) as TripFromOrder, crew) : error(403, 'auth.access_denied'),
+));
+
+route('GET', '/app/trips', withPrivilege('trip.trip/view', (_u, { query }) => tripMock.listTrips(query, crew)));
+route('GET', '/app/trips/:id', withPrivilege('trip.trip/view', (_u, req) => tripMock.getTrip(req.params.id, crew)));
+route('POST', '/app/trips', withPrivilege('trip.trip/manage', (_u, { body }) => tripMock.saveTrip((body ?? {}) as TripInput, null, crew)));
+route('PUT', '/app/trips/:id', withPrivilege('trip.trip/manage', (_u, req) => tripMock.saveTrip((req.body ?? {}) as TripInput, req.params.id, crew)));
+route('DELETE', '/app/trips/:id', withPrivilege('trip.trip/manage', (_u, req) => tripMock.removeTrip(req.params.id)));
+route('PATCH', '/app/trips/:id/stops/:stopId', withPrivilege('trip.trip/manage', (_u, req) =>
+  tripMock.markStop(req.params.id, req.params.stopId, (req.body ?? {}) as { status?: string; actualAt?: string | null }),
+));
 
 // --- user administration -------------------------------------------------------------------------
 

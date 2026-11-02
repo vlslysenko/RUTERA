@@ -25,6 +25,15 @@ import { TachoIndex, TachoLayout } from '@/pages/tacho/TachoLayout';
 import { ViolationDetail } from '@/pages/tacho/ViolationDetail';
 import { ViolationsPage } from '@/pages/tacho/ViolationsPage';
 import { UsersPage } from '@/pages/settings/users/UsersPage';
+import { ContractorDetail } from '@/pages/trips/ContractorDetail';
+import { ContractorsPage } from '@/pages/trips/ContractorsPage';
+import { OrderDetail } from '@/pages/trips/OrderDetail';
+import { OrderForm } from '@/pages/trips/OrderForm';
+import { OrdersPage } from '@/pages/trips/OrdersPage';
+import { TripDetail } from '@/pages/trips/TripDetail';
+import { TripForm } from '@/pages/trips/TripForm';
+import { TripsFallback, TripsLayout } from '@/pages/trips/TripsLayout';
+import { TripsPage } from '@/pages/trips/TripsPage';
 import { SCREENS, startScreenPath } from './navigation';
 import type { ScreenKey } from './types';
 
@@ -54,7 +63,81 @@ export const router = createBrowserRouter([
           { index: true, element: <StartRedirect /> },
           screen('overview', [{ path: SCREENS.overview.path, element: <OverviewPage /> }]),
           placeholder('map'),
-          placeholder('trips'),
+          screen('trips', [
+            {
+              path: SCREENS.trips.path,
+              element: <TripsLayout />,
+              children: [
+                {
+                  element: <PrivilegeGuard privilege={PRIV.TRIP_TRIP_VIEW} fallback={<TripsFallback />} />,
+                  children: [
+                    {
+                      // /trips and its cards; static "orders" / "contractors" rank above ":id".
+                      element: <TripsPage />,
+                      children: [
+                        { index: true, element: null },
+                        { path: ':id', element: <TripDetail mode="drawer" /> },
+                        {
+                          element: <PrivilegeGuard privilege={PRIV.TRIP_TRIP_MANAGE} />,
+                          children: [
+                            { path: 'new', element: <TripForm /> },
+                            { path: ':id/edit', element: <TripForm /> },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  element: <PrivilegeGuard privilege={PRIV.TRIP_ORDER_VIEW} />,
+                  children: [
+                    {
+                      path: 'orders',
+                      element: <OrdersPage />,
+                      children: [
+                        { path: ':id', element: <OrderDetail mode="drawer" /> },
+                        {
+                          element: <PrivilegeGuard privilege={PRIV.TRIP_ORDER_MANAGE} />,
+                          children: [
+                            { path: 'new', element: <OrderForm /> },
+                            { path: ':id/edit', element: <OrderForm /> },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  element: <PrivilegeGuard privilege={[PRIV.TRIP_ORDER_VIEW, PRIV.TRIP_CONTRACTOR_MANAGE]} />,
+                  children: [
+                    {
+                      path: 'contractors',
+                      element: <ContractorsPage />,
+                      children: [
+                        { path: ':id', element: <ContractorDetail mode="drawer" /> },
+                        {
+                          element: <PrivilegeGuard privilege={PRIV.TRIP_CONTRACTOR_MANAGE} />,
+                          children: [{ path: 'new', element: <ContractorDetail mode="drawer" /> }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              element: <PrivilegeGuard privilege={PRIV.TRIP_TRIP_VIEW} />,
+              children: [{ path: `${SCREENS.trips.path}/:id/page`, element: <TripDetail mode="page" /> }],
+            },
+            {
+              element: <PrivilegeGuard privilege={PRIV.TRIP_ORDER_VIEW} />,
+              children: [{ path: `${SCREENS.trips.path}/orders/:id/page`, element: <OrderDetail mode="page" /> }],
+            },
+            {
+              element: <PrivilegeGuard privilege={[PRIV.TRIP_ORDER_VIEW, PRIV.TRIP_CONTRACTOR_MANAGE]} />,
+              children: [{ path: `${SCREENS.trips.path}/contractors/:id/page`, element: <ContractorDetail mode="page" /> }],
+            },
+          ]),
           screen('fleet', [
             {
               path: SCREENS.fleet.path,

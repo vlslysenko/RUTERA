@@ -48,17 +48,29 @@ the backend clears the cookie on logout, the client fetches a new one with `GET 
 | GET | `/app/tacho/files`, `/app/tacho/files/{id}` | journal `{items, total}` with filters / `TachoFileDetail` (`tacho.hos/view` or `tacho.file/upload`) |
 | GET | `/app/tacho/files/{id}/content` | original bytes (download) |
 | PUT, POST, POST, DELETE | `.../{id}/assignment`, `.../{id}/driver`, `.../{id}/vehicle`, `.../{id}` | assign by hand, create a driver / vehicle from the file, delete |
-| GET | `/app/tacho/activity?driverId&from&to` | `{driver, timezone, days: HosDay[], intervals}` (`tacho.hos/view`; proposed contract, mock only until the backend has it) |
+| GET | `/app/tacho/activity?driverId&from&to` | `{driver, timezone, days: HosDay[], intervals}` (`tacho.hos/view`, up to 31 days) |
 | GET | `/app/tacho/violations`, `/app/tacho/violations/{id}` | `{items: Violation[], total}` with filters / one violation |
 | POST/DELETE | `/app/tacho/violations/{id}/ack` | mark as reviewed `{note?}` / undo (`tacho.violation/ack`) |
+| GET/POST, GET/PUT/DELETE | `/app/contractors`, `.../{id}` | `Contractor[]` (`?q&role=CUSTOMER\|CARRIER`) / card; read with `trip.order/view` or `trip.contractor/manage` |
+| GET/POST, GET/PUT/DELETE | `/app/orders`, `.../{id}` | `{items: Order[], total}` (`?status&customerId&q&from&to&page&size`) / card (`trip.order/view`, `trip.order/manage`) |
+| POST | `/app/orders/{id}/trip` | `{vehicleId, trailerId?, mainDriverId?, secondDriverId?, plannedStart?}` -> 201 `Trip` (both manage keys) |
+| GET/POST, GET/PUT/DELETE | `/app/trips`, `.../{id}` | `{items: Trip[], total}` (`?status&vehicleId&driverId&q&from&to&page&size`) / card; PUT replaces crew, orders and stops |
+| PATCH | `/app/trips/{id}/stops/{stopId}` | `{status, actualAt?}` -> `TripStop` (quick marks on the trip card) |
 
 Tachograph screens are tabs: `/tacho/files` (upload and journal), `/tacho/activity?driver=&week=` (a week of one
-driver against 561/2006) and `/tacho/violations` (filters in the URL, review in the right panel).
+driver against 561/2006) and `/tacho/violations` (filters in the URL, review in the right panel). Day strips and
+violation times are shown in the firma time zone (`timezone` of the activity, `User.firma.timezone`), the zone the
+backend cuts days in.
+
+Trips are tabs too: `/trips` (trips; card with stops and quick marks, status buttons Start / Finish / Cancel as a PUT
+of the whole trip), `/trips/orders` (orders; card with "create trip") and `/trips/contractors` (customers and
+carriers). Each tab needs its own privilege; users without `trip.trip/view` land on the first tab they may open.
+Stop errors come as `stops[2].address` and land on the field `stops.2.address` of the trip form.
 
 The vehicle–driver link lives on the vehicle (`defaultDriverId` in the vehicle form); `Driver.defaultVehicle` is
 derived from it. Documents of vehicles and drivers share `components/DeadlineDocuments`.
 
-`User = { id, login, name, role, firma: { id, name } | null, language, startScreen, privileges: string[] }`.
+`User = { id, login, name, role, firma: { id, name, timezone } | null, language, startScreen, privileges: string[] }`.
 Menu items and screens are shown by `privileges` (`module.entity/action`, see `src/app/navigation.ts` and
 `src/auth/privileges.ts`); the superuser has an empty list and bypasses checks. Error bodies carry `code` = i18n
 key and, for 422, `details: { field: code }`, which forms map onto their fields (`src/forms/serverErrors.ts`).
@@ -78,7 +90,7 @@ src/api        fetch wrapper (/app, CSRF), auth, i18n, fleet; mock/ = in-browser
 src/auth       session hooks (TanStack Query), RequireAuth, ScreenGuard (role -> screen)
 src/layout     AppLayout (AppShell), TopBar, Sidebar, LanguageMenu, UserMenu
 src/components DetailDrawer (card in the right panel + "open as page"), PageHeader, StatusChip, Plate, ...
-src/pages      Login, Overview, Settings (profile, password, users), Fleet, Drivers, Tachograph files, placeholders
+src/pages      Login, Overview, Settings (profile, password, users), Fleet, Drivers, Tachograph, Trips, placeholders
 src/i18n       i18next setup, language list, locales/
 ```
 

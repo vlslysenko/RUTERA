@@ -27,6 +27,8 @@ export type ScreenKey =
 export interface Firma {
   id: number;
   name: string;
+  /** IANA zone the firma's days are cut in (tachograph days, 561/2006); "UTC" for now. */
+  timezone?: string;
 }
 
 export interface User {

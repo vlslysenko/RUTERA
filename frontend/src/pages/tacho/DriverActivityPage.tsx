@@ -16,21 +16,20 @@ import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { StatusChip } from '@/components/StatusChip';
 import { formatDate } from '@/utils/deadline';
 import { cx } from '@/utils/cx';
-import { dayStart, formatMinutes, mondayOf, shiftDays, toYmd } from './hosFormat';
+import { dayStart, formatMinutes, mondayOf, shiftDays, toYmd, zonedDayStart } from './hosFormat';
 import classes from './Hos.module.css';
 
-const DAY_MS = 86_400_000;
-
-function hhmm(ms: number, lang: string): string {
-  return new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit' }).format(new Date(ms));
+function hhmm(ms: number, lang: string, timeZone: string): string {
+  return new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit', timeZone }).format(new Date(ms));
 }
 
-/** 24-hour strip of one day: coloured segments per activity, the exact times in the tooltip. */
-function DayBar({ day, intervals }: { day: string; intervals: ActivityInterval[] }) {
+/** 24-hour strip of one day in the firma time zone: coloured segments per activity, the exact times in the tooltip. */
+function DayBar({ day, intervals, timeZone }: { day: string; intervals: ActivityInterval[]; timeZone: string }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
-  const start = dayStart(day);
-  const end = start + DAY_MS;
+  const start = zonedDayStart(day, timeZone);
+  const end = zonedDayStart(shiftDays(day, 1), timeZone);
+  const length = end - start;
   const segs = intervals
     .map((iv) => ({ iv, a: Math.max(start, Date.parse(iv.startAt)), b: Math.min(end, Date.parse(iv.endAt)) }))
     .filter((s) => s.b > s.a);
@@ -39,12 +38,12 @@ function DayBar({ day, intervals }: { day: string; intervals: ActivityInterval[]
       {segs.map(({ iv, a, b }, i) => (
         <Tooltip
           key={i}
-          label={`${t(`hos.activity.${iv.activity}`)} ${hhmm(a, lang)}–${b === end ? '24:00' : hhmm(b, lang)}${iv.vehicle ? ` · ${iv.vehicle.plate}` : ''}`}
+          label={`${t(`hos.activity.${iv.activity}`)} ${hhmm(a, lang, timeZone)}–${b === end ? '24:00' : hhmm(b, lang, timeZone)}${iv.vehicle ? ` · ${iv.vehicle.plate}` : ''}`}
           withinPortal
         >
           <div
             className={cx(classes.seg, classes[iv.activity])}
-            style={{ left: `${((a - start) / DAY_MS) * 100}%`, width: `${((b - a) / DAY_MS) * 100}%` }}
+            style={{ left: `${((a - start) / length) * 100}%`, width: `${((b - a) / length) * 100}%` }}
           />
         </Tooltip>
       ))}
@@ -64,7 +63,7 @@ function Stat({ label, value, ratio }: { label: string; value: string; ratio?: n
 }
 
 /** Where the driver stands against 561/2006 at the end of the shown week (or today, for the current week). */
-function Summary({ days }: { days: HosDay[] }) {
+function Summary({ days, timeZone }: { days: HosDay[]; timeZone: string }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
   const today = toYmd(new Date());
@@ -96,7 +95,7 @@ function Summary({ days }: { days: HosDay[] }) {
       {ref.nextWeeklyRestBy && (
         <Stat
           label={t('hos.summary.weekly_rest_by')}
-          value={new Intl.DateTimeFormat(lang, { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(
+          value={new Intl.DateTimeFormat(lang, { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone }).format(
             new Date(ref.nextWeeklyRestBy),
           )}
         />
@@ -205,7 +204,7 @@ export function DriverActivityPage() {
         <EmptyState text={t('hos.no_data')} />
       ) : (
         <>
-          <Summary days={q.data.days} />
+          <Summary days={q.data.days} timeZone={q.data.timezone} />
           <Paper p="sm" className={classes.days}>
             <div className={classes.grid}>
               <span className={classes.head}>{t('hos.col.day')}</span>
@@ -229,7 +228,7 @@ export function DriverActivityPage() {
                       {weekday(day)} {formatDate(day, lang).slice(0, 5)}
                     </span>
                     <div>
-                      <DayBar day={day} intervals={q.data.intervals} />
+                      <DayBar day={day} intervals={q.data.intervals} timeZone={q.data.timezone} />
                     </div>
                     <span className={classes.num}>{d && d.drivingMin > 0 ? formatMinutes(t, d.drivingMin) : '—'}</span>
                     <span className={classes.num}>{d && d.workMin > 0 ? formatMinutes(t, d.workMin) : '—'}</span>

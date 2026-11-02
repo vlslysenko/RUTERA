@@ -20,7 +20,8 @@ export interface MockUser {
   updatedAt: string;
 }
 
-export const MOCK_FIRMA: Firma = { id: 1, name: 'TransPol Sp. z o.o.' };
+// The mock cuts tachograph days in the browser's zone, so the firma "lives" there too.
+export const MOCK_FIRMA: Firma = { id: 1, name: 'TransPol Sp. z o.o.', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone };
 
 const T0 = '2026-10-01T08:00:00Z';
 

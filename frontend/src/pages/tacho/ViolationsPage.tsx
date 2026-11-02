@@ -29,6 +29,8 @@ export function ViolationsPage() {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
   const me = useUser();
+  // Violation times in the firma zone, the zone the backend cuts days and the from/to filter in.
+  const tz = me.firma?.timezone;
   const { id } = useParams();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -158,7 +160,7 @@ export function ViolationsPage() {
                             }
                           }}
                         >
-                          <Table.Td className={classes.mono}>{formatInstant(v.startAt, lang)}</Table.Td>
+                          <Table.Td className={classes.mono}>{formatInstant(v.startAt, lang, tz)}</Table.Td>
                           <Table.Td>
                             <Text span fw={500}>
                               {v.driver.name}

@@ -14,7 +14,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { KeyValueList } from '@/components/KeyValueList';
 import { Plate } from '@/components/Plate';
 import { formatInstant } from './format';
-import { formatMinutes, mondayOf, REST_RULES } from './hosFormat';
+import { formatMinutes, mondayOf, mondayOfDay, REST_RULES, ymdIn } from './hosFormat';
 import { ReviewChip, SeverityChip } from './ViolationChips';
 import classes from './Hos.module.css';
 
@@ -26,6 +26,7 @@ export function ViolationDetail({ mode }: { mode: 'drawer' | 'page' }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
   const me = useUser();
+  const tz = me.firma?.timezone;
   const qc = useQueryClient();
   const { search } = useLocation();
   const { id = '' } = useParams();
@@ -60,7 +61,7 @@ export function ViolationDetail({ mode }: { mode: 'drawer' | 'page' }) {
       listPath={`/tacho/violations${search}`}
       pagePath={`/tacho/violations/${id}/page${search}`}
       title={v ? t(`hos.rule.${v.rule}`) : '…'}
-      subtitle={v && `${v.driver.name} · ${formatInstant(v.startAt, lang)}`}
+      subtitle={v && `${v.driver.name} · ${formatInstant(v.startAt, lang, tz)}`}
       status={
         v && (
           <Group gap={6}>
@@ -86,7 +87,7 @@ export function ViolationDetail({ mode }: { mode: 'drawer' | 'page' }) {
                 label: t(rest ? 'hos.v.short_by' : 'hos.v.over_by'),
                 value: <span className={classes.mono}>{formatMinutes(t, diff)}</span>,
               },
-              { label: t('hos.v.period'), value: `${formatInstant(v.startAt, lang)} – ${formatInstant(v.endAt, lang)}` },
+              { label: t('hos.v.period'), value: `${formatInstant(v.startAt, lang, tz)} – ${formatInstant(v.endAt, lang, tz)}` },
               {
                 label: t('fleet.driver'),
                 value: (
@@ -97,10 +98,12 @@ export function ViolationDetail({ mode }: { mode: 'drawer' | 'page' }) {
               },
               {
                 label: t('drivers.vehicle'),
-                value: v.vehicle ? (
+                value: v.vehicle?.id != null ? (
                   <Anchor component={Link} to={`/fleet/${v.vehicle.id}`}>
                     <Plate>{v.vehicle.plate}</Plate>
                   </Anchor>
+                ) : v.vehicle ? (
+                  <Plate>{v.vehicle.plate}</Plate>
                 ) : (
                   '—'
                 ),
@@ -110,7 +113,7 @@ export function ViolationDetail({ mode }: { mode: 'drawer' | 'page' }) {
           />
           <Anchor
             component={Link}
-            to={`/tacho/activity?driver=${v.driver.id}&week=${mondayOf(new Date(v.startAt))}`}
+            to={`/tacho/activity?driver=${v.driver.id}&week=${tz ? mondayOfDay(ymdIn(v.startAt, tz)) : mondayOf(new Date(v.startAt))}`}
             size="sm"
           >
             {t('hos.v.show_week')}

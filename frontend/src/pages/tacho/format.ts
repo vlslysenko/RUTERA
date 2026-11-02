@@ -8,8 +8,9 @@ export function formatPeriod(from: string | null, to: string | null, lang: strin
   return `${from ? formatDate(from.slice(0, 10), lang) : '…'} – ${to ? formatDate(to.slice(0, 10), lang) : '…'}`;
 }
 
-export function formatInstant(iso: string | null, lang: string): string {
-  return iso ? new Intl.DateTimeFormat(lang, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso)) : DASH;
+/** Date and time of an instant; in `timeZone` (the firma's) when given, else in the browser's zone. */
+export function formatInstant(iso: string | null, lang: string, timeZone?: string): string {
+  return iso ? new Intl.DateTimeFormat(lang, { dateStyle: 'short', timeStyle: 'short', timeZone }).format(new Date(iso)) : DASH;
 }
 
 /** File size in kB or MB in the UI language. */

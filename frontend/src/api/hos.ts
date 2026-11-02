@@ -1,9 +1,11 @@
-import type { VehicleRef } from './fleet';
 import { api } from './client';
 
 /*
- * Driver activities and rules 561/2006 (DB_SCHEMA.md group 4: tacho_activity, driver_hos_day, driver_violation).
- * Contract proposed by the frontend on 2026-11-02; the backend has not built it yet (steps B and D of the import).
+ * Driver activities and rules 561/2006 (DB_SCHEMA.md group 4: tacho_activity, driver_hos_day, driver_violation),
+ * backend b4b6475. Intervals are the recorded data only: time without a card comes as UNKNOWN, days without data have
+ * no intervals; for 561/2006 both count as rest. Days are cut in the firma time zone, weeks Monday to Sunday; `days`
+ * holds every day of the range. Violations are recomputed after each upload, assignment or delete of a file of the
+ * driver; a review survives when the same violation (driver, rule, startAt) is found again.
  *   GET  /app/tacho/activity?driverId&from&to  -> DriverActivity (tacho.hos/view, up to 31 days)
  *   GET  /app/tacho/violations?driverId&from&to&severity&unacknowledged&page&size -> {items, total}, newest first
  *   GET  /app/tacho/violations/{id}            -> Violation
@@ -40,6 +42,12 @@ export const HOS = {
   TWO_WEEK_DRIVING: 90 * 60,
 } as const;
 
+/** Vehicle of a tachograph record: id is null when the plate / VIN of the file is not in the fleet. */
+export interface TachoVehicleRef {
+  id: number | null;
+  plate: string;
+}
+
 export interface ActivityInterval {
   /** ISO UTC */
   startAt: string;
@@ -47,7 +55,7 @@ export interface ActivityInterval {
   activity: Activity;
   /** 1 = driver, 2 = co-driver (crew). */
   slot: 1 | 2;
-  vehicle: VehicleRef | null;
+  vehicle: TachoVehicleRef | null;
 }
 
 export interface HosDay {
@@ -57,7 +65,7 @@ export interface HosDay {
   workMin: number;
   availabilityMin: number;
   restMin: number;
-  /** The rest that closed the day, when there was one. */
+  /** Length of the daily or weekly rest (9 h or more) that started this day; null without one. */
   dailyRestMin: number | null;
   extDrivingInWeek: number;
   reducedRestInWeek: number;
@@ -88,7 +96,8 @@ export interface Violation {
   /** Minutes: what was measured and what the rule allows. */
   actualValue: number;
   limitValue: number;
-  vehicle: VehicleRef | null;
+  vehicle: TachoVehicleRef | null;
+  /** Short technical English text, not translated. */
   details: string | null;
   ack: { by: { id: number; name: string }; at: string; note: string | null } | null;
 }
