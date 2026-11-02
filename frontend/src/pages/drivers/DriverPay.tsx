@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm, type FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ActionIcon, Alert, Button, Group, NumberInput, Paper, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Alert, Button, Group, NumberInput, Paper, Select, Stack, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconChevronLeft, IconChevronRight, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +21,7 @@ import { PaymentKindChip } from './HrChips';
 import { formatAmount, formatMonth, formatPayment } from './hrFormat';
 import { PaymentForm } from './PaymentForm';
 import classes from './Hr.module.css';
+import { FormDateField } from '@/forms/DateField';
 
 const MONEY = 999_999_999_999.99;
 
@@ -50,7 +51,6 @@ function RateForm({ driverId, rate, onDone }: { driverId: string; rate: PayRate 
   const qc = useQueryClient();
   const {
     control,
-    register,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
@@ -102,7 +102,7 @@ function RateForm({ driverId, rate, onDone }: { driverId: string; rate: PayRate 
       <form onSubmit={(e) => void onSubmit(e)} noValidate>
         <Stack gap="sm">
           <Group grow align="flex-start">
-            <TextInput type="date" label={t('pay_rates.valid_from')} error={err('validFrom')} {...register('validFrom')} />
+            <FormDateField label={t('pay_rates.valid_from')} error={err('validFrom')} control={control} name="validFrom" />
             <Controller
               name="currency"
               control={control}

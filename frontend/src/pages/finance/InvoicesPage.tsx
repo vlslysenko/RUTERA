@@ -19,6 +19,7 @@ import { formatDate } from '@/utils/deadline';
 import { cx } from '@/utils/cx';
 import { InvoiceStatusChip } from './FinanceChips';
 import classes from '@/pages/trips/Trips.module.css';
+import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 
@@ -106,8 +107,8 @@ export function InvoicesPage() {
               searchable
               w={200}
             />
-            <TextInput type="date" aria-label={t('orders.date_from')} title={t('orders.date_from')} value={params.get('from') ?? ''} onChange={(e) => set('from', e.currentTarget.value || null)} w={150} />
-            <TextInput type="date" aria-label={t('orders.date_to')} title={t('orders.date_to')} value={params.get('to') ?? ''} onChange={(e) => set('to', e.currentTarget.value || null)} w={150} />
+            <DateField aria-label={t('orders.date_from')} title={t('orders.date_from')} value={params.get('from') ?? ''} onChange={(v) => set('from', v || null)} w={150} />
+            <DateField aria-label={t('orders.date_to')} title={t('orders.date_to')} value={params.get('to') ?? ''} onChange={(v) => set('to', v || null)} w={150} />
             <Switch label={t('invoices.only_overdue')} checked={params.get('overdue') === 'true'} onChange={(e) => set('overdue', e.currentTarget.checked ? 'true' : null)} mb={8} />
           </div>
           {canManage && (

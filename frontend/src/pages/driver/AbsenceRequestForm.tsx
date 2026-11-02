@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button, Group, Select, Stack, Textarea, TextInput } from '@mantine/core';
+import { Button, Group, Select, Stack, Textarea } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
 import { ABSENCE_KINDS, driverHrKey, hrApi, type AbsenceKind } from '@/api/hr';
+import { DateField } from '@/forms/DateField';
 
 /** The driver asks for an absence from the cabinet; it waits as REQUESTED until the office decides. */
 export function AbsenceRequestForm({ driverId, onDone }: { driverId: number; onDone: () => void }) {
@@ -52,8 +53,8 @@ export function AbsenceRequestForm({ driverId, onDone }: { driverId: number; onD
         error={err('kind')}
       />
       <Group grow align="flex-start">
-        <TextInput size="md" type="date" label={t('absences.from')} value={from} onChange={(e) => setFrom(e.currentTarget.value)} error={err('fromDate')} />
-        <TextInput size="md" type="date" label={t('absences.to')} value={to} min={from || undefined} onChange={(e) => setTo(e.currentTarget.value)} error={err('toDate')} />
+        <DateField size="md" label={t('absences.from')} value={from} onChange={setFrom} error={err('fromDate')} />
+        <DateField size="md" label={t('absences.to')} value={to} min={from || undefined} onChange={setTo} error={err('toDate')} />
       </Group>
       <Textarea size="md" label={t('drivers.notes')} autosize minRows={1} maxRows={4} maxLength={500} value={note} onChange={(e) => setNote(e.currentTarget.value)} error={err('note')} />
       <Group grow>

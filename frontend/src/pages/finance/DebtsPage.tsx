@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Anchor, Group, Paper, Stack, Table, Text, TextInput } from '@mantine/core';
+import { Anchor, Group, Paper, Stack, Table, Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
 import { DEBTS_KEY, financeApi, type DebtRow } from '@/api/finance';
@@ -12,6 +12,7 @@ import { formatMoney } from '@/pages/trips/tripFormat';
 import { formatDate } from '@/utils/deadline';
 import { cx } from '@/utils/cx';
 import classes from './Finance.module.css';
+import { DateField } from '@/forms/DateField';
 
 const BUCKETS = ['notDue', 'd1to30', 'd31to60', 'd61to90', 'over90'] as const;
 type Bucket = (typeof BUCKETS)[number];
@@ -52,7 +53,7 @@ export function DebtsPage() {
   return (
     <Stack gap="sm">
       <Group gap="sm" align="flex-end">
-        <TextInput type="date" label={t('debts.as_of')} description={t('debts.as_of_hint')} value={asOf} onChange={(e) => setAsOf(e.currentTarget.value)} w={200} />
+        <DateField label={t('debts.as_of')} description={t('debts.as_of_hint')} value={asOf} onChange={setAsOf} w={200} />
       </Group>
       {q.isPending ? (
         <FullScreenLoader fullScreen={false} />

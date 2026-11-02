@@ -16,6 +16,7 @@ import { DeadlineChip } from './DeadlineChip';
 import { EmptyState } from './EmptyState';
 import { ErrorState } from './ErrorState';
 import classes from './DeadlineDocuments.module.css';
+import { FormDateField } from '@/forms/DateField';
 
 /** A document with a validity period: vehicle_document, driver_document. Cost only where the module has it. */
 export interface DeadlineDocument {
@@ -173,8 +174,8 @@ function DocumentForm({ api, invalidateKey, kinds, kindLabelPrefix, withCost = f
             <TextInput label={t('document.number')} autoComplete="off" error={err('number')} {...register('number')} />
           </Group>
           <Group grow align="flex-start">
-            <TextInput type="date" label={t('document.valid_from')} error={err('validFrom')} {...register('validFrom')} />
-            <TextInput type="date" label={t('document.valid_to')} error={err('validTo')} {...register('validTo')} />
+            <FormDateField label={t('document.valid_from')} error={err('validFrom')} control={control} name="validFrom" />
+            <FormDateField label={t('document.valid_to')} error={err('validTo')} control={control} name="validTo" />
           </Group>
           <Group grow align="flex-start">
             {withCost && (

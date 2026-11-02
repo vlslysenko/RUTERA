@@ -16,6 +16,7 @@ import { useUser } from '@/auth/useAuth';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { countryOptions } from '@/utils/countries';
 import classes from './DriversPage.module.css';
+import { FormDateField } from '@/forms/DateField';
 
 /* Same rules as the backend. Card number: spaces and hyphens removed, letters uppercased, letters and digits only. */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -226,7 +227,7 @@ export function DriverForm() {
                 <TextInput label={t('drivers.last_name')} autoComplete="off" error={err('lastName')} {...register('lastName')} />
               </Group>
               <Group grow align="flex-start">
-                <TextInput type="date" label={t('drivers.birth_date')} error={err('birthDate')} {...register('birthDate')} />
+                <FormDateField label={t('drivers.birth_date')} error={err('birthDate')} control={control} name="birthDate" />
                 {countrySelect('country', t('drivers.country'))}
               </Group>
               <Group grow align="flex-start">
@@ -238,13 +239,13 @@ export function DriverForm() {
             <section className={classes.section}>
               <h3 className={classes.sectionTitle}>{t('drivers.section.work')}</h3>
               <Group grow align="flex-start">
-                <TextInput
-                  type="date"
+                <FormDateField
                   label={t('drivers.employment_from')}
                   error={err('employmentFrom')}
-                  {...register('employmentFrom')}
+                  control={control}
+                  name="employmentFrom"
                 />
-                <TextInput type="date" label={t('drivers.employment_to')} error={err('employmentTo')} {...register('employmentTo')} />
+                <FormDateField label={t('drivers.employment_to')} error={err('employmentTo')} control={control} name="employmentTo" />
                 <Controller
                   name="status"
                   control={control}
@@ -276,7 +277,7 @@ export function DriverForm() {
                 {countrySelect('cardIssuingCountry', t('drivers.card_country'))}
               </Group>
               <Group grow align="flex-start">
-                <TextInput type="date" label={t('drivers.card_valid_to')} error={err('cardValidTo')} {...register('cardValidTo')} />
+                <FormDateField label={t('drivers.card_valid_to')} error={err('cardValidTo')} control={control} name="cardValidTo" />
                 <div />
               </Group>
               <div className={classes.hint}>{t('drivers.card_hint')}</div>

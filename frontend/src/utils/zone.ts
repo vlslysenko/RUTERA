@@ -19,7 +19,7 @@ export function zoneOffset(ms: number, timeZone: string): number {
   return Date.UTC(n('year'), n('month') - 1, n('day'), n('hour'), n('minute'), n('second')) - Math.floor(ms / 1000) * 1000;
 }
 
-/** ISO instant -> "yyyy-MM-ddTHH:mm" of <input type="datetime-local"> in the zone. */
+/** ISO instant -> "yyyy-MM-ddTHH:mm" in the zone (DateField withTime value). */
 export function toZonedInput(iso: string | null, timeZone?: string): string {
   if (!iso) return '';
   const ms = Date.parse(iso);

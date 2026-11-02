@@ -18,6 +18,7 @@ import { cx } from '@/utils/cx';
 import { CmrStatusChip } from './TripChips';
 import { placeLine } from './tripFormat';
 import classes from './Trips.module.css';
+import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 const DASH = '—';
@@ -93,8 +94,8 @@ export function CmrPage() {
               clearable
               w={160}
             />
-            <TextInput type="date" aria-label={t('cmr.loading_from')} title={t('cmr.loading_from')} value={params.get('from') ?? ''} onChange={(e) => set('from', e.currentTarget.value || null)} w={150} />
-            <TextInput type="date" aria-label={t('cmr.loading_to')} title={t('cmr.loading_to')} value={params.get('to') ?? ''} onChange={(e) => set('to', e.currentTarget.value || null)} w={150} />
+            <DateField aria-label={t('cmr.loading_from')} title={t('cmr.loading_from')} value={params.get('from') ?? ''} onChange={(v) => set('from', v || null)} w={150} />
+            <DateField aria-label={t('cmr.loading_to')} title={t('cmr.loading_to')} value={params.get('to') ?? ''} onChange={(v) => set('to', v || null)} w={150} />
             {scope && (
               <Badge variant="light" size="lg" mb={4} rightSection={<CloseButton size="xs" onClick={() => set(scope.key, null)} aria-label={t('common.close')} />}>
                 {scope.label}

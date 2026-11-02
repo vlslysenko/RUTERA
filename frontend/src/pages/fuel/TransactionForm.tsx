@@ -17,6 +17,7 @@ import { idOrNull, useCrewOptions } from '@/pages/trips/crew';
 import { useUser } from '@/auth/useAuth';
 import { CURRENCIES } from '@/pages/trips/tripFormat';
 import { fromZonedInput, toZonedInput } from '@/utils/zone';
+import { FormDateField } from '@/forms/DateField';
 
 const LIST = '/fuel';
 const MONEY = 999_999_999.99;
@@ -185,7 +186,7 @@ export function TransactionForm() {
         <form onSubmit={(e) => void onSubmit(e)} noValidate>
           <Stack gap="sm">
             <Group grow align="flex-start">
-              <TextInput type="datetime-local" label={t('fuel.at')} error={err('at')} {...register('at')} />
+              <FormDateField withTime label={t('fuel.at')} error={err('at')} control={control} name="at" />
               {select('cardId', t('fuel.card'), (cards.data ?? []).map((c) => ({ value: String(c.id), label: `${c.provider} ${c.cardNumberMasked}` })))}
             </Group>
             <Group grow align="flex-start">

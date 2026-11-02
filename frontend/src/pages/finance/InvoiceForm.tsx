@@ -26,6 +26,7 @@ import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/numbe
 import { applyServerErrors } from '@/forms/serverErrors';
 import { CURRENCIES, formatMoney } from '@/pages/trips/tripFormat';
 import classes from '@/pages/trips/Trips.module.css';
+import { FormDateField } from '@/forms/DateField';
 
 const LIST = '/finance';
 const MONEY = 999_999_999_999.99;
@@ -312,8 +313,8 @@ export function InvoiceForm() {
               />
             </Group>
             <Group grow align="flex-start">
-              <TextInput type="date" label={t('invoices.issue_date')} error={err('issueDate')} {...register('issueDate')} />
-              <TextInput type="date" label={t('invoices.due_date')} description={t('invoices.due_date_hint')} error={err('dueDate')} {...register('dueDate')} />
+              <FormDateField label={t('invoices.issue_date')} error={err('issueDate')} control={control} name="issueDate" />
+              <FormDateField label={t('invoices.due_date')} description={t('invoices.due_date_hint')} error={err('dueDate')} control={control} name="dueDate" />
               <Controller
                 name="currency"
                 control={control}

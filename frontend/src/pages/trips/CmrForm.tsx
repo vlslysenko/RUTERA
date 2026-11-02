@@ -20,6 +20,7 @@ import { countryOptions } from '@/utils/countries';
 import { boxLabel, numberInText } from './cmrFormat';
 import { CURRENCIES } from './tripFormat';
 import classes from './Trips.module.css';
+import { FormDateField } from '@/forms/DateField';
 
 const LIST = '/trips/cmr';
 const NUMBER_RE = /^[\p{L}\p{N}][\p{L}\p{N} ./_-]*$/u;
@@ -472,7 +473,7 @@ export function CmrForm() {
             <Group grow align="flex-start">
               <TextInput size="xs" label={t('cmr.place')} error={err('loadingPlace')} {...register('loadingPlace')} />
               {country('loadingCountry')}
-              <TextInput size="xs" type="date" label={t('cmr.loading_date')} error={err('loadingDate')} {...register('loadingDate')} />
+              <FormDateField size="xs" label={t('cmr.loading_date')} error={err('loadingDate')} control={control} name="loadingDate" />
             </Group>
 
             {title(5, 'cmr.documents_attached')}
@@ -643,7 +644,7 @@ export function CmrForm() {
             {title(21, 'cmr.established')}
             <Group grow align="flex-start">
               <TextInput size="xs" label={t('cmr.place')} error={err('establishedPlace')} {...register('establishedPlace')} />
-              <TextInput size="xs" type="date" label={t('cmr.date')} error={err('establishedDate')} {...register('establishedDate')} />
+              <FormDateField size="xs" label={t('cmr.date')} error={err('establishedDate')} control={control} name="establishedDate" />
             </Group>
 
             <h3 className={classes.sectionTitle}>{boxLabel('22–24', t('cmr.section.signatures'))}</h3>
@@ -651,7 +652,7 @@ export function CmrForm() {
               <Group key={s} grow align="flex-start">
                 <TextInput size="xs" label={boxLabel(22 + i, t(`cmr.${s}`))} error={err(`signatures.${s}.name`)} {...register(`signatures.${s}.name`)} />
                 <TextInput size="xs" label={t('cmr.place')} error={err(`signatures.${s}.place`)} {...register(`signatures.${s}.place`)} />
-                <TextInput size="xs" type="date" label={t('cmr.date')} error={err(`signatures.${s}.date`)} {...register(`signatures.${s}.date`)} />
+                <FormDateField size="xs" label={t('cmr.date')} error={err(`signatures.${s}.date`)} control={control} name={`signatures.${s}.date`} />
               </Group>
             ))}
 

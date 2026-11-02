@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm, type FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, Group, Paper, Select, Stack, Text, TextInput } from '@mantine/core';
+import { Button, Group, Paper, Select, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
@@ -11,6 +11,7 @@ import { ORDERS_KEY, ordersApi, TRIPS_KEY, type Order } from '@/api/trips';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { fromLocalInput } from './tripFormat';
 import { idOrNull, useCrewOptions } from './crew';
+import { FormDateField } from '@/forms/DateField';
 
 /* Same rules as TripService.createForOrder: a vehicle, a trailer only of trailer kind, the second driver needs a different main. */
 const schema = z
@@ -37,7 +38,6 @@ export function CreateTripPanel({ order, onClose }: { order: Order; onClose: () 
   const qc = useQueryClient();
   const {
     control,
-    register,
     handleSubmit,
     setError,
     setValue,
@@ -118,12 +118,12 @@ export function CreateTripPanel({ order, onClose }: { order: Order; onClose: () 
             {select('mainDriverId', t('trips.main_driver'), crew.drivers)}
             {select('secondDriverId', t('trips.second_driver'), crew.drivers)}
           </Group>
-          <TextInput
-            type="datetime-local"
+          <FormDateField withTime
             label={t('trips.planned_start')}
             description={t('orders.planned_start_hint')}
             error={err('plannedStart')}
-            {...register('plannedStart')}
+            control={control}
+            name="plannedStart"
           />
           <Group justify="flex-end" gap="xs">
             <Button variant="default" onClick={onClose} disabled={isSubmitting}>

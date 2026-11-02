@@ -17,6 +17,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { idOrNull, useCrewOptions } from '@/pages/trips/crew';
 import classes from '@/pages/trips/Trips.module.css';
+import { FormDateField } from '@/forms/DateField';
 
 const LIST = '/fuel/cards';
 const CARD_RE = /^[0-9 -]{6,30}$/;
@@ -207,7 +208,7 @@ export function CardDetail({ mode }: { mode: 'drawer' | 'page' }) {
                 {t('fuel.cards.links_hint')}
               </Text>
               <Group grow align="flex-start">
-                <TextInput type="date" label={t('fuel.cards.valid_to')} readOnly={!canManage} error={err('validTo')} {...register('validTo')} />
+                <FormDateField label={t('fuel.cards.valid_to')} readOnly={!canManage} error={err('validTo')} control={control} name="validTo" />
                 <Controller
                   name="active"
                   control={control}

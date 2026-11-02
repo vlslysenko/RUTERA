@@ -15,6 +15,7 @@ import { applyServerErrors } from '@/forms/serverErrors';
 import { countryOptions } from '@/utils/countries';
 import { CURRENCIES } from './tripFormat';
 import classes from './Trips.module.css';
+import { FormDateField } from '@/forms/DateField';
 
 const LIST = '/trips/orders';
 const NUMBER_RE = /^[\p{L}\p{N}][\p{L}\p{N} ./_-]*$/u;
@@ -218,7 +219,7 @@ export function OrderForm() {
                 error={err('number')}
                 {...register('number')}
               />
-              <TextInput type="date" label={t('orders.date')} error={err('orderDate')} {...register('orderDate')} />
+              <FormDateField label={t('orders.date')} error={err('orderDate')} control={control} name="orderDate" />
             </Group>
             <Group grow align="flex-start">
               <Controller
@@ -245,12 +246,12 @@ export function OrderForm() {
               <TextInput label={t('orders.loading')} error={err('loadingPlace')} {...register('loadingPlace')} />
               {country('loadingCountry')}
             </Group>
-            <TextInput type="date" label={t('orders.loading_date')} error={err('loadingDate')} {...register('loadingDate')} />
+            <FormDateField label={t('orders.loading_date')} error={err('loadingDate')} control={control} name="loadingDate" />
             <Group grow align="flex-start">
               <TextInput label={t('orders.unloading')} error={err('unloadingPlace')} {...register('unloadingPlace')} />
               {country('unloadingCountry')}
             </Group>
-            <TextInput type="date" label={t('orders.unloading_date')} error={err('unloadingDate')} {...register('unloadingDate')} />
+            <FormDateField label={t('orders.unloading_date')} error={err('unloadingDate')} control={control} name="unloadingDate" />
 
             <h3 className={classes.sectionTitle}>{t('orders.section.cargo')}</h3>
             <Group grow align="flex-start">

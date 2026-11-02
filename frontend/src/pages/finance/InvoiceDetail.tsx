@@ -24,6 +24,7 @@ import { formatDate } from '@/utils/deadline';
 import { InvoiceStatusChip, ReminderStatusChip } from './FinanceChips';
 import { reminderStepLabel, vatLabel } from './financeFormat';
 import classes from '@/pages/trips/Trips.module.css';
+import { FormDateField } from '@/forms/DateField';
 
 const LIST = '/finance';
 const DASH = '—';
@@ -90,7 +91,7 @@ function PaymentForm({ invoice, onDone }: { invoice: Detail; onDone: () => void 
       <form onSubmit={(e) => void onSubmit(e)} noValidate>
         <Stack gap="sm">
           <Group grow align="flex-start">
-            <TextInput type="date" label={t('payments.paid_at')} error={err('paidAt')} {...register('paidAt')} />
+            <FormDateField label={t('payments.paid_at')} error={err('paidAt')} control={control} name="paidAt" />
             <Controller
               name="amount"
               control={control}

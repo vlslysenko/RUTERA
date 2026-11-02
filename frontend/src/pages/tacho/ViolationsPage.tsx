@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useParams, useSearchParams } from 'react-router';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Pagination, Paper, Select, Stack, Switch, Table, Text, TextInput } from '@mantine/core';
+import { Pagination, Paper, Select, Stack, Switch, Table, Text } from '@mantine/core';
 import { IconTools } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
@@ -18,6 +18,7 @@ import { formatInstant } from './format';
 import { formatMinutes } from './hosFormat';
 import { ReviewChip, SeverityChip } from './ViolationChips';
 import classes from './Hos.module.css';
+import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 
@@ -93,20 +94,18 @@ export function ViolationsPage() {
               clearable
               w={180}
             />
-            <TextInput
-              type="date"
+            <DateField
               aria-label={t('tacho.filter.from')}
               title={t('tacho.filter.from')}
               value={params.get('from') ?? ''}
-              onChange={(e) => set('from', e.currentTarget.value || null)}
+              onChange={(v) => set('from', v || null)}
               w={150}
             />
-            <TextInput
-              type="date"
+            <DateField
               aria-label={t('tacho.filter.to')}
               title={t('tacho.filter.to')}
               value={params.get('to') ?? ''}
-              onChange={(e) => set('to', e.currentTarget.value || null)}
+              onChange={(v) => set('to', v || null)}
               w={150}
             />
             <Switch

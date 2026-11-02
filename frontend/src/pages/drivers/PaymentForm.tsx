@@ -12,6 +12,7 @@ import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/numbe
 import { applyServerErrors } from '@/forms/serverErrors';
 import { CURRENCIES } from '@/pages/trips/tripFormat';
 import { monthOf } from './hrFormat';
+import { FormDateField } from '@/forms/DateField';
 
 /* Same rules as DriverHrService: period YYYY-MM, amount above zero with 2 decimals, ISO currency, note up to 500. */
 const schema = z.object({
@@ -169,7 +170,7 @@ export function PaymentForm({
               )}
             />
           </Group>
-          <TextInput type="date" label={t('payments.paid_at')} description={t('payments.paid_at_hint')} error={err('paidAt')} {...register('paidAt')} />
+          <FormDateField label={t('payments.paid_at')} description={t('payments.paid_at_hint')} error={err('paidAt')} control={control} name="paidAt" />
           <Textarea label={t('drivers.notes')} autosize minRows={1} maxRows={4} error={err('note')} {...register('note')} />
           <Group justify="flex-end" gap="xs">
             <Button variant="default" onClick={onDone} disabled={isSubmitting}>

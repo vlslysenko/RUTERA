@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useParams } from 'react-router';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Group, Pagination, Paper, SegmentedControl, Select, Stack, Switch, Table, Text, TextInput, Title } from '@mantine/core';
+import { Group, Pagination, Paper, SegmentedControl, Select, Stack, Switch, Table, Text, Title } from '@mantine/core';
 import { IconTools } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
@@ -19,6 +19,7 @@ import { formatInstant, formatPeriod } from './format';
 import { TachoKindLabel, TachoOwner, WarningsChip } from './TachoChips';
 import { TachoUpload } from './TachoUpload';
 import classes from './TachoFilesPage.module.css';
+import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 
@@ -132,20 +133,18 @@ export function TachoFilesPage() {
                   w={160}
                 />
               )}
-              <TextInput
-                type="date"
+              <DateField
                 aria-label={t('tacho.filter.from')}
                 title={t('tacho.filter.from')}
                 value={from}
-                onChange={(e) => change(setFrom)(e.currentTarget.value)}
+                onChange={(v) => change(setFrom)(v)}
                 w={150}
               />
-              <TextInput
-                type="date"
+              <DateField
                 aria-label={t('tacho.filter.to')}
                 title={t('tacho.filter.to')}
                 value={to}
-                onChange={(e) => change(setTo)(e.currentTarget.value)}
+                onChange={(v) => change(setTo)(v)}
                 w={150}
               />
               <Switch

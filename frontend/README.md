@@ -143,6 +143,12 @@ Same mechanism as the backend: flat keys `module.topic.name`, one dictionary per
 the mock and as the English fallback. UI keys introduced by the frontend must also be added to
 `common/src/main/resources/i18n/messages_*.properties` so the backend serves them.
 
+Dates are entered with `DateField` / `FormDateField` (`src/forms/DateField.tsx`, Mantine `DateInput`), not
+`<input type="date">`: the field shows and accepts the UI language's short format (dayjs `L`: `05.11.2026` in
+Polish, `11/05/2026` in English; `YYYY-MM-DD` is accepted too) and keeps form values as `YYYY-MM-DD`
+(`YYYY-MM-DDTHH:mm` with `withTime`). The calendar language follows the UI (`src/i18n/DatesLocaleProvider.tsx`,
+dayjs locales loaded on demand).
+
 ## Structure
 
 ```
@@ -152,7 +158,8 @@ src/auth       session hooks (TanStack Query), RequireAuth, ScreenGuard (role ->
 src/layout     AppLayout (AppShell), TopBar, Sidebar, LanguageMenu, UserMenu
 src/components DetailDrawer (card in the right panel + "open as page"), PageHeader, StatusChip, Plate, ...
 src/pages      Login, Overview, Settings (profile, password, users), Fleet, Drivers, Tachograph, Trips, Finance, Fuel, placeholders
-src/i18n       i18next setup, language list, locales/
+src/forms      DateField, number fields, server validation errors -> form fields
+src/i18n       i18next setup, language list, locales/, dayjs locale for date pickers
 ```
 
 Detail cards: a list route has a child `:id` route that renders `<DetailDrawer>` into the right panel; the

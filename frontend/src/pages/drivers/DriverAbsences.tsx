@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm, type FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ActionIcon, Alert, Button, Checkbox, Group, Paper, Select, Stack, Text, Textarea, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Alert, Button, Checkbox, Group, Paper, Select, Stack, Text, Textarea, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +17,7 @@ import { DecisionButtons } from './AbsenceRequests';
 import { AbsenceKindChip, AbsenceStatusChip } from './HrChips';
 import { formatRange } from './hrFormat';
 import classes from './DriversPage.module.css';
+import { FormDateField } from '@/forms/DateField';
 
 /* Same rules as DriverHrService: both dates, to not before from, at most 366 days, note up to 500. */
 const schema = z
@@ -95,8 +96,8 @@ function AbsenceForm({ driverId, absence, onDone }: { driverId: string; absence:
             )}
           />
           <Group grow align="flex-start">
-            <TextInput type="date" label={t('absences.from')} error={err('fromDate')} {...register('fromDate')} />
-            <TextInput type="date" label={t('absences.to')} error={err('toDate')} {...register('toDate')} />
+            <FormDateField label={t('absences.from')} error={err('fromDate')} control={control} name="fromDate" />
+            <FormDateField label={t('absences.to')} error={err('toDate')} control={control} name="toDate" />
           </Group>
           <Controller
             name="paid"

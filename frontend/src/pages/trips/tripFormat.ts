@@ -18,7 +18,7 @@ export function formatPlace(p: OrderPlace | null, lang: string): string {
   return [`${p.place}, ${p.country}`, p.date ? formatDate(p.date, lang) : null].filter(Boolean).join(' · ');
 }
 
-/** ISO instant -> value of <input type="datetime-local"> in local time. */
+/** ISO instant -> local "YYYY-MM-DDTHH:mm" (DateField withTime value). */
 export function toLocalInput(iso: string | null): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -26,7 +26,7 @@ export function toLocalInput(iso: string | null): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-/** <input type="datetime-local"> value -> ISO instant (or null when empty). */
+/** Local "YYYY-MM-DDTHH:mm" (DateField withTime value) -> ISO instant (or null when empty). */
 export function fromLocalInput(v: string): string | null {
   return v ? new Date(v).toISOString() : null;
 }

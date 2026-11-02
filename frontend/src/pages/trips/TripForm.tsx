@@ -28,6 +28,7 @@ import { countryOptions } from '@/utils/countries';
 import { idOrNull, useCrewOptions } from './crew';
 import { fromLocalInput, toLocalInput } from './tripFormat';
 import classes from './Trips.module.css';
+import { FormDateField } from '@/forms/DateField';
 
 const LIST = '/trips';
 const NUMBER_RE = /^[\p{L}\p{N}][\p{L}\p{N} ./_-]*$/u;
@@ -378,12 +379,12 @@ export function TripForm() {
 
             <h3 className={classes.sectionTitle}>{t('trips.section.schedule')}</h3>
             <Group grow align="flex-start">
-              <TextInput type="datetime-local" label={t('trips.planned_start')} error={err('plannedStart')} {...register('plannedStart')} />
-              <TextInput type="datetime-local" label={t('trips.planned_end')} error={err('plannedEnd')} {...register('plannedEnd')} />
+              <FormDateField withTime label={t('trips.planned_start')} error={err('plannedStart')} control={control} name="plannedStart" />
+              <FormDateField withTime label={t('trips.planned_end')} error={err('plannedEnd')} control={control} name="plannedEnd" />
             </Group>
             <Group grow align="flex-start">
-              <TextInput type="datetime-local" label={t('trips.actual_start')} error={err('actualStart')} {...register('actualStart')} />
-              <TextInput type="datetime-local" label={t('trips.actual_end')} error={err('actualEnd')} {...register('actualEnd')} />
+              <FormDateField withTime label={t('trips.actual_start')} error={err('actualStart')} control={control} name="actualStart" />
+              <FormDateField withTime label={t('trips.actual_end')} error={err('actualEnd')} control={control} name="actualEnd" />
             </Group>
             <Group grow align="flex-start">
               {km('kmPlanned', t('trips.km_planned'))}
@@ -510,7 +511,7 @@ export function TripForm() {
                     </Group>
                     <TextInput size="xs" label={t('trips.stop_address')} error={err(`stops.${i}.address`)} {...register(`stops.${i}.address`)} />
                     <Group grow align="flex-start" gap={6}>
-                      <TextInput size="xs" type="datetime-local" label={t('trips.stop_planned')} error={err(`stops.${i}.plannedAt`)} {...register(`stops.${i}.plannedAt`)} />
+                      <FormDateField withTime size="xs" label={t('trips.stop_planned')} error={err(`stops.${i}.plannedAt`)} control={control} name={`stops.${i}.plannedAt`} />
                       <Controller
                         name={`stops.${i}.status`}
                         control={control}
@@ -528,13 +529,13 @@ export function TripForm() {
                       />
                     </Group>
                     {status !== 'PLANNED' && (
-                      <TextInput
+                      <FormDateField withTime
                         size="xs"
-                        type="datetime-local"
                         label={t('trips.stop_actual')}
                         description={t('trips.stop_actual_hint')}
                         error={err(`stops.${i}.actualAt`)}
-                        {...register(`stops.${i}.actualAt`)}
+                        control={control}
+                        name={`stops.${i}.actualAt`}
                       />
                     )}
                   </Stack>

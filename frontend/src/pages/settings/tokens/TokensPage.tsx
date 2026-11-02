@@ -14,6 +14,7 @@ import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { fromZonedInput } from '@/utils/zone';
 import { TokenCalls, TokenTable } from './TokenParts';
 import classes from './Tokens.module.css';
+import { DateField } from '@/forms/DateField';
 
 const MY_TOKENS = [...TOKENS_KEY, 'mine'] as const;
 
@@ -67,13 +68,12 @@ function CreateToken({ onCreated }: { onCreated: (token: ApiToken) => void }) {
             error={errors.name && t(errors.name)}
             style={{ flex: '1 1 240px' }}
           />
-          <TextInput
-            type="date"
+          <DateField
             label={t('tokens.expires')}
             description={t('tokens.expires_hint')}
             value={expires}
             min={today}
-            onChange={(e) => setExpires(e.currentTarget.value)}
+            onChange={setExpires}
             error={errors.expiresAt && t(errors.expiresAt)}
             w={200}
           />

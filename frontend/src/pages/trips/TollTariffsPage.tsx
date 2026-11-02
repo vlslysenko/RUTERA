@@ -18,6 +18,7 @@ import { countryName, countryOptions } from '@/utils/countries';
 import { formatDate } from '@/utils/deadline';
 import { CURRENCIES, formatMoney } from './tripFormat';
 import classes from './Trips.module.css';
+import { DateField } from '@/forms/DateField';
 
 interface Row {
   country: string | null;
@@ -93,7 +94,7 @@ function TariffForm({ tariff, onDone }: { tariff: TollTariff | null; onDone: () 
           <NumberInput label={t('tolls.weight_min')} placeholder={t('tolls.any')} value={row.weightMinKg} onChange={(v) => set({ weightMinKg: v })} min={0} allowDecimal={false} thousandSeparator=" " hideControls error={err('weightMinKg')} />
         </Group>
         <Group grow align="flex-start">
-          <TextInput type="date" label={t('tolls.valid_from')} value={row.validFrom} onChange={(e) => set({ validFrom: e.currentTarget.value })} error={err('validFrom')} />
+          <DateField label={t('tolls.valid_from')} value={row.validFrom} onChange={(v) => set({ validFrom: v })} error={err('validFrom')} />
           <TextInput label={t('drivers.notes')} value={row.notes} onChange={(e) => set({ notes: e.currentTarget.value })} maxLength={500} error={err('notes')} />
         </Group>
         <Text size="xs" c="dimmed">

@@ -15,6 +15,7 @@ import { RoutePanel } from './RoutePanel';
 import { idOrNull, useCrewOptions } from './crew';
 import { CURRENCIES } from './tripFormat';
 import classes from './Calc.module.css';
+import { DateField } from '@/forms/DateField';
 
 interface LegRow {
   key: number;
@@ -178,7 +179,7 @@ export function CalculatorPage() {
     <div className={classes.layout}>
       <Paper withBorder p="md">
         <Stack gap="sm">
-          <TextInput type="datetime-local" label={t('calc.start')} value={start} onChange={(e) => setStart(e.currentTarget.value)} error={err('start')} />
+          <DateField withTime label={t('calc.start')} value={start} onChange={setStart} error={err('start')} />
           <Select label={t('trips.vehicle')} description={t('calc.vehicle_hint')} data={crew.vehicles} value={vehicleId} onChange={setVehicleId} clearable searchable error={err('vehicleId')} />
           <Group grow align="flex-start">
             <Select
@@ -246,8 +247,8 @@ export function CalculatorPage() {
                   <NumberInput size="xs" label={t('calc.reduced_left')} value={manual.reducedLeft} onChange={(v) => setManual((m) => ({ ...m, reducedLeft: v }))} min={0} max={3} allowDecimal={false} />
                 </Group>
                 <Group grow align="flex-start">
-                  <TextInput size="xs" type="datetime-local" label={t('calc.m.shift_start')} value={manual.shiftStart} onChange={(e) => setManual((m) => ({ ...m, shiftStart: e.currentTarget.value }))} />
-                  <TextInput size="xs" type="datetime-local" label={t('calc.m.last_weekly_rest')} value={manual.lastWeeklyRestEnd} onChange={(e) => setManual((m) => ({ ...m, lastWeeklyRestEnd: e.currentTarget.value }))} />
+                  <DateField withTime size="xs" label={t('calc.m.shift_start')} value={manual.shiftStart} onChange={(v) => setManual((m) => ({ ...m, shiftStart: v }))} />
+                  <DateField withTime size="xs" label={t('calc.m.last_weekly_rest')} value={manual.lastWeeklyRestEnd} onChange={(v) => setManual((m) => ({ ...m, lastWeeklyRestEnd: v }))} />
                 </Group>
                 {err('manualState') && (
                   <Text size="xs" c="red">
