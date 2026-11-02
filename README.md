@@ -368,6 +368,68 @@ reminders. E-mails wait in `email_outbox` and go out every minute once SMTP is c
 5, 15, 45 and 135 minutes, then FAILED. Changes are written to `audit_log` (module `finance`). Not yet: currency
 rates (NBP) for PLN VAT, credit notes, issuing PDFs, KSeF.
 
+### Fuel cards and imports of provider exports (`/app/fuel/...`)
+
+Privileges: `fuel.transaction/view` reads transactions, cards and the import history; `fuel.import/manage` imports,
+undoes imports, edits cards, mappings and transactions (owner and accountant by default; dispatcher reads).
+
+| Method | Path | Body / result |
+|---|---|---|
+| POST | `/app/fuel/imports/preview` | multipart: part `file`, form fields `provider?`, `mapping?` (JSON `{field: header}`), `options?` (JSON) -> `Preview` |
+| POST | `/app/fuel/imports` | same fields plus `saveMapping?` (default true) -> 201 `FuelImport` |
+| GET | `/app/fuel/imports?page=&size=` | `{items: FuelImport[], total}`, newest first |
+| GET / DELETE | `/app/fuel/imports/{id}` | `FuelImport` / 204 (its transactions and the stored file go; cards stay) |
+| GET / PUT | `/app/fuel/mappings/{provider}` | `{provider, columns: {field: header}, options: {dateFormat, decimalComma, currency}}` |
+| GET | `/app/fuel/transactions?from=&to=&vehicleId=&driverId=&cardId=&tripId=&importId=&product=&country=&unmatched=&q=&page=&size=` | `{items: FuelTransaction[], total, totals: [{currency, net, vat, gross}], quantities: [{product, unit, quantity}]}`, newest first; from/to are days in the firma zone; `unmatched=true` = no vehicle |
+| GET / POST | `/app/fuel/transactions[/{id}]` | `FuelTransaction`; POST enters one by hand (source MANUAL) |
+| PUT | `/app/fuel/transactions/{id}` | full replacement of a MANUAL transaction; 409 for imported ones |
+| PATCH | `/app/fuel/transactions/{id}` | `{vehicleId, driverId, tripId, notes}` replaces the assignment of any transaction (match MANUAL, or NONE when cleared) |
+| DELETE | `/app/fuel/transactions/{id}` | 204 |
+| GET / POST / PUT / DELETE | `/app/fuel/cards[/{id}]` | `FuelCard`; input `{provider, cardNumber, vehicleId?, driverId?, validTo?, active?, notes?}`; DELETE leaves its transactions without a card |
+
+Providers: DKV, UTA, SHELL, BP, ORLEN, E100, AS24, OMV, OTHER. Fields (keys of `mapping`, `values` and row errors):
+cardNumber, plate, date, time, transactionId, station, country, product, quantity, unit, unitPrice, net, vat, gross,
+currency, odometer. Required columns: date, product, gross or net, cardNumber or plate.
+
+`Preview = {provider (given, else detected from the file name and first rows, else OTHER), headerRow (1-based),
+headers[] in file order, mapping: {field: header | null} for every field, missing: [field], options, dataRows,
+rows: [{row (1-based), values: {at, cardNumber (masked), plate, transactionId, station, country, product (group),
+productRaw, quantity, unit, unitPrice, net, vat, gross, currency, odometer}, errors: {field: code}}]}` (first 10
+data rows). `FuelImport = {id, provider, fileName, periodFrom, periodTo, rowsTotal, rowsNew, rowsDup, rowsError,
+status: DONE, errors: [{row, field, code}] (first 100), mapping: {field: header}, importedBy: {id, name},
+createdAt}`. `FuelTransaction = {id, at, provider, externalId, card: {id, masked}, vehicle: {id, name = plate},
+driver: {id, name}, trip: {id, name = number}, station, country, product: DIESEL | ADBLUE | PETROL | LNG | CNG |
+TOLL | SERVICE | OTHER, productRaw, quantity, unit: L | KG | PCS, unitPrice, net, vat, gross, currency, odometerKm,
+plateRaw, match: CARD | PLATE | MANUAL | NONE, source: IMPORT | MANUAL, importId, notes, createdAt}`. `FuelCard = {id,
+provider, cardNumberMasked, vehicle: {id, name}, driver: {id, name}, validTo, active, notes, createdAt, updatedAt}`;
+the card number is write-only: only the masked form and a SHA-256 hash (for matching) are stored, a PUT without
+`cardNumber` keeps it (a new provider needs the number), a known number answers `cardNumber: fuel.card.number_taken`.
+
+Reading: CSV (separator `;` `,` or tab detected, quotes, UTF-8 with or without BOM, UTF-16 with BOM, else
+Windows-1250) or XLSX (first sheet; date-formatted cells become `yyyy-MM-dd HH:mm:ss`); old binary `.xls` is rejected;
+at most 20 MB and 50 000 rows. The header row is the one among the first 15 where most columns are recognised (at
+least three); the given mapping, else the firma's saved mapping of the provider, overrides the recognition by
+header names (English, German, Polish, French and other common names). Dates: `yyyy-MM-dd`, `dd.MM.yyyy`,
+`dd/MM/yyyy`, `dd-MM-yyyy`, `yyyy/MM/dd`, two-digit years, with `HH:mm[:ss]` in the same cell or the time column;
+`options.dateFormat` (a Java `DateTimeFormatter` pattern) overrides the guess. The time is the station's local time
+read in the firma's time zone and stored as an instant. Amounts: spaces and apostrophes are ignored; with both `,`
+and `.` the last one is the decimal separator; a lone comma is decimal unless `options.decimalComma=false`, a lone
+point unless `options.decimalComma=true`; two of net, vat and gross give the third. The currency comes from the
+column, else `options.currency`, else the firma's base currency. The product group is guessed from the product
+text (diesel, ON, gazole, AdBlue, Maut, wash and so on), the unit defaults to L for liquid fuels and KG for gas.
+
+Rules: every row has a duplicate key `externalId` = the provider's transaction id (when the export has one) plus a
+hash of card, plate, time, product, quantity and amount, unique per firma and provider: importing a file again only
+counts duplicates. A card number not seen before creates a card (linked to the vehicle of the row's plate). Vehicle:
+the card's vehicle (match CARD), else the vehicle with the row's plate (PLATE, spaces and hyphens ignored); trip: that
+vehicle's trip whose actual (else planned) period contains the time; driver: the card's driver, else the trip's main
+driver. Setting a vehicle or driver on a card fills its transactions that have none. Row errors use the field keys
+with `validation.required`, `validation.invalid_format` or `validation.invalid_value`; file errors (422 `details`):
+`file: validation.required | fuel.import.unreadable | fuel.import.too_large | fuel.import.columns_missing` (with
+`columns.<field>: validation.required` per missing field), `provider: validation.invalid_value`, `mapping` or
+`options: validation.invalid_format`. Changes are written to `audit_log` (module `fuel`). Not yet: provider APIs,
+VAT/excise refund reports, consumption per 100 km, `trip.cost_fuel`.
+
 Service and controller methods are guarded with `@RequiresPrivilege("module.entity/action")` (AOP, module
 `core.security`); the effective set = role defaults + custom role + per-user overrides, computed at login. Every
 request carries `requestId`, `firmaId` and `userId` in the MDC (log lines) and the same `requestId` in `audit_log`.

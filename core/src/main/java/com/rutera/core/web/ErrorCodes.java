@@ -55,6 +55,12 @@ public final class ErrorCodes {
     public static final String PAYMENT_TOO_MUCH = "finance.payment.too_much";
     public static final String REMINDER_NO_EMAIL = "finance.reminder.no_email";
 
+    /** Fuel (per-field): the export is unreadable, too large or lacks columns; the card is already known. */
+    public static final String FUEL_UNREADABLE = "fuel.import.unreadable";
+    public static final String FUEL_TOO_LARGE = "fuel.import.too_large";
+    public static final String FUEL_COLUMNS_MISSING = "fuel.import.columns_missing";
+    public static final String FUEL_CARD_TAKEN = "fuel.card.number_taken";
+
     /** Trips and orders (per-field): the VAT id or the number is already used in the firma. */
     public static final String CONTRACTOR_VAT_TAKEN = "trip.contractor.vat_taken";
     public static final String ORDER_NUMBER_TAKEN = "trip.order.number_taken";

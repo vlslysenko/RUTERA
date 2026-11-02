@@ -38,6 +38,15 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
 
     Optional<Trip> findByNumber(String number);
 
+    /** Trips that are not cancelled and whose actual (else planned) period overlaps the range, for matching by time. */
+    @Query("""
+            select t from Trip t
+            where t.status <> com.rutera.common.domain.Trip.Status.CANCELLED
+              and coalesce(t.actualStart, t.plannedStart) is not null
+              and coalesce(t.actualStart, t.plannedStart) <= :to
+              and (coalesce(t.actualEnd, t.plannedEnd) is null or coalesce(t.actualEnd, t.plannedEnd) >= :from)""")
+    List<Trip> activeBetween(@Param("from") Instant from, @Param("to") Instant to);
+
     @Query("select t.number from Trip t where t.number like :prefix")
     List<String> numbersLike(@Param("prefix") String prefix);
 }
