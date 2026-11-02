@@ -65,6 +65,13 @@ export function AbsenceRequests() {
   const lang = i18n.resolvedLanguage ?? 'en';
   const q = useQuery({ queryKey: REQUESTS_KEY, queryFn: hrApi.requests });
   const items = q.data ?? [];
+  if (q.isError) {
+    return (
+      <Text size="sm" c="red">
+        {t('absences.requests')}: {t(errorCode(q.error))}
+      </Text>
+    );
+  }
   if (items.length === 0) return null;
 
   return (

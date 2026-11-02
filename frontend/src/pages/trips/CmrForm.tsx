@@ -77,6 +77,10 @@ const schema = z
   })
   .superRefine((v, ctx) => {
     if (v.codAmount != null && !v.codCurrency) ctx.addIssue({ code: 'custom', path: ['codCurrency'], message: 'validation.required' });
+    // A note without a party, a place or an order would only use up a number.
+    if (!v.orderId && !v.sender.name.trim() && !v.consignee.name.trim() && !v.loadingPlace.trim() && !v.deliveryPlace.trim()) {
+      ctx.addIssue({ code: 'custom', path: ['sender', 'name'], message: 'validation.required' });
+    }
   });
 
 type FormInput = z.input<typeof schema>;
