@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Navigate, Outlet, useLocation } from 'react-router';
 import { AppShell, useMantineTheme } from '@mantine/core';
 import { useDisclosure, useLocalStorage } from '@mantine/hooks';
+import { DRIVER_APP_PATH, usesDriverApp } from '@/app/navigation';
+import { useUser } from '@/auth/useAuth';
 import { TopBar } from './TopBar';
 import { Sidebar } from './Sidebar';
 import { DetailSlotContext, type DetailSlot } from './detailSlot';
@@ -24,6 +26,7 @@ export function AppLayout() {
   const [asideEl, setAsideEl] = useState<HTMLDivElement | null>(null);
   const [asideOpen, setAsideOpen] = useState(false);
   const { pathname } = useLocation();
+  const user = useUser();
 
   const closeMobile = mobile.close;
   useEffect(() => {
@@ -33,6 +36,9 @@ export function AppLayout() {
   const slot = useMemo<DetailSlot>(() => ({ asideEl, setOpen: setAsideOpen }), [asideEl]);
 
   const navbarWidth = collapsed ? Number(theme.other.sideWidthCollapsed) : Number(theme.other.sideWidth);
+
+  // Drivers work in their cabinet; of the office frame they only use the settings (password, language).
+  if (usesDriverApp(user) && !pathname.startsWith('/settings')) return <Navigate to={DRIVER_APP_PATH} replace />;
 
   return (
     <DetailSlotContext.Provider value={slot}>

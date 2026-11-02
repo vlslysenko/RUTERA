@@ -3,7 +3,7 @@ import { Button, Group, Paper, Select, Stack, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
-import { visibleScreens } from '@/app/navigation';
+import { defaultStartScreen, SCREENS, visibleScreens } from '@/app/navigation';
 import type { ScreenKey } from '@/app/types';
 import { useUpdateSettings, useUser } from '@/auth/useAuth';
 import { setLanguage } from '@/i18n';
@@ -53,7 +53,8 @@ export function ProfileTab() {
           label={t('settings.start_screen')}
           description={t('settings.start_screen.hint')}
           data={[
-            { value: DEFAULT_SCREEN, label: t('common.default') },
+            // "Default (Trips)": the role's start screen, so the choice is not a guess.
+            { value: DEFAULT_SCREEN, label: `${t('common.default')} (${t(SCREENS[defaultStartScreen(user)].labelKey)})` },
             ...screens.map((s) => ({ value: s.key, label: t(s.labelKey) })),
           ]}
           value={startScreen}

@@ -1,6 +1,7 @@
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { Tabs } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
+import { usesDriverApp } from '@/app/navigation';
 import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
 import { PageHeader } from '@/components/PageHeader';
@@ -15,7 +16,8 @@ export function SettingsLayout() {
   const tabs = [
     { value: '/settings', label: t('settings.tab.profile') },
     { value: '/settings/password', label: t('settings.tab.password') },
-    ...(hasPrivilege(user, PRIV.PROFILE_SELF_MANAGE) ? [{ value: '/settings/tokens', label: t('settings.tab.tokens') }] : []),
+    // Drivers use the cabinet, not the public API.
+    ...(hasPrivilege(user, PRIV.PROFILE_SELF_MANAGE) && !usesDriverApp(user) ? [{ value: '/settings/tokens', label: t('settings.tab.tokens') }] : []),
     ...(hasPrivilege(user, PRIV.ADMIN_USER_VIEW) ? [{ value: '/settings/users', label: t('settings.tab.users') }] : []),
     ...(hasPrivilege(user, PRIV.ADMIN_FIRMA_MANAGE) ? [{ value: '/settings/firma', label: t('settings.tab.firma') }] : []),
     ...(hasPrivilege(user, PRIV.ADMIN_API_TOKEN_MANAGE) ? [{ value: '/settings/api-tokens', label: t('settings.tab.api_tokens') }] : []),

@@ -1,7 +1,7 @@
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Group, Stack, Text } from '@mantine/core';
-import { IconLogout } from '@tabler/icons-react';
+import { IconKey, IconLogout } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { driverHrKey, hrApi } from '@/api/hr';
@@ -112,6 +112,9 @@ export function MePage() {
             {user.login}
           </Text>
           <LanguageMenu saveToProfile />
+          <Button component={Link} to="/settings/password" variant="default" size="md" leftSection={<IconKey size={18} />}>
+            {t('settings.tab.password')}
+          </Button>
           <Button
             variant="default"
             color="red"

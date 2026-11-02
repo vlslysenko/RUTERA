@@ -118,10 +118,15 @@ export function usesDriverApp(user: User): boolean {
   return user.role === 'DRIVER' && hasPrivilege(user, PRIV.DRIVER_APP_SELF_USE);
 }
 
+/** The screen a user starts on without a choice of its own: the role default when visible, else the overview. */
+export function defaultStartScreen(user: User): ScreenKey {
+  const key = DEFAULT_START_SCREEN[user.role];
+  return canSee(SCREENS[key], user) ? key : 'overview';
+}
+
 export function startScreenPath(user: User): string {
   if (usesDriverApp(user)) return DRIVER_APP_PATH;
   const preferred = user.startScreen;
-  const key = preferred && canSee(SCREENS[preferred], user) ? preferred : DEFAULT_START_SCREEN[user.role];
-  const item = SCREENS[key];
-  return canSee(item, user) ? item.path : SCREENS.overview.path;
+  const key = preferred && canSee(SCREENS[preferred], user) ? preferred : defaultStartScreen(user);
+  return SCREENS[key].path;
 }
