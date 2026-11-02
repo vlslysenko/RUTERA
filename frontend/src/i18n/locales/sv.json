@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Nästa resa",
   "driver_app.trip_now": "Pågående resa",
   "driver_app.trips_later": "Senare resor",
-  "driver_app.vacation_used": "Semester {{year}}: {{n}} arbetsdagar",
+  "driver_app.vacation_used": "Semester {{year}}, arbetsdagar: {{n}}",
   "driver_app.violations": "Överträdelser, senaste 4 veckorna",
   "driver_app.violations_week": "Överträdelser på 7 dagar",
   "settings.tab.api_tokens": "Alla API-token",

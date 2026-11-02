@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Naslednja vožnja",
   "driver_app.trip_now": "Trenutna vožnja",
   "driver_app.trips_later": "Poznejše vožnje",
-  "driver_app.vacation_used": "Dopust {{year}}: {{n}} delovnih dni",
+  "driver_app.vacation_used": "Dopust {{year}}, delovni dnevi: {{n}}",
   "driver_app.violations": "Kršitve, zadnji 4 tedni",
   "driver_app.violations_week": "Kršitve v 7 dneh",
   "settings.tab.api_tokens": "Vsi žetoni API",

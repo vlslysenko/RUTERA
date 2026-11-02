@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Следующий рейс",
   "driver_app.trip_now": "Текущий рейс",
   "driver_app.trips_later": "Следующие рейсы",
-  "driver_app.vacation_used": "Отпуск в {{year}}: {{n}} рабочих дней",
+  "driver_app.vacation_used": "Отпуск в {{year}}, рабочих дней: {{n}}",
   "driver_app.violations": "Нарушения за 4 недели",
   "driver_app.violations_week": "Нарушения за 7 дней",
   "settings.tab.api_tokens": "Все API-токены",

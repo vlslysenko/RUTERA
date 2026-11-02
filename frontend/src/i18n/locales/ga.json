@@ -976,7 +976,7 @@
   "driver_app.trip_next": "An chéad turas eile",
   "driver_app.trip_now": "Turas reatha",
   "driver_app.trips_later": "Turais níos déanaí",
-  "driver_app.vacation_used": "Saoire {{year}}: {{n}} lá oibre",
+  "driver_app.vacation_used": "Saoire {{year}}, laethanta oibre: {{n}}",
   "driver_app.violations": "Sáruithe, 4 seachtaine deireanacha",
   "driver_app.violations_week": "Sáruithe i 7 lá",
   "settings.tab.api_tokens": "Gach comhartha API",

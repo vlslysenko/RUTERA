@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Następna trasa",
   "driver_app.trip_now": "Bieżąca trasa",
   "driver_app.trips_later": "Kolejne trasy",
-  "driver_app.vacation_used": "Urlop w {{year}}: {{n}} dni roboczych",
+  "driver_app.vacation_used": "Urlop w {{year}}, dni robocze: {{n}}",
   "driver_app.violations": "Naruszenia, ostatnie 4 tygodnie",
   "driver_app.violations_week": "Naruszenia w 7 dni",
   "settings.tab.api_tokens": "Wszystkie tokeny API",

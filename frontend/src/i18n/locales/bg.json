@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Следващ курс",
   "driver_app.trip_now": "Текущ курс",
   "driver_app.trips_later": "Следващи курсове",
-  "driver_app.vacation_used": "Отпуск през {{year}}: {{n}} работни дни",
+  "driver_app.vacation_used": "Отпуск през {{year}}, работни дни: {{n}}",
   "driver_app.violations": "Нарушения, последните 4 седмици",
   "driver_app.violations_week": "Нарушения за 7 дни",
   "settings.tab.api_tokens": "Всички API токени",

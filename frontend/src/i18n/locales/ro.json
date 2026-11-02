@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Următoarea cursă",
   "driver_app.trip_now": "Cursa curentă",
   "driver_app.trips_later": "Curse ulterioare",
-  "driver_app.vacation_used": "Concediu {{year}}: {{n}} zile lucrătoare",
+  "driver_app.vacation_used": "Concediu {{year}}, zile lucrătoare: {{n}}",
   "driver_app.violations": "Încălcări, ultimele 4 săptămâni",
   "driver_app.violations_week": "Încălcări în 7 zile",
   "settings.tab.api_tokens": "Toate tokenurile API",

@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Kitas reisas",
   "driver_app.trip_now": "Dabartinis reisas",
   "driver_app.trips_later": "Vėlesni reisai",
-  "driver_app.vacation_used": "Atostogos {{year}}: {{n}} darbo d.",
+  "driver_app.vacation_used": "Atostogos {{year}}, darbo dienos: {{n}}",
   "driver_app.violations": "Pažeidimai, paskutinės 4 savaitės",
   "driver_app.violations_week": "Pažeidimai per 7 d.",
   "settings.tab.api_tokens": "Visi API raktai",

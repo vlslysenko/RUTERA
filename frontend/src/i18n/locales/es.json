@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Próximo viaje",
   "driver_app.trip_now": "Viaje actual",
   "driver_app.trips_later": "Viajes posteriores",
-  "driver_app.vacation_used": "Vacaciones {{year}}: {{n}} días laborables",
+  "driver_app.vacation_used": "Vacaciones {{year}}, días laborables: {{n}}",
   "driver_app.violations": "Infracciones, últimas 4 semanas",
   "driver_app.violations_week": "Infracciones en 7 días",
   "settings.tab.api_tokens": "Todos los tokens de API",

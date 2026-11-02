@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Következő fuvar",
   "driver_app.trip_now": "Aktuális fuvar",
   "driver_app.trips_later": "Későbbi fuvarok",
-  "driver_app.vacation_used": "Szabadság {{year}}: {{n}} munkanap",
+  "driver_app.vacation_used": "Szabadság {{year}}, munkanapok: {{n}}",
   "driver_app.violations": "Szabálysértések, utolsó 4 hét",
   "driver_app.violations_week": "Szabálysértések 7 nap alatt",
   "settings.tab.api_tokens": "Összes API-token",

@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Nākamais reiss",
   "driver_app.trip_now": "Pašreizējais reiss",
   "driver_app.trips_later": "Vēlākie reisi",
-  "driver_app.vacation_used": "Atvaļinājums {{year}}: {{n}} darba dienas",
+  "driver_app.vacation_used": "Atvaļinājums {{year}}, darba dienas: {{n}}",
   "driver_app.violations": "Pārkāpumi, pēdējās 4 nedēļas",
   "driver_app.violations_week": "Pārkāpumi 7 dienās",
   "settings.tab.api_tokens": "Visi API žetoni",

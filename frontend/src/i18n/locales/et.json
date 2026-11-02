@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Järgmine reis",
   "driver_app.trip_now": "Praegune reis",
   "driver_app.trips_later": "Hilisemad reisid",
-  "driver_app.vacation_used": "Puhkus {{year}}: {{n}} tööpäeva",
+  "driver_app.vacation_used": "Puhkus {{year}}, tööpäevi: {{n}}",
   "driver_app.violations": "Rikkumised, viimased 4 nädalat",
   "driver_app.violations_week": "Rikkumised 7 päevaga",
   "settings.tab.api_tokens": "Kõik API-tokenid",

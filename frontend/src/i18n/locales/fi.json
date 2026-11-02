@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Seuraava ajo",
   "driver_app.trip_now": "Nykyinen ajo",
   "driver_app.trips_later": "Myöhemmät ajot",
-  "driver_app.vacation_used": "Loma {{year}}: {{n}} työpäivää",
+  "driver_app.vacation_used": "Loma {{year}}, työpäiviä: {{n}}",
   "driver_app.violations": "Rikkomukset, viimeiset 4 viikkoa",
   "driver_app.violations_week": "Rikkomukset 7 päivässä",
   "settings.tab.api_tokens": "Kaikki API-tunnukset",

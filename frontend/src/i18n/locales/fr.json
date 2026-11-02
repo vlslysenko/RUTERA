@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Prochain trajet",
   "driver_app.trip_now": "Trajet en cours",
   "driver_app.trips_later": "Trajets suivants",
-  "driver_app.vacation_used": "Congés {{year}} : {{n}} jours ouvrés",
+  "driver_app.vacation_used": "Congés {{year}}, jours ouvrés : {{n}}",
   "driver_app.violations": "Infractions, 4 dernières semaines",
   "driver_app.violations_week": "Infractions sur 7 jours",
   "settings.tab.api_tokens": "Tous les jetons d’API",

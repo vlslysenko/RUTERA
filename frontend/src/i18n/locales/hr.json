@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Sljedeća vožnja",
   "driver_app.trip_now": "Trenutna vožnja",
   "driver_app.trips_later": "Kasnije vožnje",
-  "driver_app.vacation_used": "Godišnji {{year}}: {{n}} radnih dana",
+  "driver_app.vacation_used": "Godišnji {{year}}, radni dani: {{n}}",
   "driver_app.violations": "Prekršaji, zadnja 4 tjedna",
   "driver_app.violations_week": "Prekršaji u 7 dana",
   "settings.tab.api_tokens": "Svi API tokeni",

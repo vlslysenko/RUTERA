@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Ďalšia jazda",
   "driver_app.trip_now": "Aktuálna jazda",
   "driver_app.trips_later": "Ďalšie jazdy",
-  "driver_app.vacation_used": "Dovolenka {{year}}: {{n}} pracovných dní",
+  "driver_app.vacation_used": "Dovolenka {{year}}, pracovné dni: {{n}}",
   "driver_app.violations": "Porušenia, posledné 4 týždne",
   "driver_app.violations_week": "Porušenia za 7 dní",
   "settings.tab.api_tokens": "Všetky API tokeny",

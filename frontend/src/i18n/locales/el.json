@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Επόμενο δρομολόγιο",
   "driver_app.trip_now": "Τρέχον δρομολόγιο",
   "driver_app.trips_later": "Επόμενα δρομολόγια",
-  "driver_app.vacation_used": "Άδεια {{year}}: {{n}} εργάσιμες ημέρες",
+  "driver_app.vacation_used": "Άδεια {{year}}, εργάσιμες ημέρες: {{n}}",
   "driver_app.violations": "Παραβάσεις, τελευταίες 4 εβδομάδες",
   "driver_app.violations_week": "Παραβάσεις σε 7 ημέρες",
   "settings.tab.api_tokens": "Όλα τα διακριτικά API",

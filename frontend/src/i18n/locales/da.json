@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Næste tur",
   "driver_app.trip_now": "Aktuel tur",
   "driver_app.trips_later": "Senere ture",
-  "driver_app.vacation_used": "Ferie {{year}}: {{n}} arbejdsdage",
+  "driver_app.vacation_used": "Ferie {{year}}, arbejdsdage: {{n}}",
   "driver_app.violations": "Overtrædelser, sidste 4 uger",
   "driver_app.violations_week": "Overtrædelser på 7 dage",
   "settings.tab.api_tokens": "Alle API-tokens",

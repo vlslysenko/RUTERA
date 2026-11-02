@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Il-vjaġġ li jmiss",
   "driver_app.trip_now": "Vjaġġ kurrenti",
   "driver_app.trips_later": "Vjaġġi aktar tard",
-  "driver_app.vacation_used": "Liv {{year}}: {{n}} ġranet tax-xogħol",
+  "driver_app.vacation_used": "Liv {{year}}, ġranet tax-xogħol: {{n}}",
   "driver_app.violations": "Ksur, l-aħħar 4 ġimgħat",
   "driver_app.violations_week": "Ksur f’7 ijiem",
   "settings.tab.api_tokens": "It-tokens kollha tal-API",

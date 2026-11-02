@@ -976,7 +976,7 @@
   "driver_app.trip_next": "Volgende rit",
   "driver_app.trip_now": "Huidige rit",
   "driver_app.trips_later": "Latere ritten",
-  "driver_app.vacation_used": "Verlof {{year}}: {{n}} werkdagen",
+  "driver_app.vacation_used": "Verlof {{year}}, werkdagen: {{n}}",
   "driver_app.violations": "Overtredingen, laatste 4 weken",
   "driver_app.violations_week": "Overtredingen in 7 dagen",
   "settings.tab.api_tokens": "Alle API-tokens",
