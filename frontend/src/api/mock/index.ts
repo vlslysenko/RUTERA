@@ -45,8 +45,9 @@ import type { InvoiceInput, InvoicePaymentInput, ReminderSchedule } from '@/api/
 import * as financeMock from './finance';
 import type { FuelAssignment, FuelCardInput, FuelTransactionInput } from '@/api/fuel';
 import * as fuelMock from './fuel';
-import type { CalcRequest, TollTariffInput } from '@/api/calc';
+import type { CalcRequest, RouteRequest, TollTariffInput } from '@/api/calc';
 import * as calcMock from './calc';
+import * as routeMock from './route';
 import type { CmrInput } from '@/api/cmr';
 import * as cmrMock from './cmr';
 import type { ApiTokenInput } from '@/api/tokens';
@@ -946,6 +947,7 @@ const calcLookup = (u: MockUser): calcMock.CalcLookup => ({
 });
 
 route('POST', '/app/calc/trip', withPrivilege('trip.trip/view', (u, { body }) => calcMock.plan((body ?? {}) as CalcRequest, calcLookup(u))));
+route('POST', '/app/calc/route', withPrivilege('trip.trip/view', (_u, { body }) => routeMock.route((body ?? {}) as Partial<RouteRequest>)));
 route('GET', '/app/calc/toll-tariffs', withPrivilege('trip.trip/view', () => calcMock.listTolls()));
 route('POST', '/app/calc/toll-tariffs', withPrivilege('trip.trip/manage', (_u, { body }) => calcMock.saveToll((body ?? {}) as TollTariffInput, null)));
 route('PUT', '/app/calc/toll-tariffs/:id', withPrivilege('trip.trip/manage', (_u, req) => calcMock.saveToll((req.body ?? {}) as TollTariffInput, req.params.id)));

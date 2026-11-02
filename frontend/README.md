@@ -83,7 +83,11 @@ carriers). Each tab needs its own privilege; users without `trip.trip/view` land
 Stop errors come as `stops[2].address` and land on the field `stops.2.address` of the trip form.
 `/trips/calc` is the trip calculator (`POST /app/calc/trip`): legs with km, driving and loading time and countries, a
 crew of one or two, the drivers' state from the tachograph, rested or typed in; the plan shows the ETA, the timeline of
-driving, breaks and rests (561/2006) and the cost lines. `calc.missing.*` / `calc.warning.*` codes live only in the
+driving, breaks and rests (561/2006) and the cost lines. The route panel (`RoutePanel`, Leaflet 1.9.4 loaded only with it, OSM
+tiles with "© OpenStreetMap contributors") takes points as addresses or clicks on the map, asks `POST /app/calc/route`
+(avoid tolls / ferries, the chosen vehicle) and fills the legs with km per country; 503 `calc.routing.disabled` shows
+"enter the legs by hand". The mock routes with a small gazetteer; `sessionStorage['mock.routing'] = 'off'` imitates the
+disabled server. `calc.missing.*` / `calc.warning.*` codes live only in the
 frontend bundles. `/trips/tolls` keeps the toll rates per km (country, optional euro class, axles and weight).
 `/trips/cmr` lists CMR consignment notes (`/app/cmr`, read with `trip.order/view` or `trip.cmr/manage`); the card shows
 the boxes with their numbers of the international form, issues and cancels the note and opens or saves the PDF (drafts

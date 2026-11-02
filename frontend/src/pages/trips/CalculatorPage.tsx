@@ -4,13 +4,14 @@ import { IconCalculator, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
-import { calcApi, type CalcPlan, type CalcRequest, type DriverStateSource } from '@/api/calc';
+import { calcApi, type CalcPlan, type CalcRequest, type CalcRoute, type DriverStateSource } from '@/api/calc';
 import { useUser } from '@/auth/useAuth';
 import { EmptyState } from '@/components/EmptyState';
 import { decimalSeparator } from '@/forms/number';
 import { countryOptions } from '@/utils/countries';
 import { fromZonedInput, toZonedInput } from '@/utils/zone';
 import { CalcResult } from './CalcResult';
+import { RoutePanel } from './RoutePanel';
 import { idOrNull, useCrewOptions } from './crew';
 import { CURRENCIES } from './tripFormat';
 import classes from './Calc.module.css';
@@ -21,6 +22,8 @@ interface LegRow {
   distanceKm: number | string;
   durationH: number | string;
   country: string | null;
+  /** Km per country of a leg from the route; typing the distance by hand drops them. */
+  countries: { country: string; km: number }[] | null;
   serviceH: number | string;
 }
 
@@ -57,7 +60,8 @@ function nextHour(tz?: string): string {
 
 /**
  * Trip calculator: when will the truck arrive under 561/2006 (breaks, daily and weekly rests, crew of one or two)
- * and what will it cost (fuel, driver pay, tolls, other). Legs are typed in by hand (km, time, country, service).
+ * and what will it cost (fuel, driver pay, tolls, other). Legs are typed in by hand (km, time, country, service) or come
+ * from a truck route built on the map (km per country).
  */
 export function CalculatorPage() {
   const { t, i18n } = useTranslation();
@@ -71,8 +75,8 @@ export function CalculatorPage() {
   const [driverState, setDriverState] = useState<DriverStateSource>('FRESH');
   const [manual, setManual] = useState<ManualRow>({ sinceBreakH: 0, inShiftH: 0, shiftStart: '', weekH: 0, fortnightH: 0, extensionsLeft: 2, reducedLeft: 3, lastWeeklyRestEnd: '' });
   const [legs, setLegs] = useState<LegRow[]>([
-    { key: ++seq, name: '', distanceKm: 0, durationH: '', country: 'PL', serviceH: 1 },
-    { key: ++seq, name: '', distanceKm: '', durationH: '', country: 'PL', serviceH: 1 },
+    { key: ++seq, name: '', distanceKm: 0, durationH: '', country: 'PL', countries: null, serviceH: 1 },
+    { key: ++seq, name: '', distanceKm: '', durationH: '', country: 'PL', countries: null, serviceH: 1 },
   ]);
   const [avgSpeed, setAvgSpeed] = useState<number | string>(70);
   const [extended, setExtended] = useState(true);
@@ -92,6 +96,23 @@ export function CalculatorPage() {
 
   const setLeg = (key: number, patch: Partial<LegRow>) => setLegs((ls) => ls.map((l) => (l.key === key ? { ...l, ...patch } : l)));
   const driverCount = [driver1, driver2].filter(Boolean).length;
+
+  /** A built route replaces the legs: loading at the first point (0 km), then one leg per stretch with its countries. */
+  const fromRoute = (r: CalcRoute) => {
+    setLegs((old) => [
+      { key: ++seq, name: r.points[0]?.label ?? '', distanceKm: 0, durationH: '', country: r.legs[0]?.countries[0]?.country ?? 'PL', countries: null, serviceH: old[0]?.serviceH ?? 1 },
+      ...r.legs.map((l, i) => ({
+        key: ++seq,
+        name: `${l.from} – ${l.to}`,
+        distanceKm: l.distanceKm,
+        durationH: Math.round((l.durationMin / 60) * 100) / 100,
+        country: l.countries[0]?.country ?? null,
+        countries: l.countries,
+        serviceH: old[i + 1]?.serviceH ?? 1,
+      })),
+    ]);
+    setPlan(null);
+  };
   const effectiveCrew = driverCount === 2 ? '2' : crewSize;
 
   const calculate = async () => {
@@ -125,7 +146,7 @@ export function CalculatorPage() {
         name: l.name.trim() || null,
         distanceKm: num(l.distanceKm) ?? 0,
         durationMin: minutes(l.durationH),
-        countries: l.country && (num(l.distanceKm) ?? 0) > 0 ? [{ country: l.country, km: num(l.distanceKm) ?? 0 }] : null,
+        countries: l.countries ?? (l.country && (num(l.distanceKm) ?? 0) > 0 ? [{ country: l.country, km: num(l.distanceKm) ?? 0 }] : null),
         serviceMin: minutes(l.serviceH),
       })),
       options: {
@@ -241,7 +262,7 @@ export function CalculatorPage() {
             <Text size="xs" fw={600} tt="uppercase" c="dimmed">
               {t('calc.legs')}
             </Text>
-            <Button size="xs" variant="light" leftSection={<IconPlus size={14} />} onClick={() => setLegs((ls) => [...ls, { key: ++seq, name: '', distanceKm: '', durationH: '', country: ls.at(-1)?.country ?? 'PL', serviceH: '' }])}>
+            <Button size="xs" variant="light" leftSection={<IconPlus size={14} />} onClick={() => setLegs((ls) => [...ls, { key: ++seq, name: '', distanceKm: '', durationH: '', country: ls.at(-1)?.country ?? 'PL', countries: null, serviceH: '' }])}>
               {t('calc.add_leg')}
             </Button>
           </Group>
@@ -262,11 +283,24 @@ export function CalculatorPage() {
                   </Tooltip>
                 </Group>
                 <Group grow gap={6} align="flex-start">
-                  <NumberInput size="xs" label={t('calc.distance_km')} value={l.distanceKm} onChange={(v) => setLeg(l.key, { distanceKm: v })} min={0} max={20000} allowNegative={false} hideControls error={err(`legs[${i}].distanceKm`)} />
+                  <NumberInput size="xs" label={t('calc.distance_km')} value={l.distanceKm} onChange={(v) => setLeg(l.key, { distanceKm: v, countries: null })} min={0} max={20000} allowNegative={false} hideControls error={err(`legs[${i}].distanceKm`)} />
                   <NumberInput size="xs" label={t('calc.duration_h')} placeholder={t('calc.auto')} value={l.durationH} onChange={(v) => setLeg(l.key, { durationH: v })} decimalScale={2} decimalSeparator={dec} allowNegative={false} hideControls error={err(`legs[${i}].durationMin`)} />
                   <NumberInput size="xs" label={t('calc.service_h')} value={l.serviceH} onChange={(v) => setLeg(l.key, { serviceH: v })} decimalScale={2} decimalSeparator={dec} allowNegative={false} hideControls error={err(`legs[${i}].serviceMin`)} />
                 </Group>
-                <Select size="xs" label={t('trips.country')} data={countryOptions(lang, l.country)} value={l.country} onChange={(v) => setLeg(l.key, { country: v })} searchable error={err(`legs[${i}].countries`)} />
+                {l.countries ? (
+                  <Group gap={6} wrap="nowrap">
+                    <Text size="xs" c="dimmed" style={{ flex: 1 }}>
+                      {l.countries.map((c) => `${c.country} ${new Intl.NumberFormat(lang, { maximumFractionDigits: 1 }).format(c.km)} km`).join(' · ')}
+                    </Text>
+                    <Tooltip label={t('calc.route.clear_countries')}>
+                      <ActionIcon size="sm" variant="subtle" color="gray" onClick={() => setLeg(l.key, { countries: null })} aria-label={t('calc.route.clear_countries')}>
+                        <IconTrash size={14} />
+                      </ActionIcon>
+                    </Tooltip>
+                  </Group>
+                ) : (
+                  <Select size="xs" label={t('trips.country')} data={countryOptions(lang, l.country)} value={l.country} onChange={(v) => setLeg(l.key, { country: v })} searchable error={err(`legs[${i}].countries`)} />
+                )}
               </Stack>
             </div>
           ))}
@@ -318,7 +352,10 @@ export function CalculatorPage() {
           )}
         </Stack>
       </Paper>
-      <div>{plan ? <CalcResult plan={plan} legNames={legs.map((l, i) => l.name.trim() || t('calc.leg_n', { n: i + 1 }))} /> : <EmptyState text={t('calc.empty')} />}</div>
+      <Stack gap="md">
+        <RoutePanel vehicleId={idOrNull(vehicleId)} onRoute={fromRoute} />
+        {plan ? <CalcResult plan={plan} legNames={legs.map((l, i) => l.name.trim() || t('calc.leg_n', { n: i + 1 }))} /> : <EmptyState text={t('calc.empty')} />}
+      </Stack>
     </div>
   );
 }

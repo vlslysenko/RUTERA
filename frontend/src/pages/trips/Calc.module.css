@@ -111,3 +111,37 @@
   border-left-color: var(--mantine-color-orange-6);
   background: var(--mantine-color-orange-0);
 }
+
+.map {
+  height: 360px;
+  border-radius: var(--mantine-radius-sm);
+  border: 1px solid var(--mantine-color-default-border);
+  /* Leaflet panes use z-index up to 1000: keep them under the app's drawers and menus. */
+  z-index: 0;
+}
+
+/* Numbered waypoint on the map (Leaflet divIcon). */
+.pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--mantine-color-blue-7);
+  color: var(--mantine-color-white);
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px var(--mantine-color-white);
+}
+
+.seq {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--mantine-color-blue-7);
+  color: var(--mantine-color-white);
+  font-size: 11px;
+  font-weight: 700;
+}

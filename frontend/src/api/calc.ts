@@ -155,8 +155,45 @@ export interface TollTariff {
 
 export type TollTariffInput = Omit<TollTariff, 'id'>;
 
+// --- truck routes (POST /app/calc/route, backend 4dfa4cb) --------------------------------------------
+
+/** A point of the route: a place picked on the map or an address the backend geocodes. */
+export type RoutePoint = { lat: number; lng: number } | { address: string };
+
+export interface RouteRequest {
+  /** 2-25 points in driving order. */
+  points: RoutePoint[];
+  /** Height, gross weight and axles of the vehicle go to the truck costing. */
+  vehicleId: number | null;
+  avoidTolls: boolean;
+  avoidFerries: boolean;
+}
+
+export interface RouteLeg {
+  from: string;
+  to: string;
+  distanceKm: number;
+  durationMin: number;
+  /** Km per country from the edges of the route; they add up to the distance. */
+  countries: { country: string; km: number }[];
+  /** Encoded polyline (Google algorithm) with `polylinePrecision` decimals. */
+  polyline: string;
+}
+
+export interface CalcRoute {
+  distanceKm: number;
+  durationMin: number;
+  /** The points as routed (geocoded addresses get their coordinates and a label). */
+  points: { lat: number; lng: number; label: string }[];
+  legs: RouteLeg[];
+  polylinePrecision: number;
+  /** "© OpenStreetMap contributors": shown with the map. */
+  attribution: string;
+}
+
 export const calcApi = {
   plan: (body: CalcRequest) => api<CalcPlan>('/calc/trip', { method: 'POST', body }),
+  route: (body: RouteRequest) => api<CalcRoute>('/calc/route', { method: 'POST', body }),
   tolls: () => api<TollTariff[]>('/calc/toll-tariffs'),
   createToll: (body: TollTariffInput) => api<TollTariff>('/calc/toll-tariffs', { method: 'POST', body }),
   updateToll: (id: number, body: TollTariffInput) => api<TollTariff>(`/calc/toll-tariffs/${id}`, { method: 'PUT', body }),
