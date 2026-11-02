@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "API reikia jūsų įmonės DI prieigos priedo",
   "api.rate_limited": "Per daug užklausų, bandykite dar kartą po akimirkos",
   "api.token.limit": "Jau turite didžiausią aktyvių prieigos raktų skaičių",
+  "drivers.app_login_hint": "Prisijungimai su vaidmeniu {{role}}; vairuotojas juo jungiasi ir mato savo reisus, valandas ir dokumentus.",
   "auth.login.invalid": "Neteisingas prisijungimo vardas arba slaptažodis",
   "auth.login.locked": "Per daug nesėkmingų bandymų. Paskyra laikinai užblokuota, bandykite vėliau.",
   "auth.login.disabled": "Ši paskyra išjungta",

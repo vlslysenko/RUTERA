@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "API vajab teie ettevõtte AI-juurdepääsu lisamoodulit",
   "api.rate_limited": "Liiga palju päringuid, proovige hetke pärast uuesti",
   "api.token.limit": "Teil on juba maksimaalne arv aktiivseid tokeneid",
+  "drivers.app_login_hint": "Rolliga {{role}} kasutajad; juht logib sellega sisse ja näeb oma reise, tunde ja dokumente.",
   "auth.login.invalid": "Vale kasutajanimi või parool",
   "auth.login.locked": "Liiga palju ebaõnnestunud katseid. Konto on ajutiselt lukustatud, proovige hiljem uuesti.",
   "auth.login.disabled": "See konto on keelatud",

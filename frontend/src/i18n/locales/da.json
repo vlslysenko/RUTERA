@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "API’et kræver tilføjelsen AI-adgang for din virksomhed",
   "api.rate_limited": "For mange forespørgsler, prøv igen om lidt",
   "api.token.limit": "Du har allerede det maksimale antal aktive tokens",
+  "drivers.app_login_hint": "Logins med rollen {{role}}; chaufføren logger ind med det og ser egne ture, timer og dokumenter.",
   "auth.login.invalid": "Ugyldigt brugernavn eller adgangskode",
   "auth.login.locked": "For mange mislykkede forsøg. Kontoen er midlertidigt låst, prøv igen senere.",
   "auth.login.disabled": "Denne konto er deaktiveret",

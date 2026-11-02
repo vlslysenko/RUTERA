@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "API nepieciešams jūsu uzņēmuma MI piekļuves papildinājums",
   "api.rate_limited": "Pārāk daudz pieprasījumu, mēģiniet vēlreiz pēc brīža",
   "api.token.limit": "Jums jau ir maksimālais aktīvo pilnvaru skaits",
+  "drivers.app_login_hint": "Pieteikšanās ar lomu {{role}}; vadītājs ar to piesakās un redz savus reisus, stundas un dokumentus.",
   "auth.login.invalid": "Nederīgs lietotājvārds vai parole",
   "auth.login.locked": "Pārāk daudz neveiksmīgu mēģinājumu. Konts ir īslaicīgi bloķēts, mēģiniet vēlāk vēlreiz.",
   "auth.login.disabled": "Šis konts ir atspējots",

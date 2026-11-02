@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "De API vereist de add-on AI-toegang van uw bedrijf",
   "api.rate_limited": "Te veel verzoeken, probeer het zo opnieuw",
   "api.token.limit": "U hebt al het maximale aantal actieve tokens",
+  "drivers.app_login_hint": "Logins met de rol {{role}}; de chauffeur logt ermee in en ziet de eigen ritten, uren en documenten.",
   "auth.login.invalid": "Ongeldige gebruikersnaam of wachtwoord",
   "auth.login.locked": "Te veel mislukte pogingen. Het account is tijdelijk geblokkeerd, probeer het later opnieuw.",
   "auth.login.disabled": "Dit account is uitgeschakeld",

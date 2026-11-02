@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "API wymaga dodatku „Dostęp AI” dla Twojej firmy",
   "api.rate_limited": "Zbyt wiele żądań, spróbuj ponownie za chwilę",
   "api.token.limit": "Masz już maksymalną liczbę aktywnych tokenów",
+  "drivers.app_login_hint": "Loginy z rolą {{role}}; kierowca loguje się nim i widzi swoje trasy, godziny i dokumenty.",
   "auth.login.invalid": "Nieprawidłowy login lub hasło",
   "auth.login.locked": "Zbyt wiele nieudanych prób. Konto jest tymczasowo zablokowane, spróbuj ponownie później.",
   "auth.login.disabled": "To konto jest wyłączone",

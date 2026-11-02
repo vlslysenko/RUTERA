@@ -77,7 +77,7 @@ export interface Driver {
   employmentTo: string | null;
   status: DriverStatus;
   notes: string | null;
-  /** Sign-in to the driver app, when the driver has one (not editable here yet). */
+  /** Sign-in to the driver app, when the driver has one (DriverInput.userId). */
   user?: { id: number; login: string } | null;
   defaultVehicle: VehicleRef | null;
   card: DriverCard | null;
@@ -103,6 +103,8 @@ export interface DriverInput {
   /** Required together with cardNumber. */
   cardIssuingCountry: string | null;
   cardValidTo: string | null;
+  /** Login of the driver cabinet (a user with role DRIVER); null unlinks, absent leaves it as it is. */
+  userId?: number | null;
 }
 
 export const driversApi = {

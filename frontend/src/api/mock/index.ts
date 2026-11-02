@@ -377,9 +377,24 @@ route('GET', '/app/drivers/:id', withPrivilegeOrSelf('driver.driver/view', ownPa
   return d ? { status: 200, body: toDriver(d, vehicles) } : error(404, 'error.not_found');
 }));
 
+/** Proposed DriverInput.userId: the login of the driver cabinet (role DRIVER, one driver per login); absent = unchanged. */
+function driverUserError(b: DriverInput, selfId: number | null): string | null {
+  if (b.userId == null) return null;
+  const u = users.find((x) => x.id === b.userId && !x.deleted);
+  if (!u || u.role !== 'DRIVER') return 'validation.invalid_value';
+  return drivers.some((d) => d.user?.id === u.id && d.id !== selfId && !d.deleted) ? 'validation.invalid_value' : null;
+}
+function linkDriverUser(target: MockDriver, b: DriverInput): void {
+  if (b.userId === undefined) return;
+  const u = b.userId == null ? undefined : users.find((x) => x.id === b.userId);
+  target.user = u ? { id: u.id, login: u.login } : null;
+}
+
 route('POST', '/app/drivers', withPrivilege('driver.driver/manage', (_u, { body }) => {
   const b = (body ?? {}) as DriverInput;
   const details = validateDriver(b, drivers, null);
+  const userError = driverUserError(b, null);
+  if (userError) details.userId = userError;
   if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
   const now = new Date().toISOString();
   const created: MockDriver = {
@@ -393,6 +408,7 @@ route('POST', '/app/drivers', withPrivilege('driver.driver/manage', (_u, { body 
     updatedAt: now,
   };
   applyDriverInput(created, b);
+  linkDriverUser(created, b);
   drivers.push(created);
   return { status: 201, body: toDriver(created, vehicles) };
 }));
@@ -402,8 +418,11 @@ route('PUT', '/app/drivers/:id', withPrivilege('driver.driver/manage', (_u, req)
   if (!target) return error(404, 'error.not_found');
   const b = (req.body ?? {}) as DriverInput;
   const details = validateDriver(b, drivers, target.id);
+  const userError = driverUserError(b, target.id);
+  if (userError) details.userId = userError;
   if (Object.keys(details).length > 0) return error(422, 'error.validation', details);
   applyDriverInput(target, b);
+  linkDriverUser(target, b);
   return { status: 200, body: toDriver(target, vehicles) };
 }));
 

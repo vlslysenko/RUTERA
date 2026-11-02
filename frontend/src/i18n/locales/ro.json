@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "API-ul necesită suplimentul Acces AI al firmei dvs.",
   "api.rate_limited": "Prea multe cereri, încercați din nou peste puțin timp",
   "api.token.limit": "Aveți deja numărul maxim de tokenuri active",
+  "drivers.app_login_hint": "Conturi cu rolul {{role}}; șoferul intră cu el și vede propriile curse, ore și documente.",
   "auth.login.invalid": "Utilizator sau parolă incorecte",
   "auth.login.locked": "Prea multe încercări eșuate. Contul este blocat temporar, încercați din nou mai târziu.",
   "auth.login.disabled": "Acest cont este dezactivat",

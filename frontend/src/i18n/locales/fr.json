@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "L’API nécessite l’option Accès IA de votre entreprise",
   "api.rate_limited": "Trop de requêtes, réessayez dans un instant",
   "api.token.limit": "Vous avez déjà le nombre maximal de jetons actifs",
+  "drivers.app_login_hint": "Identifiants avec le rôle {{role}} ; le conducteur s’y connecte et voit ses trajets, heures et documents.",
   "auth.login.invalid": "Identifiant ou mot de passe incorrect",
   "auth.login.locked": "Trop de tentatives échouées. Le compte est temporairement verrouillé, réessayez plus tard.",
   "auth.login.disabled": "Ce compte est désactivé",

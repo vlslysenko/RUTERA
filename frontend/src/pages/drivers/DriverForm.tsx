@@ -6,10 +6,13 @@ import { z } from 'zod';
 import { Button, Group, Select, Stack, Textarea, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
+import { ADMIN_USERS_KEY, adminUsersApi } from '@/api/admin';
 import { DRIVER_STATUSES, DRIVERS_KEY, driversApi, type Driver, type DriverInput } from '@/api/drivers';
 import { errorCode } from '@/api/errors';
 import { DetailDrawer } from '@/components/DetailDrawer';
 import { ErrorState } from '@/components/ErrorState';
+import { hasPrivilege, PRIV } from '@/auth/privileges';
+import { useUser } from '@/auth/useAuth';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { countryOptions } from '@/utils/countries';
 import classes from './DriversPage.module.css';
@@ -38,6 +41,7 @@ const schema = z
     cardNumber: z.string().refine((v) => cardOf(v) === '' || CARD_RE.test(cardOf(v)), 'validation.invalid_format'),
     cardIssuingCountry: z.string().nullable(),
     cardValidTo: z.string(),
+    userId: z.string().nullable(),
   })
   .superRefine((v, ctx) => {
     if (v.employmentFrom && v.employmentTo && v.employmentTo < v.employmentFrom) {
@@ -64,6 +68,7 @@ const FIELDS: readonly FieldPath<FormValues>[] = [
   'cardNumber',
   'cardIssuingCountry',
   'cardValidTo',
+  'userId',
 ];
 
 const EMPTY: FormValues = {
@@ -80,6 +85,7 @@ const EMPTY: FormValues = {
   cardNumber: '',
   cardIssuingCountry: null,
   cardValidTo: '',
+  userId: null,
 };
 
 function toFormValues(d: Driver): FormValues {
@@ -97,6 +103,7 @@ function toFormValues(d: Driver): FormValues {
     cardNumber: d.card?.cardNumber ?? '',
     cardIssuingCountry: d.card?.issuingCountry ?? null,
     cardValidTo: d.card?.validTo ?? '',
+    userId: d.user ? String(d.user.id) : null,
   };
 }
 
@@ -119,6 +126,7 @@ function toInput(f: FormValues): DriverInput {
     cardNumber: card || null,
     cardIssuingCountry: card ? f.cardIssuingCountry : null,
     cardValidTo: card ? f.cardValidTo || null : null,
+    userId: f.userId ? Number(f.userId) : null,
   };
 }
 
@@ -135,6 +143,13 @@ export function DriverForm() {
   const q = useQuery({ queryKey: [...DRIVERS_KEY, id], queryFn: () => driversApi.get(id), enabled: !isNew });
   const current = q.data;
   const backPath = isNew ? '/drivers' : `/drivers/${id}`;
+  // Logins with role DRIVER for the driver cabinet; listing them needs admin.user/view.
+  const canLink = hasPrivilege(useUser(), PRIV.ADMIN_USER_VIEW);
+  const logins = useQuery({ queryKey: ADMIN_USERS_KEY, queryFn: adminUsersApi.list, enabled: canLink });
+  const loginOptions = (logins.data ?? []).filter((u) => u.role === 'DRIVER').map((u) => ({ value: String(u.id), label: `${u.name} (${u.login})` }));
+  if (current?.user && !loginOptions.some((o) => o.value === String(current.user!.id))) {
+    loginOptions.push({ value: String(current.user.id), label: current.user.login });
+  }
 
   const {
     control,
@@ -266,6 +281,29 @@ export function DriverForm() {
               </Group>
               <div className={classes.hint}>{t('drivers.card_hint')}</div>
             </section>
+
+            {canLink && (
+              <section className={classes.section}>
+                <h3 className={classes.sectionTitle}>{t('driver_app.title')}</h3>
+                <Controller
+                  name="userId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label={t('drivers.app_login')}
+                      description={t('drivers.app_login_hint', { role: t('role.DRIVER') })}
+                      data={loginOptions}
+                      value={field.value}
+                      onChange={field.onChange}
+                      clearable
+                      searchable
+                      nothingFoundMessage={t('fleet.nothing_found')}
+                      error={err('userId')}
+                    />
+                  )}
+                />
+              </section>
+            )}
 
             <Textarea label={t('drivers.notes')} autosize minRows={2} maxRows={6} error={err('notes')} {...register('notes')} />
 

@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "Teastaíonn breiseán rochtana AI do chuideachta don API",
   "api.rate_limited": "An iomarca iarratas, bain triail eile as ar ball",
   "api.token.limit": "Tá an líon uasta comharthaí gníomhacha agat cheana",
+  "drivers.app_login_hint": "Logálacha isteach leis an ról {{role}}; úsáideann an tiománaí é chun a thurais, uaireanta agus doiciméid féin a fheiceáil.",
   "auth.login.invalid": "Logáil isteach nó pasfhocal neamhbhailí",
   "auth.login.locked": "An iomarca iarrachtaí teipthe. Tá an cuntas glasáilte go sealadach, bain triail eile as níos déanaí.",
   "auth.login.disabled": "Tá an cuntas seo díchumasaithe",

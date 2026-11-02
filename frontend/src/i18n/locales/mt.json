@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "L-API teħtieġ iż-żieda tal-aċċess AI tal-kumpanija tiegħek",
   "api.rate_limited": "Wisq talbiet, jekk jogħġbok erġa’ pprova ftit wara",
   "api.token.limit": "Diġà għandek l-ogħla numru ta’ tokens attivi",
+  "drivers.app_login_hint": "Logins bir-rwol {{role}}; is-sewwieq jidħol bih u jara l-vjaġġi, is-sigħat u d-dokumenti tiegħu.",
   "auth.login.invalid": "Isem tal-utent jew password mhux validi",
   "auth.login.locked": "Wisq tentattivi falluti. Il-kont huwa msakkar temporanjament, erġa' pprova aktar tard.",
   "auth.login.disabled": "Dan il-kont huwa diżattivat",

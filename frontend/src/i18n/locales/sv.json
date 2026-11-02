@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "API:et kräver tillägget AI-åtkomst för ditt företag",
   "api.rate_limited": "För många förfrågningar, försök igen om en stund",
   "api.token.limit": "Du har redan det högsta antalet aktiva token",
+  "drivers.app_login_hint": "Inloggningar med rollen {{role}}; föraren loggar in med den och ser sina egna resor, timmar och dokument.",
   "auth.login.invalid": "Ogiltigt användarnamn eller lösenord",
   "auth.login.locked": "För många misslyckade försök. Kontot är tillfälligt låst, försök igen senare.",
   "auth.login.disabled": "Det här kontot är inaktiverat",

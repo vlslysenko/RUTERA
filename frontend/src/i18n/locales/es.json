@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "La API requiere el complemento de acceso IA de su empresa",
   "api.rate_limited": "Demasiadas solicitudes, inténtelo de nuevo en un momento",
   "api.token.limit": "Ya tiene el número máximo de tokens activos",
+  "drivers.app_login_hint": "Usuarios con el rol {{role}}; el conductor entra con él y ve sus viajes, horas y documentos.",
   "auth.login.invalid": "Usuario o contraseña incorrectos",
   "auth.login.locked": "Demasiados intentos fallidos. La cuenta está bloqueada temporalmente, inténtelo de nuevo más tarde.",
   "auth.login.disabled": "Esta cuenta está desactivada",

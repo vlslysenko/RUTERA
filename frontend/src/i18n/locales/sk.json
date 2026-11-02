@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "API vyžaduje doplnok „AI prístup“ vašej firmy",
   "api.rate_limited": "Príliš veľa požiadaviek, skúste to o chvíľu znova",
   "api.token.limit": "Už máte maximálny počet aktívnych tokenov",
+  "drivers.app_login_hint": "Loginy s rolou {{role}}; vodič sa ním prihlasuje a vidí svoje jazdy, hodiny a dokumenty.",
   "auth.login.invalid": "Neplatné prihlasovacie meno alebo heslo",
   "auth.login.locked": "Príliš veľa neúspešných pokusov. Účet je dočasne zablokovaný, skúste to neskôr.",
   "auth.login.disabled": "Tento účet je zakázaný",

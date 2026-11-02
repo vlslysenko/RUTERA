@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "API potrebuje dodatek Dostop AI vašega podjetja",
   "api.rate_limited": "Preveč zahtev, poskusite znova čez trenutek",
   "api.token.limit": "Imate že največje število aktivnih žetonov",
+  "drivers.app_login_hint": "Prijave z vlogo {{role}}; voznik se z njo prijavi in vidi svoje vožnje, ure in dokumente.",
   "auth.login.invalid": "Napačno uporabniško ime ali geslo",
   "auth.login.locked": "Preveč neuspelih poskusov. Račun je začasno zaklenjen, poskusite znova pozneje.",
   "auth.login.disabled": "Ta račun je onemogočen",

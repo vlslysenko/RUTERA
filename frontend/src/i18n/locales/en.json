@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "The API needs the AI access add-on of your company",
   "api.rate_limited": "Too many requests, please try again in a moment",
   "api.token.limit": "You already have the maximum number of active tokens",
+  "drivers.app_login_hint": "Logins with the role {{role}}; the driver signs in with it and sees own trips, hours and documents.",
   "auth.login.invalid": "Invalid login or password",
   "auth.login.locked": "Too many failed attempts. The account is temporarily locked, try again later.",
   "auth.login.disabled": "This account is disabled",

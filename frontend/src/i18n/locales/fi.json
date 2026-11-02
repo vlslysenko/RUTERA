@@ -1020,6 +1020,7 @@
   "api.ai_access_required": "API vaatii yrityksenne AI-käytön lisäosan",
   "api.rate_limited": "Liian monta pyyntöä, yritä hetken kuluttua uudelleen",
   "api.token.limit": "Sinulla on jo enimmäismäärä aktiivisia tunnuksia",
+  "drivers.app_login_hint": "Kirjautumiset roolilla {{role}}; kuljettaja kirjautuu sillä ja näkee omat ajot, tunnit ja asiakirjat.",
   "auth.login.invalid": "Virheellinen käyttäjätunnus tai salasana",
   "auth.login.locked": "Liian monta epäonnistunutta yritystä. Tili on tilapäisesti lukittu, yritä myöhemmin uudelleen.",
   "auth.login.disabled": "Tämä tili on poistettu käytöstä",
