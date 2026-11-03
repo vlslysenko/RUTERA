@@ -1,57 +1,90 @@
-# Руководства для ИИ-операторов по ролям
+# Guides for AI operators, per role
 
-**Назначение.** В этой папке лежит по одному файлу на каждую роль RUTERA. Файл объясняет ИИ-агенту, который работает от имени пользователя с этой ролью, какие функции и данные ему доступны и каким самым простым способом их получить или изменить (через MCP-сервер или REST API). Это часть продукта, а не внутренняя документация: ИИ читает эти файлы при подключении к RUTERA.
+**Purpose.** One file per RUTERA role. It tells an AI agent that works on behalf of a user with that role which
+functions and data it can reach and the simplest way to read or change them through the MCP server or the REST API.
+It is part of the product, not internal documentation: the AI reads it when it connects to RUTERA.
 
-**Место в продукте (✅ решение от 2026-10-27).** Руководства входят в отдельный платный модуль «Управление через ИИ» (публичный API + MCP). Этот модуль не является основным каналом общения интерфейса RUTERA с бэкендом: React работает через внутренний интерфейс, а API и MCP включаются фирме по тарифу. Руководства поставляются только фирмам с включённым модулем.
+**Place in the product (decision of 2026-10-27).** The guides belong to the paid module "AI access" (public API +
+MCP). The module is not the channel of the RUTERA web interface (React uses the internal `/app` interface); a firma
+gets it with `firma.ai_access`, switched by the operator (cloud) or by `RUTERA_AI_ACCESS` (standalone).
 
-**Статус.** Версия 0.1 от 2026-10-27, заготовки. API и MCP ещё не существуют, поэтому все названия инструментов, адреса и примеры помечены как заготовки (`TBD`). Файлы развиваем по ходу проекта.
+**Status.** Version 0.2 of 2026-11-03: the API and the MCP server exist, so the guides name the real tools (108 tools
+generated from `/api/v1/openapi.json`, see `README.md` of the repository, "MCP server for AI assistants"). Version
+0.1 (2026-10-27, Russian) had placeholders.
 
-## Правило сопровождения (✅ решение от 2026-10-27)
+## Maintenance rule (decision of 2026-10-27)
 
-Руководства обслуживаются вместе с кодом:
+The guides are maintained together with the code:
 
-1. Каждое изменение, которое добавляет, меняет или удаляет функцию публичного API/MCP, в том же коммите или PR обновляет руководства тех ролей, которым эта функция доступна.
-2. В шаблон PR добавляется пункт «Обновлены руководства в `docs/ai-roles/`».
-3. У каждого файла есть версия и журнал изменений внизу.
-4. Проверка на планировании и при ревью: если функция есть в API, но её нет ни в одном руководстве, это ошибка.
+1. A change that adds, changes or removes a function of the public API / MCP updates, in the same commit or pull
+   request, the guides of the roles that can use the function.
+2. Every file has a version and a change log at the end.
+3. Review check: a tool that exists but appears in no guide is a defect. The tool names follow from the API paths
+   (`<resource>_<list|get|create|update|patch|delete>` or an action name), so a renamed path renames the tool.
 
-## Файлы
+## Files
 
-| Файл | Роль | Кратко |
+| File | Role | In short |
 |---|---|---|
-| `owner.md` | Владелец | всё: данные фирмы, пользователи и роли, настройки, тариф |
-| `dispatcher.md` | Диспетчер | машины, карта, водители (без оплат), тахографы, рейсы, CMR |
-| `logistician.md` | Логист | рейсы и заказы, калькулятор поездки, биржи, карта, CMR |
-| `accountant.md` | Бухгалтер | фактуры, должники и напоминания, топливо, оплаты водителей, отчёты |
-| `driver.md` | Водитель | только свои данные: рейсы, часы, нарушения, отпуска, загрузка CMR и чеков |
-| `_template.md` | — | шаблон для новой роли |
+| `owner.md` | Owner (OWNER) | everything in the firma, including finance, driver pay and administration |
+| `dispatcher.md` | Dispatcher (DISPATCHER) | fleet, drivers without pay, absences, tachograph, orders, trips, CMR |
+| `logistician.md` | Logistician (LOGISTICIAN) | orders, trips, CMR, trip calculator; fleet, drivers and hours read-only |
+| `accountant.md` | Accountant (ACCOUNTANT) | invoices, payments, debts and reminders, fuel, driver pay |
+| `driver.md` | Driver (DRIVER) | own data only: trips and stops, hours and violations, absences, trip photos |
+| `_template.md` | - | template for a new role |
 
-Пользовательские роли с индивидуальным набором прав (аналог `OwnOpRole` в SMDP) получают руководство ближайшей стандартной роли плюс фактическую карту прав из API.
+Custom roles (CUSTOM, own privilege set) use the guide of the closest standard role; the privileges of the user
+always win over the text of a guide.
 
-## Структура каждого файла
+## Structure of every file
 
-1. **Контекст**: кто ты, от чьего имени действуешь, границы (фирма, права).
-2. **Подключение**: как ИИ подключается (MCP, REST, авторизация).
-3. **Доступ**: таблица модулей с уровнем доступа (просмотр / управление / нет).
-4. **Типичные задачи**: что чаще всего просят и каким инструментом это делается.
-5. **Ограничения и правила**: что нельзя, что требует подтверждения пользователя.
-6. **Журнал изменений**.
+1. **Context**: who you act for, the limits (one firma, the user's privileges).
+2. **Connection**: MCP, REST, authorization.
+3. **Access**: modules with their level (read / manage / none) and the privilege keys behind them.
+4. **Typical tasks**: what is asked most and which tools answer it.
+5. **Limits and rules**: what is not possible, what needs the user's confirmation.
+6. **Change log**.
 
-## Как ИИ получает руководство (💡 предложение, уточнить при планировании)
+## Connection (all roles)
 
-- MCP-сервер отдаёт руководство роли текущего пользователя как ресурс (`rutera://guide`) и как стартовую инструкцию (prompt) при подключении.
-- То же руководство доступно по REST (`GET /api/ai/guide`), чтобы любой ИИ-клиент без MCP мог его прочитать.
-- Фактические права пользователя (карта `key → true/false`, как `getValidOperatorPrivilegesComplex` в SMDP) всегда важнее текста руководства: руководство описывает роль по умолчанию, а права могут быть сужены или расширены.
+| What | Where |
+|---|---|
+| MCP server | `https://<host>/mcp` (Streamable HTTP, JSON-RPC; protocol versions 2025-06-18, 2025-03-26, 2024-11-05) |
+| Authorization for claude.ai and other OAuth clients | OAuth 2.1: the client discovers RUTERA from the 401 of `/mcp`, the user signs in and allows the connection on a RUTERA page; the connection then appears under API tokens of the user |
+| Authorization with a fixed header | a personal token of the user: `Authorization: Bearer rtr_...` (Settings -> API tokens) |
+| REST API | `https://<host>/api/v1/...`, OpenAPI 3 document at `/api/v1/openapi.json` |
+| Limits | 120 calls per token and minute by default (429 with `Retry-After`); every call is logged with the token |
 
-## Общие правила для всех ролей
+Without the AI access add-on of the firma every call answers 403 `api.ai_access_required`.
 
-- ИИ действует строго от имени одного пользователя и внутри одной фирмы. Данных других фирм не существует для него.
-- Действия, которые нельзя отменить или которые уходят наружу (письмо контрагенту, удаление, отправка в KSeF, публикация на бирже), ИИ выполняет только после явного подтверждения пользователя.
-- Ответы на языке пользователя (язык из профиля).
-- Всё, что ИИ сделал, попадает в журнал аудита с пометкой «через ИИ».
+## How the AI gets its guide (proposal, not built yet)
 
-## Язык
+- Today the MCP server returns general instructions in `initialize`; the role guides are not served yet.
+- Proposal: the MCP server returns the guide of the user's role as a resource (`rutera://guide`) and in its
+  instructions; the same text at `GET /api/v1/guide` for clients without MCP.
+- The effective privileges of the user always win over the guide: an action the user may not do answers 403
+  `auth.access_denied`.
 
-Сейчас руководства на русском (язык разработки). ❓ Открытый вопрос: сделать каноническую версию на английском и переводить на языки интерфейса, или отдавать ИИ русскую/английскую версию независимо от языка пользователя.
+## Rules for all roles
 
-Связанные документы: `../REQUIREMENTS.md` (раздел 4.12 «Доступ ИИ: API + MCP», принцип 8).
+- You act for exactly one user inside exactly one firma; other firmas do not exist for you.
+- Actions that cannot be undone or that leave RUTERA (e-mail to a contractor, deleting, issuing a CMR, cancelling
+  a document) only after the user's explicit confirmation.
+- Answer in the user's language.
+- Dates are `yyyy-MM-dd`, times ISO instants in UTC, amounts in the currency of the record; errors come back as
+  `{code, message, details}` with a code per field (`validation.required`, `...taken`).
+- Update tools (PUT) replace the whole record: read it first, change the fields, send it back complete.
+
+## Language
+
+From version 0.2 the guides are written in English (the owner's rule for files; also what AI assistants read
+best). Open question 14 of `../REQUIREMENTS.md`: whether to serve translations in the user's language.
+
+Related: `../REQUIREMENTS.md` (4.12 "AI access", principle 8, section 17), `../../README.md` (API and MCP).
+
+## Change log
+
+| Version | Date | Changes |
+|---|---|---|
+| 0.1 | 2026-10-27 | Drafts in Russian with placeholder tools |
+| 0.2 | 2026-11-03 | English; real tools, connection with OAuth and tokens, access from the role defaults in code |

@@ -1,50 +1,37 @@
-# RUTERA: руководство для ИИ-оператора роли «<Роль>»
+# RUTERA: guide for the AI operator of the role "<Role>"
 
-Версия: 0.1 · Обновлено: <дата> · Статус: заготовка
+Version: 0.2 · Updated: <date>
 
-## 1. Контекст
+## 1. Context
 
-Ты действуешь от имени пользователя RUTERA с ролью **<Роль>** в фирме `<Firma>`. Твои возможности равны возможностям этого пользователя в интерфейсе: не больше и не меньше. Данные других фирм тебе недоступны.
+You act for a RUTERA user with the role **<Role>** in the firma `<Firma>`. You can do exactly what this user can do
+in the web application, no more and no less. Other firmas do not exist for you.
 
-## 2. Подключение
+## 2. Connection
 
-| Что | Где | Статус |
+See `README.md`, "Connection (all roles)": MCP at `https://<host>/mcp` (OAuth or `Authorization: Bearer rtr_...`),
+REST at `https://<host>/api/v1`. The firma needs the AI access add-on.
+
+## 3. Access
+
+| Module | Access | Privilege keys | Tools |
+|---|---|---|---|
+| Fleet | read / manage / none | `fleet.vehicle/view`, ... | `vehicles_*` |
+| ... | | | |
+
+## 4. Typical tasks
+
+| Task | Tools | How |
 |---|---|---|
-| MCP-сервер | `<RUTERA_URL>/mcp` | TBD |
-| REST API + OpenAPI | `<RUTERA_URL>/api`, описание `<RUTERA_URL>/api/docs` | TBD |
-| Авторизация | персональный API-токен пользователя (заголовок `Authorization: Bearer <token>`) | TBD, см. открытый вопрос 10 в REQUIREMENTS.md |
-| Твои фактические права | инструмент `me_get_privileges` | TBD |
+| ... | `resource_action` | ... |
 
-## 3. Доступ
+## 5. Limits and rules
 
-| Модуль | Доступ | Примечание |
+- Not possible: ...
+- Only after the user's confirmation: ...
+
+## 6. Change log
+
+| Version | Date | Changes |
 |---|---|---|
-| Автопарк | просмотр / управление / нет | |
-| Карта и GPS | | |
-| Тахографы и часы водителей | | |
-| Водители (карточка) | | |
-| HR (отпуска, больничные, оплаты) | | |
-| Фактуры и должники | | |
-| CMR | | |
-| Топливо | | |
-| Рейсы и калькулятор поездки | | |
-| Биржи грузов | | |
-| Настройки фирмы, пользователи, роли | | |
-| Отчёты | | |
-
-## 4. Типичные задачи
-
-| Задача | Инструмент (TBD) | Как |
-|---|---|---|
-| … | `module_action` | … |
-
-## 5. Ограничения и правила
-
-- Нельзя: …
-- Только после подтверждения пользователя: …
-
-## 6. Журнал изменений
-
-| Версия | Дата | Изменения |
-|---|---|---|
-| 0.1 | <дата> | заготовка |
+| 0.2 | <date> | first version |
