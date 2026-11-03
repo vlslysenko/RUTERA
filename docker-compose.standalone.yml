@@ -10,9 +10,18 @@
 # Images are pinned to exact releases older than 30 days (project rule for dependencies).
 name: rutera-standalone
 
+# Container output (docker logs) is rotated: at most 5 files of 10 MB per service. RUTERA also writes its own daily
+# files into the logs volume (30 days, 1 GB at most).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   mysql:
     image: mysql:8.4.11
+    logging: *logging
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
@@ -37,6 +46,7 @@ services:
 
   rutera:
     image: ${RUTERA_IMAGE:-ghcr.io/vlslysenko/rutera}:${RUTERA_VERSION:-latest}
+    logging: *logging
     depends_on:
       mysql:
         condition: service_healthy
@@ -94,12 +104,15 @@ services:
 
   # Nightly at RUTERA_BACKUP_TIME (RUTERA_TZ): rutera-db-<stamp>.sql.gz (mysqldump, one consistent transaction)
   # and rutera-files-<stamp>.tar.gz (uploaded files) in RUTERA_BACKUP_DIR; files older than
-  # RUTERA_BACKUP_KEEP_DAYS days are removed. Commands: docker compose -f docker-compose.standalone.yml run --rm backup
+  # RUTERA_BACKUP_KEEP_DAYS days are removed. Both archives are tested after writing; a failed backup leaves
+  # .last-failed in the folder and turns the service unhealthy until the next good one ("docker compose ps").
+  # Commands: docker compose -f docker-compose.standalone.yml run --rm backup
   #   now                 one backup at once
   #   list                the backups present
   #   restore <stamp>     replaces the database and the uploaded files (stop rutera first), e.g. 2026-11-02_0230
   backup:
     image: mysql:8.4.11
+    logging: *logging
     depends_on:
       mysql:
         condition: service_healthy
@@ -123,21 +136,30 @@ services:
         printf '[client]\nuser=root\npassword="%s"\nhost=mysql\n' "$$DB_ROOT_PASSWORD" > "$$cnf"
         log() { echo "$$(date '+%F %T %Z') $$*"; }
 
+        failed() {
+          log "backup FAILED: $$1"
+          echo "$$(date '+%F %T %Z') $$1" > /backups/.last-failed
+          return 1
+        }
+
         backup() {
           local stamp db files rc
           stamp=$$(date +%Y-%m-%d_%H%M)
           db=/backups/rutera-db-$$stamp.sql.gz
           files=/backups/rutera-files-$$stamp.tar.gz
           if ! mysqldump --defaults-extra-file="$$cnf" --single-transaction --quick --routines --triggers \
-              --events --no-tablespaces "$$DB_NAME" | gzip > "$$db.part"; then
-            rm -f "$$db.part"; log "backup FAILED: database dump"; return 1
+              --events --no-tablespaces "$$DB_NAME" | gzip > "$$db.part" || ! gzip -t "$$db.part"; then
+            rm -f "$$db.part"; failed "database dump"; return 1
           fi
           mv "$$db.part" "$$db"
           tar -czf "$$files.part" -C /data .; rc=$$?
           # 1 = a file changed while it was read (an upload in progress): the archive is still usable
-          if [ "$$rc" -gt 1 ]; then rm -f "$$files.part"; log "backup FAILED: files archive"; return 1; fi
+          if [ "$$rc" -gt 1 ] || ! tar -tzf "$$files.part" > /dev/null; then
+            rm -f "$$files.part"; failed "files archive"; return 1
+          fi
           mv "$$files.part" "$$files"
           find /backups -maxdepth 1 -type f -name 'rutera-*' -mtime +"$$BACKUP_KEEP_DAYS" -delete
+          rm -f /backups/.last-failed
           log "backup written: $$db, $$files"
         }
 
@@ -180,6 +202,11 @@ services:
           backup || true
         done
       - backup
+    healthcheck:
+      test: ["CMD", "bash", "-c", "[ ! -f /backups/.last-failed ]"]
+      interval: 60s
+      timeout: 5s
+      retries: 1
     restart: unless-stopped
 
   # Truck routing (Valhalla, MIT; OSM data ODbL): the first start downloads RUTERA_OSM_EXTRACT_URL (Poland
@@ -187,6 +214,7 @@ services:
   valhalla:
     profiles: ["routing"]
     image: ghcr.io/valhalla/valhalla-scripted:3.9.0
+    logging: *logging
     environment:
       tile_urls: ${RUTERA_OSM_EXTRACT_URL:-https://download.geofabrik.de/europe/poland-latest.osm.pbf}
       use_tiles_ignore_pbf: "True"
