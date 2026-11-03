@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Zbyt wiele nieudanych prób. Konto jest tymczasowo zablokowane, spróbuj ponownie później.",
   "auth.login.disabled": "To konto jest wyłączone",
   "auth.login.firma_inactive": "Konto firmy jest nieaktywne",
+  "auth.login.throttled": "Zbyt wiele nieudanych prób logowania z tego adresu. Spróbuj ponownie za kilka minut.",
+  "auth.login.retry_in": "Możesz spróbować ponownie za około {{minutes}} min.",
   "auth.unauthenticated": "Zaloguj się",
   "auth.access_denied": "Nie masz uprawnień do tej operacji",
   "auth.csrf_invalid": "Token bezpieczeństwa jest nieprawidłowy lub wygasł. Odśwież stronę i spróbuj ponownie.",

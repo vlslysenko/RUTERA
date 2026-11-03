@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Wisq tentattivi falluti. Il-kont huwa msakkar temporanjament, erġa' pprova aktar tard.",
   "auth.login.disabled": "Dan il-kont huwa diżattivat",
   "auth.login.firma_inactive": "Il-kont tal-kumpanija mhuwiex attiv",
+  "auth.login.throttled": "Wisq tentattivi falluti ta’ dħul minn dan l-indirizz. Erġa’ pprova fi ftit minuti.",
+  "auth.login.retry_in": "Tista’ terġa’ tipprova f’madwar {{minutes}} min.",
   "auth.unauthenticated": "Jekk jogħġbok idħol",
   "auth.access_denied": "M'għandekx permess għal din l-azzjoni",
   "auth.csrf_invalid": "It-token tas-sigurtà mhuwiex validu jew skada. Erġa' tella' l-paġna u erġa' pprova.",

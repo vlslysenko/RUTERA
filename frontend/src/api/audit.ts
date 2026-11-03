@@ -36,6 +36,7 @@ export interface AuditFilter {
   to?: string;
   userId?: string;
   module?: string;
+  /** One channel or a comma list: "API,MCP" = via AI. */
   channel?: string;
   q?: string;
   /** Operator only: one firma (days in its zone); without it all firmas (days in UTC). */

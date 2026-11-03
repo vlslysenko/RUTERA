@@ -11,14 +11,27 @@ export class ApiError extends Error {
   /** i18n key, e.g. auth.login.invalid, error.not_found. Also set for errors without a body. */
   readonly code: string;
   readonly details?: Record<string, string>;
+  /** Seconds from the Retry-After header (429 auth.login.throttled), when the server sent one. */
+  readonly retryAfter?: number;
 
-  constructor(status: number, body: Partial<ApiErrorBody> | null) {
+  constructor(status: number, body: Partial<ApiErrorBody> | null, retryAfter?: number) {
     super(body?.message ?? body?.code ?? `HTTP ${status}`);
     this.name = 'ApiError';
     this.status = status;
     this.code = body?.code ?? defaultCode(status);
     this.details = body?.details;
+    this.retryAfter = retryAfter;
   }
+}
+
+/** Retry-After as seconds: a number of seconds or an HTTP date; undefined when missing or unreadable. */
+function retryAfterOf(res: Response): number | undefined {
+  const value = res.headers.get('Retry-After');
+  if (!value) return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds);
+  const at = Date.parse(value);
+  return Number.isNaN(at) ? undefined : Math.max(0, Math.round((at - Date.now()) / 1000));
 }
 
 function defaultCode(status: number): string {
@@ -139,7 +152,7 @@ export async function api<T>(path: string, opts: RequestOptions = {}, csrfRetrie
     }
   }
   if (!res.ok) {
-    const error = new ApiError(res.status, data as Partial<ApiErrorBody> | null);
+    const error = new ApiError(res.status, data as Partial<ApiErrorBody> | null, retryAfterOf(res));
     // Stale or rotated CSRF token (e.g. the first POST after sign-out): fetch a fresh one and retry once.
     if (error.status === 403 && error.code === 'auth.csrf_invalid' && method !== 'GET' && !csrfRetried) {
       await refreshCsrfToken(doFetch);

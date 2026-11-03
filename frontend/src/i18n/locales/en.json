@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Too many failed attempts. The account is temporarily locked, try again later.",
   "auth.login.disabled": "This account is disabled",
   "auth.login.firma_inactive": "The company account is inactive",
+  "auth.login.throttled": "Too many failed sign-in attempts from this address. Try again in a few minutes.",
+  "auth.login.retry_in": "You can try again in about {{minutes}} min.",
   "auth.unauthenticated": "Please sign in",
   "auth.access_denied": "You do not have permission for this action",
   "auth.csrf_invalid": "The security token is invalid or expired. Reload the page and try again.",

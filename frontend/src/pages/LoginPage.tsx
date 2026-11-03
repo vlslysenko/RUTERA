@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Alert, Button, PasswordInput, Stack, Text, TextInput } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
 import { useLogin, useMe } from '@/auth/useAuth';
 import { OfflineBanner } from '@/components/Offline';
@@ -49,6 +50,8 @@ export function LoginPage() {
   });
 
   const errorKey = login.isError ? errorCode(login.error) : null;
+  // 429 auth.login.throttled: how long this address has to wait, when the server says it.
+  const retryAfter = login.error instanceof ApiError ? login.error.retryAfter : undefined;
 
   return (
     <div className={classes.page}>
@@ -82,6 +85,7 @@ export function LoginPage() {
             {errorKey && (
               <Alert color="red" variant="light" icon={<IconAlertCircle size={16} />} p="xs">
                 {t(errorKey)}
+                {retryAfter !== undefined && retryAfter > 0 && <> {t('auth.login.retry_in', { minutes: Math.ceil(retryAfter / 60) })}</>}
               </Alert>
             )}
             <Button type="submit" fullWidth loading={login.isPending} mt={4}>

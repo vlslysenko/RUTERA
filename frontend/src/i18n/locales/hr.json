@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Previše neuspjelih pokušaja. Račun je privremeno zaključan, pokušajte ponovno kasnije.",
   "auth.login.disabled": "Ovaj je račun onemogućen",
   "auth.login.firma_inactive": "Račun tvrtke nije aktivan",
+  "auth.login.throttled": "Previše neuspjelih pokušaja prijave s ove adrese. Pokušajte ponovno za nekoliko minuta.",
+  "auth.login.retry_in": "Možete pokušati ponovno za otprilike {{minutes}} min.",
   "auth.unauthenticated": "Prijavite se",
   "auth.access_denied": "Nemate dopuštenje za ovu radnju",
   "auth.csrf_invalid": "Sigurnosni token nije valjan ili je istekao. Ponovno učitajte stranicu i pokušajte ponovno.",

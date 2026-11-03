@@ -134,7 +134,11 @@ export function AuditLog({ basePath, operator }: Props) {
         <Select
           placeholder={t('audit.col.channel')}
           aria-label={t('audit.col.channel')}
-          data={AUDIT_CHANNELS.map((c) => ({ value: c, label: (c === 'API' || c === 'MCP' ? `${t('audit.via_ai')} · ` : '') + t(`audit.channel.${c}`) }))}
+          data={[
+            // API and MCP together (backend accepts a comma list).
+            { value: 'API,MCP', label: t('audit.via_ai') },
+            ...AUDIT_CHANNELS.map((c) => ({ value: c, label: (c === 'API' || c === 'MCP' ? `${t('audit.via_ai')} · ` : '') + t(`audit.channel.${c}`) })),
+          ]}
           value={get('channel') || null}
           onChange={(v) => set('channel', v)}
           clearable

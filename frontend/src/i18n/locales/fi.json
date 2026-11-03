@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Liian monta epäonnistunutta yritystä. Tili on tilapäisesti lukittu, yritä myöhemmin uudelleen.",
   "auth.login.disabled": "Tämä tili on poistettu käytöstä",
   "auth.login.firma_inactive": "Yrityksen tili ei ole aktiivinen",
+  "auth.login.throttled": "Liian monta epäonnistunutta kirjautumisyritystä tästä osoitteesta. Yritä uudelleen muutaman minuutin kuluttua.",
+  "auth.login.retry_in": "Voit yrittää uudelleen noin {{minutes}} min kuluttua.",
   "auth.unauthenticated": "Kirjaudu sisään",
   "auth.access_denied": "Sinulla ei ole oikeutta tähän toimintoon",
   "auth.csrf_invalid": "Suojaustunnus on virheellinen tai vanhentunut. Lataa sivu uudelleen ja yritä uudelleen.",

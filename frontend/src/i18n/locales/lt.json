@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Per daug nesėkmingų bandymų. Paskyra laikinai užblokuota, bandykite vėliau.",
   "auth.login.disabled": "Ši paskyra išjungta",
   "auth.login.firma_inactive": "Įmonės paskyra neaktyvi",
+  "auth.login.throttled": "Per daug nesėkmingų bandymų prisijungti iš šio adreso. Bandykite dar kartą po kelių minučių.",
+  "auth.login.retry_in": "Bandyti dar kartą galėsite maždaug po {{minutes}} min.",
   "auth.unauthenticated": "Prisijunkite",
   "auth.access_denied": "Neturite teisės atlikti šio veiksmo",
   "auth.csrf_invalid": "Saugos raktas negalioja arba baigėsi jo galiojimas. Perkraukite puslapį ir bandykite dar kartą.",

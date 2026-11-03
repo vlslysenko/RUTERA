@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Túl sok sikertelen próbálkozás. A fiók ideiglenesen zárolva van, próbálja újra később.",
   "auth.login.disabled": "Ez a fiók le van tiltva",
   "auth.login.firma_inactive": "A cég fiókja inaktív",
+  "auth.login.throttled": "Túl sok sikertelen bejelentkezési kísérlet erről a címről. Próbálja újra néhány perc múlva.",
+  "auth.login.retry_in": "Körülbelül {{minutes}} perc múlva próbálkozhat újra.",
   "auth.unauthenticated": "Kérjük, jelentkezzen be",
   "auth.access_denied": "Nincs jogosultsága ehhez a művelethez",
   "auth.csrf_invalid": "A biztonsági token érvénytelen vagy lejárt. Töltse újra az oldalt, és próbálja újra.",

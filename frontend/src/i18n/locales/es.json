@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Demasiados intentos fallidos. La cuenta está bloqueada temporalmente, inténtelo de nuevo más tarde.",
   "auth.login.disabled": "Esta cuenta está desactivada",
   "auth.login.firma_inactive": "La cuenta de la empresa está inactiva",
+  "auth.login.throttled": "Demasiados intentos fallidos de inicio de sesión desde esta dirección. Inténtelo de nuevo en unos minutos.",
+  "auth.login.retry_in": "Puede volver a intentarlo dentro de unos {{minutes}} min.",
   "auth.unauthenticated": "Inicie sesión",
   "auth.access_denied": "No tiene permiso para realizar esta acción",
   "auth.csrf_invalid": "El token de seguridad no es válido o ha caducado. Recargue la página e inténtelo de nuevo.",

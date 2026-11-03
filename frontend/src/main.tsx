@@ -12,10 +12,14 @@ import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/500.css';
 import './app/global.css';
 
+import { config as zodConfig } from 'zod';
 import './i18n';
 // Catches the browser's install prompt before it fires (offered later in the driver cabinet).
 import './app/install';
 import { App } from './app/App';
+
+// The served app has a CSP without 'unsafe-eval': zod must not probe new Function() (a CSP violation each start).
+zodConfig({ jitless: true });
 
 registerSW({ immediate: true });
 

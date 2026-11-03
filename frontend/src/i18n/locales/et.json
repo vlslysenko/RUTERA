@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Liiga palju ebaõnnestunud katseid. Konto on ajutiselt lukustatud, proovige hiljem uuesti.",
   "auth.login.disabled": "See konto on keelatud",
   "auth.login.firma_inactive": "Ettevõtte konto ei ole aktiivne",
+  "auth.login.throttled": "Sellelt aadressilt on liiga palju ebaõnnestunud sisselogimiskatseid. Proovige mõne minuti pärast uuesti.",
+  "auth.login.retry_in": "Saate uuesti proovida umbes {{minutes}} min pärast.",
   "auth.unauthenticated": "Palun logige sisse",
   "auth.access_denied": "Teil ei ole selleks toiminguks õigusi",
   "auth.csrf_invalid": "Turvatõend on kehtetu või aegunud. Laadige leht uuesti ja proovige uuesti.",

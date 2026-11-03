@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Zu viele Fehlversuche. Das Konto ist vorübergehend gesperrt, bitte später erneut versuchen.",
   "auth.login.disabled": "Dieses Konto ist deaktiviert",
   "auth.login.firma_inactive": "Das Firmenkonto ist inaktiv",
+  "auth.login.throttled": "Zu viele fehlgeschlagene Anmeldeversuche von dieser Adresse. Versuchen Sie es in einigen Minuten erneut.",
+  "auth.login.retry_in": "Sie können es in etwa {{minutes}} Min. erneut versuchen.",
   "auth.unauthenticated": "Bitte anmelden",
   "auth.access_denied": "Sie haben keine Berechtigung für diese Aktion",
   "auth.csrf_invalid": "Das Sicherheitstoken ist ungültig oder abgelaufen. Laden Sie die Seite neu und versuchen Sie es erneut.",

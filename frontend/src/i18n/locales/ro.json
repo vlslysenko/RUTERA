@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Prea multe încercări eșuate. Contul este blocat temporar, încercați din nou mai târziu.",
   "auth.login.disabled": "Acest cont este dezactivat",
   "auth.login.firma_inactive": "Contul companiei este inactiv",
+  "auth.login.throttled": "Prea multe încercări eșuate de autentificare de la această adresă. Încercați din nou peste câteva minute.",
+  "auth.login.retry_in": "Puteți încerca din nou în aproximativ {{minutes}} min.",
   "auth.unauthenticated": "Vă rugăm să vă autentificați",
   "auth.access_denied": "Nu aveți permisiunea pentru această acțiune",
   "auth.csrf_invalid": "Tokenul de securitate este invalid sau a expirat. Reîncărcați pagina și încercați din nou.",

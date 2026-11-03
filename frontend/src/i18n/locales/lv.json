@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Pārāk daudz neveiksmīgu mēģinājumu. Konts ir īslaicīgi bloķēts, mēģiniet vēlāk vēlreiz.",
   "auth.login.disabled": "Šis konts ir atspējots",
   "auth.login.firma_inactive": "Uzņēmuma konts nav aktīvs",
+  "auth.login.throttled": "Pārāk daudz neveiksmīgu pieteikšanās mēģinājumu no šīs adreses. Mēģiniet vēlreiz pēc dažām minūtēm.",
+  "auth.login.retry_in": "Mēģināt vēlreiz varēsiet pēc aptuveni {{minutes}} min.",
   "auth.unauthenticated": "Lūdzu, pierakstieties",
   "auth.access_denied": "Jums nav atļaujas veikt šo darbību",
   "auth.csrf_invalid": "Drošības pilnvara ir nederīga vai tās derīgums ir beidzies. Pārlādējiet lapu un mēģiniet vēlreiz.",

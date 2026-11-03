@@ -175,6 +175,16 @@ Installation: `src/app/install.ts` catches `beforeinstallprompt` at start (impor
 "Me" tab shows "Install RUTERA on this phone" with a button where the browser offers it, the Share -> Add to Home
 Screen hint on iPhone/iPad, and nothing when the app already runs installed.
 
+### Session end, sign-in throttle, CSP
+
+- Any 401 means the session ended (12 h after sign-in or 4 h idle): the session is asked again once and the login
+  page follows, instead of each part showing an error (`src/app/queryClient.ts`).
+- 429 `auth.login.throttled` (20 failed sign-ins from one address in 15 min): the login page shows the message and,
+  from `Retry-After`, about how many minutes are left (`ApiError.retryAfter`). The mock imitates it.
+- The served app runs under the backend's CSP (`script-src 'self'`, `connect-src 'self'`, map tiles from
+  `tile.openstreetmap.org` only): no inline scripts, fonts are bundled, zod runs with `jitless` so it never probes
+  `new Function()`.
+
 ### Audit screens
 
 - `/settings/audit`: tab "Audit log" for `admin.audit/view` (owners by default) in a firma; the entry panel is
@@ -183,7 +193,8 @@ Screen hint on iPhone/iPad, and nothing when the app already runs installed.
   (`?firma=<id>`, then days are cut in that firma's zone, otherwise in UTC); each firma card links to its log; the
   entry panel is `/operator/audit/:id`.
 
-Both use `AuditLog` (`src/pages/settings/audit/AuditPage.tsx`) on `GET /app/admin/audit`. Filters live in the URL;
+Both use `AuditLog` (`src/pages/settings/audit/AuditPage.tsx`) on `GET /app/admin/audit`. The "Via AI" channel filter sends
+`channel=API,MCP` (the backend accepts a comma list); API and MCP can also be chosen alone. Filters live in the URL;
 API and MCP entries are marked "via AI" (chip and a violet mark on the row). The entry panel takes the entry from the
 current page of the list (there is no single-entry endpoint). Summaries and action codes come from the backend
 untranslated.

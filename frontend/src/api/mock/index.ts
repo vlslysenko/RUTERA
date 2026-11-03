@@ -220,10 +220,23 @@ function passwordError(value: unknown): string | null {
 // Dictionaries are lazy chunks: only the requested language is loaded.
 const locales = import.meta.glob<{ default: Dictionary }>('/src/i18n/locales/*.json');
 
+// Like the backend: 20 failed sign-ins from one address in 15 min block it (429 with Retry-After in seconds).
+const failedSignIns: number[] = [];
+const THROTTLE_WINDOW_MS = 15 * 60_000;
+
 route('POST', '/app/auth/login', ({ body }) => {
+  const now = Date.now();
+  while (failedSignIns.length && failedSignIns[0] <= now - THROTTLE_WINDOW_MS) failedSignIns.shift();
+  if (failedSignIns.length >= 20) {
+    const retryAfter = Math.ceil((failedSignIns[0] + THROTTLE_WINDOW_MS - now) / 1000);
+    return { ...error(429, 'auth.login.throttled'), headers: { 'Retry-After': String(retryAfter) } };
+  }
   const { login, password } = (body ?? {}) as Partial<{ login: string; password: string }>;
   const u = users.find((x) => x.login === String(login ?? '').trim().toLowerCase() && !x.deleted);
-  if (!u || u.password !== password) return error(401, 'auth.login.invalid');
+  if (!u || u.password !== password) {
+    failedSignIns.push(now);
+    return error(401, 'auth.login.invalid');
+  }
   if (u.locked) return error(401, 'auth.login.locked');
   if (!u.active) return error(401, 'auth.login.disabled');
   sessionStorage.setItem(SESSION_KEY, String(u.id));
@@ -1138,7 +1151,7 @@ function toResponse(r: MockResponse): Response {
   if (r.body instanceof Blob) return new Response(r.body, { status: r.status, headers: r.headers });
   return new Response(JSON.stringify(r.body), {
     status: r.status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...r.headers },
   });
 }
 

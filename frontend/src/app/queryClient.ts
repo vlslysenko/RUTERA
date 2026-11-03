@@ -1,7 +1,17 @@
-import { onlineManager, QueryClient } from '@tanstack/react-query';
+import { MutationCache, onlineManager, QueryCache, QueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/client';
 
+/**
+ * A 401 from any request means the session ended (12 h after sign-in or 4 h idle): the session is asked again,
+ * /auth/me answers "none" and RequireAuth leads to the login page, instead of every part showing its own error.
+ */
+function sessionEnded(error: unknown) {
+  if (error instanceof ApiError && error.status === 401) void queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+}
+
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: sessionEnded }),
+  mutationCache: new MutationCache({ onError: sessionEnded }),
   defaultOptions: {
     queries: {
       staleTime: 30_000,

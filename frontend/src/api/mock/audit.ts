@@ -71,7 +71,9 @@ const dayStart = (ymd: string) => new Date(`${ymd}T00:00:00`).getTime();
 export function list(query: Record<string, string>, scope: number | null): MockReply {
   const firma = scope ?? (query.firmaId ? Number(query.firmaId) : null);
   const errors: Record<string, string> = {};
-  if (query.channel && !['UI', 'API', 'MCP', 'SYSTEM'].includes(query.channel)) errors.channel = 'validation.invalid_value';
+  // One channel or a comma list (API,MCP = via AI).
+  const channels = query.channel ? query.channel.split(',').map((c) => c.trim()) : [];
+  if (channels.some((c) => !['UI', 'API', 'MCP', 'SYSTEM'].includes(c))) errors.channel = 'validation.invalid_value';
   if (query.from && query.to && query.to < query.from) errors.to = 'validation.invalid_value';
   const size = Number(query.size ?? 50);
   const page = Number(query.page ?? 0);
@@ -85,7 +87,7 @@ export function list(query: Record<string, string>, scope: number | null): MockR
       (!query.to || new Date(e.at).getTime() < dayStart(query.to) + 86_400_000) &&
       (!query.userId || String(e.userId) === query.userId) &&
       (!query.module || e.module === query.module.toLowerCase()) &&
-      (!query.channel || e.channel === query.channel) &&
+      (channels.length === 0 || channels.includes(e.channel)) &&
       (!q || [e.summary, e.action, e.entityType ?? ''].some((x) => x.toLowerCase().includes(q))),
   );
   return { status: 200, body: { items: found.slice(page * size, page * size + size), total: found.length } };

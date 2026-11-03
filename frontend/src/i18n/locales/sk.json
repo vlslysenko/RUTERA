@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Príliš veľa neúspešných pokusov. Účet je dočasne zablokovaný, skúste to neskôr.",
   "auth.login.disabled": "Tento účet je zakázaný",
   "auth.login.firma_inactive": "Účet firmy je neaktívny",
+  "auth.login.throttled": "Príliš veľa neúspešných pokusov o prihlásenie z tejto adresy. Skúste to znova o niekoľko minút.",
+  "auth.login.retry_in": "Znova to môžete skúsiť asi o {{minutes}} min.",
   "auth.unauthenticated": "Prihláste sa",
   "auth.access_denied": "Nemáte oprávnenie na túto akciu",
   "auth.csrf_invalid": "Bezpečnostný token je neplatný alebo vypršal. Obnovte stránku a skúste to znova.",

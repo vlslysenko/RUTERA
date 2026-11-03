@@ -1179,6 +1179,8 @@
   "auth.login.locked": "Trop de tentatives échouées. Le compte est temporairement verrouillé, réessayez plus tard.",
   "auth.login.disabled": "Ce compte est désactivé",
   "auth.login.firma_inactive": "Le compte de l'entreprise est inactif",
+  "auth.login.throttled": "Trop de tentatives de connexion échouées depuis cette adresse. Réessayez dans quelques minutes.",
+  "auth.login.retry_in": "Vous pourrez réessayer dans environ {{minutes}} min.",
   "auth.unauthenticated": "Veuillez vous connecter",
   "auth.access_denied": "Vous n'avez pas l'autorisation d'effectuer cette action",
   "auth.csrf_invalid": "Le jeton de sécurité est invalide ou expiré. Rechargez la page et réessayez.",

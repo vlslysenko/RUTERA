@@ -1179,6 +1179,8 @@
   "auth.login.locked": "För många misslyckade försök. Kontot är tillfälligt låst, försök igen senare.",
   "auth.login.disabled": "Det här kontot är inaktiverat",
   "auth.login.firma_inactive": "Företagets konto är inaktivt",
+  "auth.login.throttled": "För många misslyckade inloggningsförsök från den här adressen. Försök igen om några minuter.",
+  "auth.login.retry_in": "Du kan försöka igen om ungefär {{minutes}} min.",
   "auth.unauthenticated": "Logga in",
   "auth.access_denied": "Du har inte behörighet för den här åtgärden",
   "auth.csrf_invalid": "Säkerhetstoken är ogiltig eller har gått ut. Ladda om sidan och försök igen.",
