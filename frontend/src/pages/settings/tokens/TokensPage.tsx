@@ -8,13 +8,12 @@ import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
 import { OPENAPI_URL, TOKENS_KEY, tokensApi, type ApiToken } from '@/api/tokens';
 import { useUser } from '@/auth/useAuth';
-import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
-import { fromZonedInput } from '@/utils/zone';
-import { TokenCalls, TokenTable } from './TokenParts';
-import classes from './Tokens.module.css';
 import { DateField } from '@/forms/DateField';
+import { fromZonedInput } from '@/utils/zone';
+import { TokenCalls, TokenGroups } from './TokenParts';
+import classes from './Tokens.module.css';
 
 const MY_TOKENS = [...TOKENS_KEY, 'mine'] as const;
 
@@ -132,7 +131,7 @@ export function TokensPage() {
     try {
       await tokensApi.revoke(x.id);
       void qc.invalidateQueries({ queryKey: TOKENS_KEY });
-      notifications.show({ color: 'green', message: t('tokens.revoked', { name: x.name }) });
+      notifications.show({ color: 'green', message: t(x.kind === 'OAUTH' ? 'tokens.disconnected' : 'tokens.revoked', { name: x.name }) });
       setRevoking(null);
     } catch (e) {
       notifications.show({ color: 'red', message: t(errorCode(e)) });
@@ -165,7 +164,7 @@ export function TokensPage() {
       {revoking && (
         <Alert color="red" variant="light" p="sm">
           <Group gap="sm">
-            <Text size="sm">{t('tokens.revoke_confirm', { name: revoking.name })}</Text>
+            <Text size="sm">{t(revoking.kind === 'OAUTH' ? 'tokens.disconnect_confirm' : 'tokens.revoke_confirm', { name: revoking.name })}</Text>
             <Button size="xs" color="red" onClick={() => void revoke(revoking)} loading={busy}>
               {t('common.confirm')}
             </Button>
@@ -180,10 +179,15 @@ export function TokensPage() {
         <FullScreenLoader fullScreen={false} />
       ) : q.isError ? (
         <ErrorState message={t(errorCode(q.error))} onRetry={() => void q.refetch()} />
-      ) : q.data.length === 0 ? (
-        <EmptyState text={t('tokens.empty')} />
       ) : (
-        <TokenTable tokens={q.data} selectedId={calls?.id ?? null} onCalls={setCalls} onRevoke={setRevoking} />
+        <TokenGroups
+          tokens={q.data}
+          empty={t('tokens.empty')}
+          appsHint={t('tokens.connected_apps_hint')}
+          selectedId={calls?.id ?? null}
+          onCalls={setCalls}
+          onRevoke={setRevoking}
+        />
       )}
 
       {calls && (

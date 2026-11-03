@@ -21,10 +21,10 @@ import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/numbe
 import { applyServerErrors } from '@/forms/serverErrors';
 import { formatInstantShort, formatMoney } from '@/pages/trips/tripFormat';
 import { formatDate } from '@/utils/deadline';
+import { FormDateField } from '@/forms/DateField';
 import { InvoiceStatusChip, ReminderStatusChip } from './FinanceChips';
 import { reminderStepLabel, vatLabel } from './financeFormat';
 import classes from '@/pages/trips/Trips.module.css';
-import { FormDateField } from '@/forms/DateField';
 
 const LIST = '/finance';
 const DASH = '—';

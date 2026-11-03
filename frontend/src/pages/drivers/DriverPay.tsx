@@ -17,11 +17,11 @@ import { applyServerErrors } from '@/forms/serverErrors';
 import { CURRENCIES } from '@/pages/trips/tripFormat';
 import { formatDate } from '@/utils/deadline';
 import { cx } from '@/utils/cx';
+import { FormDateField } from '@/forms/DateField';
 import { PaymentKindChip } from './HrChips';
 import { formatAmount, formatMonth, formatPayment } from './hrFormat';
 import { PaymentForm } from './PaymentForm';
 import classes from './Hr.module.css';
-import { FormDateField } from '@/forms/DateField';
 
 const MONEY = 999_999_999_999.99;
 

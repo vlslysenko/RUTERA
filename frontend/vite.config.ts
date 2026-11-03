@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.');
-  const apiProxy = env.VITE_API_PROXY || 'http://localhost:8080';
+  const apiProxy = env.VITE_API_PROXY || 'http://localhost:18082';
 
   return {
     plugins: [
@@ -35,7 +35,8 @@ export default defineConfig(({ mode }) => {
           // Only the built assets are precached. API calls (/app/...) are never served from the cache.
           globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
           navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/app\//, /^\/api\//, /^\/mcp/],
+          // Server routes: OAuth consent and discovery, actuator.
+          navigateFallbackDenylist: [/^\/app\//, /^\/api\//, /^\/mcp/, /^\/oauth\//, /^\/\.well-known\//, /^\/actuator\//],
           cleanupOutdatedCaches: true,
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         },
@@ -60,6 +61,9 @@ export default defineConfig(({ mode }) => {
         // Public API (bearer tokens) and its OpenAPI document, MCP endpoint: linked from the API tokens page.
         '/api': { target: apiProxy, changeOrigin: false },
         '/mcp': { target: apiProxy, changeOrigin: false },
+        // OAuth authorization server (consent page, tokens) and its discovery documents, for MCP clients signing in.
+        '/oauth': { target: apiProxy, changeOrigin: false },
+        '/.well-known': { target: apiProxy, changeOrigin: false },
       },
     },
     build: {

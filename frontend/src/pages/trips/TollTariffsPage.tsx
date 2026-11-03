@@ -16,9 +16,9 @@ import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { decimalSeparator } from '@/forms/number';
 import { countryName, countryOptions } from '@/utils/countries';
 import { formatDate } from '@/utils/deadline';
+import { DateField } from '@/forms/DateField';
 import { CURRENCIES, formatMoney } from './tripFormat';
 import classes from './Trips.module.css';
-import { DateField } from '@/forms/DateField';
 
 interface Row {
   country: string | null;

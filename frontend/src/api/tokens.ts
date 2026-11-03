@@ -5,12 +5,18 @@ import type { Page } from './trips';
  * Personal API tokens for the public API /api/v1 and the MCP server /mcp (backend 0910122, README "Public API").
  * Own tokens with profile.self/manage; all tokens of the firma with admin.api_token/manage. Creating needs the firma's
  * AI access add-on (403 api.ai_access_required); at most 10 active tokens per user (422 name: api.token.limit).
+ * The same lists carry the apps connected over OAuth (kind OAUTH, backend ebe0466): name = client name, prefix "OAuth",
+ * expiresAt = end of the refresh token, DELETE = disconnect; they do not count towards the limit.
  */
+
+export type TokenKind = 'PERSONAL' | 'OAUTH';
 
 export interface ApiToken {
   id: number;
+  kind: TokenKind;
+  /** Token name, or the client name of an app connected over OAuth. */
   name: string;
-  /** First 12 characters ("rtr_" + 8), the rest is never stored. */
+  /** First 12 characters ("rtr_" + 8), the rest is never stored; "OAuth" for a connected app. */
   prefix: string;
   user: { id: number; name: string };
   createdAt: string;
@@ -48,6 +54,11 @@ export const tokensApi = {
 };
 
 export const TOKENS_KEY = ['tokens'] as const;
+
+/** Personal tokens and connected apps (OAuth) of a list. */
+export function splitTokens(tokens: ApiToken[]): { personal: ApiToken[]; apps: ApiToken[] } {
+  return { personal: tokens.filter((x) => x.kind !== 'OAUTH'), apps: tokens.filter((x) => x.kind === 'OAUTH') };
+}
 
 /** The OpenAPI document of the public API (public, same origin). */
 export const OPENAPI_URL = '/api/v1/openapi.json';

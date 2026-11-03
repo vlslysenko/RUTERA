@@ -10,12 +10,12 @@ import { EmptyState } from '@/components/EmptyState';
 import { decimalSeparator } from '@/forms/number';
 import { countryOptions } from '@/utils/countries';
 import { fromZonedInput, toZonedInput } from '@/utils/zone';
+import { DateField } from '@/forms/DateField';
 import { CalcResult } from './CalcResult';
 import { RoutePanel } from './RoutePanel';
 import { idOrNull, useCrewOptions } from './crew';
 import { CURRENCIES } from './tripFormat';
 import classes from './Calc.module.css';
-import { DateField } from '@/forms/DateField';
 
 interface LegRow {
   key: number;

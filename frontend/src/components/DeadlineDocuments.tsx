@@ -12,11 +12,11 @@ import { errorCode } from '@/api/errors';
 import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { DEFAULT_REMIND_DAYS, formatDate } from '@/utils/deadline';
+import { FormDateField } from '@/forms/DateField';
 import { DeadlineChip } from './DeadlineChip';
 import { EmptyState } from './EmptyState';
 import { ErrorState } from './ErrorState';
 import classes from './DeadlineDocuments.module.css';
-import { FormDateField } from '@/forms/DateField';
 
 /** A document with a validity period: vehicle_document, driver_document. Cost only where the module has it. */
 export interface DeadlineDocument {

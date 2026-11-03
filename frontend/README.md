@@ -18,7 +18,8 @@ Node 22+ (npm 10+). Dependencies are pinned to exact versions; bump them deliber
 ## Backend connection
 
 - `VITE_API_MOCK=true` (default in dev): an in-browser mock answers `/app/...` (`src/api/mock`). No backend needed.
-- `VITE_API_MOCK=false`: the Vite dev server proxies `/app` to `VITE_API_PROXY` (default `http://localhost:8080`).
+- `VITE_API_MOCK=false`: the Vite dev server proxies `/app`, `/api`, `/mcp`, `/oauth` and `/.well-known` to
+  `VITE_API_PROXY` (default `http://localhost:18082`; ports 8080-8089 belong to SMDP).
   Copy `.env.example` to `.env.local` to change it. Production builds never use the mock.
 
 Mock test accounts (login = password): `owner`, `dispatcher`, `logistician`, `accountant` (locked), `driver`

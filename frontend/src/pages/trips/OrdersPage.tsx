@@ -15,10 +15,10 @@ import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { formatDate } from '@/utils/deadline';
 import { cx } from '@/utils/cx';
+import { DateField } from '@/forms/DateField';
 import { OrderStatusChip } from './TripChips';
 import { formatMoney } from './tripFormat';
 import classes from './Trips.module.css';
-import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 

@@ -9,9 +9,9 @@ import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
 import { ORDERS_KEY, ordersApi, TRIPS_KEY, type Order } from '@/api/trips';
 import { applyServerErrors } from '@/forms/serverErrors';
+import { FormDateField } from '@/forms/DateField';
 import { fromLocalInput } from './tripFormat';
 import { idOrNull, useCrewOptions } from './crew';
-import { FormDateField } from '@/forms/DateField';
 
 /* Same rules as TripService.createForOrder: a vehicle, a trailer only of trailer kind, the second driver needs a different main. */
 const schema = z

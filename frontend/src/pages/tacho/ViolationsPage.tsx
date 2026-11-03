@@ -14,11 +14,11 @@ import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { Plate } from '@/components/Plate';
 import { cx } from '@/utils/cx';
+import { DateField } from '@/forms/DateField';
 import { formatInstant } from './format';
 import { formatMinutes } from './hosFormat';
 import { ReviewChip, SeverityChip } from './ViolationChips';
 import classes from './Hos.module.css';
-import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 

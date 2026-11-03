@@ -917,7 +917,7 @@ route('PUT', '/app/admin/firma', withPrivilege('admin.firma/manage', (_u, { body
 
 // --- personal API tokens (the mock firma has the AI access add-on) ---------------------------------------
 
-route('GET', '/app/me/tokens', withPrivilege('profile.self/manage', (u) => tokenMock.listMine(u.id)));
+route('GET', '/app/me/tokens', withPrivilege('profile.self/manage', (u) => tokenMock.listMine({ id: u.id, name: fullName(u) })));
 route('POST', '/app/me/tokens', withPrivilege('profile.self/manage', (u, { body }) => tokenMock.create((body ?? {}) as ApiTokenInput, { id: u.id, name: fullName(u) }, true)));
 route('DELETE', '/app/me/tokens/:id', withPrivilege('profile.self/manage', (u, req) => tokenMock.revoke(req.params.id, u.id)));
 route('GET', '/app/me/tokens/:id/calls', withPrivilege('profile.self/manage', (u, req) => tokenMock.calls(req.params.id, u.id, hasKey(u, 'admin.api_token/manage'), req.query)));

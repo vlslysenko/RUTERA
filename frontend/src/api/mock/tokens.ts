@@ -3,7 +3,8 @@ import type { MockReply } from './trips';
 
 /*
  * Personal API tokens for the in-browser mock API, with the rules of ApiTokenService: name required (100), expiry in
- * the future, at most 10 active tokens per user, the token "rtr_" + 43 characters shown once, a made-up call log.
+ * the future, at most 10 active personal tokens per user, the token "rtr_" + 43 characters shown once, a made-up call
+ * log. Each user also gets one app connected over OAuth (kind OAUTH, as after the consent page of the backend).
  */
 
 const MAX_ACTIVE = 10;
@@ -35,7 +36,30 @@ function sampleCalls(createdAt: string): ApiCall[] {
   ].reverse();
 }
 
-export function listMine(userId: number): MockReply {
+/** One connected app per user, added on the first look at the list. */
+const connected = new Set<number>();
+function connectApp(user: { id: number; name: string }) {
+  if (connected.has(user.id)) return;
+  connected.add(user.id);
+  const createdAt = new Date(Date.now() - 3 * 86_400_000).toISOString();
+  const calls = sampleCalls(createdAt);
+  tokens.push({
+    id: Math.max(0, ...tokens.map((x) => x.id)) + 1,
+    kind: 'OAUTH',
+    name: 'Claude',
+    prefix: 'OAuth',
+    user,
+    createdAt,
+    expiresAt: new Date(Date.now() + 27 * 86_400_000).toISOString(),
+    lastUsedAt: calls[0].at,
+    revokedAt: null,
+    calls,
+  });
+}
+
+export function listMine(user: { id: number; name: string }): MockReply {
+  connectApp(user);
+  const userId = user.id;
   return { status: 200, body: tokens.filter((x) => x.user.id === userId).sort((a, b) => b.id - a.id).map((x) => view(x)) };
 }
 
@@ -49,13 +73,14 @@ export function create(b: Partial<ApiTokenInput>, user: { id: number; name: stri
   const name = (b.name ?? '').trim();
   if (!name) errors.name = 'validation.required';
   else if (name.length > 100) errors.name = 'validation.too_long';
-  else if (tokens.filter((x) => x.user.id === user.id && !x.revokedAt).length >= MAX_ACTIVE) errors.name = 'api.token.limit';
+  else if (tokens.filter((x) => x.kind === 'PERSONAL' && x.user.id === user.id && !x.revokedAt).length >= MAX_ACTIVE) errors.name = 'api.token.limit';
   if (b.expiresAt && b.expiresAt <= new Date().toISOString()) errors.expiresAt = 'validation.invalid_value';
   if (Object.keys(errors).length) return { status: 422, body: { status: 422, code: 'error.validation', message: 'error.validation', details: errors } };
   const token = randomToken();
   const now = new Date().toISOString();
   const stored: StoredToken = {
     id: Math.max(0, ...tokens.map((x) => x.id)) + 1,
+    kind: 'PERSONAL',
     name,
     prefix: token.slice(0, 12),
     user,

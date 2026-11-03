@@ -11,8 +11,8 @@ import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { formatMoney } from '@/pages/trips/tripFormat';
 import { formatDate } from '@/utils/deadline';
 import { cx } from '@/utils/cx';
-import classes from './Finance.module.css';
 import { DateField } from '@/forms/DateField';
+import classes from './Finance.module.css';
 
 const BUCKETS = ['notDue', 'd1to30', 'd31to60', 'd61to90', 'over90'] as const;
 type Bucket = (typeof BUCKETS)[number];

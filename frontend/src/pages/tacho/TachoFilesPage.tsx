@@ -15,11 +15,11 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { cx } from '@/utils/cx';
+import { DateField } from '@/forms/DateField';
 import { formatInstant, formatPeriod } from './format';
 import { TachoKindLabel, TachoOwner, WarningsChip } from './TachoChips';
 import { TachoUpload } from './TachoUpload';
 import classes from './TachoFilesPage.module.css';
-import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 

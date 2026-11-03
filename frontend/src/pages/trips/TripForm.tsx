@@ -25,10 +25,10 @@ import { ErrorState } from '@/components/ErrorState';
 import { numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { countryOptions } from '@/utils/countries';
+import { FormDateField } from '@/forms/DateField';
 import { idOrNull, useCrewOptions } from './crew';
 import { fromLocalInput, toLocalInput } from './tripFormat';
 import classes from './Trips.module.css';
-import { FormDateField } from '@/forms/DateField';
 
 const LIST = '/trips';
 const NUMBER_RE = /^[\p{L}\p{N}][\p{L}\p{N} ./_-]*$/u;

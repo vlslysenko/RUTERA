@@ -15,10 +15,10 @@ import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { formatDate } from '@/utils/deadline';
 import { cx } from '@/utils/cx';
+import { DateField } from '@/forms/DateField';
 import { CmrStatusChip } from './TripChips';
 import { placeLine } from './tripFormat';
 import classes from './Trips.module.css';
-import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 const DASH = '—';

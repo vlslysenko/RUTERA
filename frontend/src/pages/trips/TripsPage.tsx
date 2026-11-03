@@ -15,11 +15,11 @@ import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { Plate } from '@/components/Plate';
 import { cx } from '@/utils/cx';
+import { DateField } from '@/forms/DateField';
 import { useCrewOptions } from './crew';
 import { TripStatusChip } from './TripChips';
 import { formatInstantShort } from './tripFormat';
 import classes from './Trips.module.css';
-import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 

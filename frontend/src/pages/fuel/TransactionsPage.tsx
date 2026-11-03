@@ -17,10 +17,10 @@ import { Plate } from '@/components/Plate';
 import { useCrewOptions } from '@/pages/trips/crew';
 import { formatInstantShort, formatMoney } from '@/pages/trips/tripFormat';
 import { cx } from '@/utils/cx';
+import { DateField } from '@/forms/DateField';
 import { MatchChip } from './FuelChips';
 import { formatQty } from './fuelFormat';
 import classes from '@/pages/trips/Trips.module.css';
-import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 

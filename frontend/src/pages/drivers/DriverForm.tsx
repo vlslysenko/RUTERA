@@ -15,8 +15,8 @@ import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { countryOptions } from '@/utils/countries';
-import classes from './DriversPage.module.css';
 import { FormDateField } from '@/forms/DateField';
+import classes from './DriversPage.module.css';
 
 /* Same rules as the backend. Card number: spaces and hyphens removed, letters uppercased, letters and digits only. */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

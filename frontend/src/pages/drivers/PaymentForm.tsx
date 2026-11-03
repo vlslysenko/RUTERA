@@ -11,8 +11,8 @@ import { HR_KEY, hrApi, PAYMENT_KINDS, type DriverPayment, type DriverPaymentInp
 import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { CURRENCIES } from '@/pages/trips/tripFormat';
-import { monthOf } from './hrFormat';
 import { FormDateField } from '@/forms/DateField';
+import { monthOf } from './hrFormat';
 
 /* Same rules as DriverHrService: period YYYY-MM, amount above zero with 2 decimals, ISO currency, note up to 500. */
 const schema = z.object({

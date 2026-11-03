@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ActionIcon, Group, Pagination, Paper, Stack, Table, Text, Tooltip } from '@mantine/core';
-import { IconBan, IconCircleCheck, IconClockX, IconList, IconTrash } from '@tabler/icons-react';
+import { IconBan, IconCircleCheck, IconClockX, IconList, IconPlugConnectedX, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
-import { TOKENS_KEY, tokensApi, type ApiToken } from '@/api/tokens';
+import { splitTokens, TOKENS_KEY, tokensApi, type ApiToken } from '@/api/tokens';
 import { useUser } from '@/auth/useAuth';
+import { EmptyState } from '@/components/EmptyState';
 import { StatusChip } from '@/components/StatusChip';
 import { formatInstantShort } from '@/pages/trips/tripFormat';
 import { cx } from '@/utils/cx';
@@ -33,15 +34,20 @@ function TokenStatus({ token }: { token: ApiToken }) {
   );
 }
 
-/** Tokens as a table: name, prefix, dates, status; the call log and revoke per row. */
+/**
+ * Tokens as a table: name, prefix, dates, status; the call log and revoke per row. With `apps` the rows are apps
+ * connected over OAuth: app name, no token prefix, access until (end of the refresh token), disconnect.
+ */
 export function TokenTable({
   tokens,
+  apps = false,
   showUser = false,
   selectedId,
   onCalls,
   onRevoke,
 }: {
   tokens: ApiToken[];
+  apps?: boolean;
   showUser?: boolean;
   selectedId: number | null;
   onCalls: (token: ApiToken) => void;
@@ -51,17 +57,18 @@ export function TokenTable({
   const lang = i18n.resolvedLanguage ?? 'en';
   const tz = useUser().firma?.timezone;
   const when = (iso: string | null) => (iso ? formatInstantShort(iso, lang, tz) : '—');
+  const revokeLabel = t(apps ? 'tokens.disconnect' : 'tokens.revoke');
 
   return (
     <Paper className={classes.tableWrap}>
       <Table className={classes.table} verticalSpacing={6}>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>{t('tokens.name')}</Table.Th>
+            <Table.Th>{t(apps ? 'tokens.app' : 'tokens.name')}</Table.Th>
             {showUser && <Table.Th>{t('tokens.user')}</Table.Th>}
-            <Table.Th>{t('tokens.prefix')}</Table.Th>
+            {!apps && <Table.Th>{t('tokens.prefix')}</Table.Th>}
             <Table.Th>{t('tokens.created')}</Table.Th>
-            <Table.Th>{t('tokens.expires')}</Table.Th>
+            <Table.Th>{t(apps ? 'tokens.access_until' : 'tokens.expires')}</Table.Th>
             <Table.Th>{t('tokens.last_used')}</Table.Th>
             <Table.Th>{t('users.status')}</Table.Th>
             <Table.Th />
@@ -76,7 +83,7 @@ export function TokenTable({
                 </Text>
               </Table.Td>
               {showUser && <Table.Td>{x.user.name}</Table.Td>}
-              <Table.Td className={classes.mono}>{x.prefix}…</Table.Td>
+              {!apps && <Table.Td className={classes.mono}>{x.prefix}…</Table.Td>}
               <Table.Td className={classes.mono}>{when(x.createdAt)}</Table.Td>
               <Table.Td className={classes.mono}>{x.expiresAt ? when(x.expiresAt) : t('tokens.never')}</Table.Td>
               <Table.Td className={classes.mono}>{when(x.lastUsedAt)}</Table.Td>
@@ -91,9 +98,9 @@ export function TokenTable({
                     </ActionIcon>
                   </Tooltip>
                   {x.active && (
-                    <Tooltip label={t('tokens.revoke')}>
-                      <ActionIcon variant="subtle" color="red" size="sm" onClick={() => onRevoke(x)} aria-label={t('tokens.revoke')}>
-                        <IconTrash size={15} />
+                    <Tooltip label={revokeLabel}>
+                      <ActionIcon variant="subtle" color="red" size="sm" onClick={() => onRevoke(x)} aria-label={revokeLabel}>
+                        {apps ? <IconPlugConnectedX size={15} /> : <IconTrash size={15} />}
                       </ActionIcon>
                     </Tooltip>
                   )}
@@ -104,6 +111,46 @@ export function TokenTable({
         </Table.Tbody>
       </Table>
     </Paper>
+  );
+}
+
+interface GroupsProps {
+  tokens: ApiToken[];
+  showUser?: boolean;
+  /** Text when there are no personal tokens. */
+  empty: string;
+  /** Explanation above the connected apps. */
+  appsHint: string;
+  selectedId: number | null;
+  onCalls: (token: ApiToken) => void;
+  onRevoke: (token: ApiToken) => void;
+}
+
+/** Personal tokens, then the apps connected over OAuth (that group only when there are any). */
+export function TokenGroups({ tokens, showUser, empty, appsHint, selectedId, onCalls, onRevoke }: GroupsProps) {
+  const { t } = useTranslation();
+  const { personal, apps } = splitTokens(tokens);
+  const rows = { showUser, selectedId, onCalls, onRevoke };
+  return (
+    <>
+      {apps.length > 0 && (
+        <Text size="sm" fw={600}>
+          {t('tokens.personal')}
+        </Text>
+      )}
+      {personal.length === 0 ? <EmptyState text={empty} /> : <TokenTable tokens={personal} {...rows} />}
+      {apps.length > 0 && (
+        <Stack gap={6}>
+          <Text size="sm" fw={600}>
+            {t('tokens.connected_apps')}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {appsHint}
+          </Text>
+          <TokenTable apps tokens={apps} {...rows} />
+        </Stack>
+      )}
+    </>
   );
 }
 

@@ -5,10 +5,9 @@ import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
 import { TOKENS_KEY, tokensApi, type ApiToken } from '@/api/tokens';
-import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
-import { TokenCalls, TokenTable } from './TokenParts';
+import { TokenCalls, TokenGroups } from './TokenParts';
 
 /** Settings -> all API tokens of the firma (admin.api_token/manage): who has which token, its calls, revoke. */
 export function AllTokensPage() {
@@ -24,7 +23,7 @@ export function AllTokensPage() {
     try {
       await tokensApi.revokeAny(x.id);
       void qc.invalidateQueries({ queryKey: TOKENS_KEY });
-      notifications.show({ color: 'green', message: t('tokens.revoked', { name: x.name }) });
+      notifications.show({ color: 'green', message: t(x.kind === 'OAUTH' ? 'tokens.disconnected' : 'tokens.revoked', { name: x.name }) });
       setRevoking(null);
     } catch (e) {
       notifications.show({ color: 'red', message: t(errorCode(e)) });
@@ -39,7 +38,12 @@ export function AllTokensPage() {
       {revoking && (
         <Alert color="red" variant="light" p="sm">
           <Group gap="sm">
-            <Text size="sm">{t('tokens.revoke_confirm_user', { name: revoking.name, user: revoking.user.name })}</Text>
+            <Text size="sm">
+              {t(revoking.kind === 'OAUTH' ? 'tokens.disconnect_confirm_user' : 'tokens.revoke_confirm_user', {
+                name: revoking.name,
+                user: revoking.user.name,
+              })}
+            </Text>
             <Button size="xs" color="red" onClick={() => void revoke(revoking)} loading={busy}>
               {t('common.confirm')}
             </Button>
@@ -53,10 +57,16 @@ export function AllTokensPage() {
         <FullScreenLoader fullScreen={false} />
       ) : q.isError ? (
         <ErrorState message={t(errorCode(q.error))} onRetry={() => void q.refetch()} />
-      ) : q.data.length === 0 ? (
-        <EmptyState text={t('tokens.all_empty')} />
       ) : (
-        <TokenTable tokens={q.data} showUser selectedId={calls?.id ?? null} onCalls={setCalls} onRevoke={setRevoking} />
+        <TokenGroups
+          tokens={q.data}
+          showUser
+          empty={t('tokens.all_empty')}
+          appsHint={t('tokens.connected_apps_all_hint')}
+          selectedId={calls?.id ?? null}
+          onCalls={setCalls}
+          onRevoke={setRevoking}
+        />
       )}
       {calls && (
         <Paper withBorder p="sm">

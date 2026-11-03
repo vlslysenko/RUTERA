@@ -17,9 +17,9 @@ import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { formatMoney } from '@/pages/trips/tripFormat';
 import { formatDate } from '@/utils/deadline';
 import { cx } from '@/utils/cx';
+import { DateField } from '@/forms/DateField';
 import { InvoiceStatusChip } from './FinanceChips';
 import classes from '@/pages/trips/Trips.module.css';
-import { DateField } from '@/forms/DateField';
 
 const PAGE_SIZE = 50;
 

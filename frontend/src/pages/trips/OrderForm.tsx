@@ -13,9 +13,9 @@ import { ErrorState } from '@/components/ErrorState';
 import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { countryOptions } from '@/utils/countries';
+import { FormDateField } from '@/forms/DateField';
 import { CURRENCIES } from './tripFormat';
 import classes from './Trips.module.css';
-import { FormDateField } from '@/forms/DateField';
 
 const LIST = '/trips/orders';
 const NUMBER_RE = /^[\p{L}\p{N}][\p{L}\p{N} ./_-]*$/u;
