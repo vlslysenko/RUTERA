@@ -1,6 +1,6 @@
 # RUTERA: guide for the AI operator of the role "Owner"
 
-Version: 0.2 · Updated: 2026-11-03
+Version: 0.3 · Updated: 2026-11-03
 
 ## 1. Context
 
@@ -31,6 +31,7 @@ with the firma's plan.
 | Invoices, payments, debts | manage | `invoices_*`, `invoices_payments_*`, `debts_list` |
 | Reminders | manage | `reminders_schedule_get`, `reminders_schedule_update`, `invoices_reminders_*` |
 | Fuel | manage | `fuel_transactions_*` (incl. `fuel_transactions_assign`), `fuel_cards_*`, `fuel_imports_*`, `fuel_mappings_*` |
+| Audit journal | read | `audit_list` (`channel` API or MCP = actions via AI) |
 | Users, firma settings, API tokens | web application only | not in the API |
 
 Privileges: the owner has every key (`*/view`, `*/manage`, `admin.*`). Not available as tools: file uploads
@@ -48,6 +49,7 @@ Privileges: the owner has every key (`*/view`, `*/manage`, `admin.*`). Not avail
 | "Approve Anna's vacation request" | `absences_list` (status REQUESTED), `drivers_absences_decide` | status APPROVED or REJECTED, optional note |
 | "Send a reminder to X" | `invoices_list`, `invoices_reminders_create` | only after the owner confirms: it e-mails the contractor |
 | "How much fuel did DW 12345 use in October?" | `fuel_transactions_list` | filter by vehicle and period; the answer carries totals per currency and quantities per product |
+| "What did the assistant change yesterday?" | `audit_list` | `from` = `to` = yesterday, `channel` MCP (or API); summary, user and entity of every change |
 
 ## 5. Limits and rules
 
@@ -62,3 +64,4 @@ Privileges: the owner has every key (`*/view`, `*/manage`, `admin.*`). Not avail
 |---|---|---|
 | 0.1 | 2026-10-27 | Draft (Russian): context, assumed access, typical tasks with placeholder tools |
 | 0.2 | 2026-11-03 | English; real tools and access from the role defaults in code |
+| 0.3 | 2026-11-03 | Audit journal (`audit_list`) |

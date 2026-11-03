@@ -8,7 +8,7 @@ It is part of the product, not internal documentation: the AI reads it when it c
 MCP). The module is not the channel of the RUTERA web interface (React uses the internal `/app` interface); a firma
 gets it with `firma.ai_access`, switched by the operator (cloud) or by `RUTERA_AI_ACCESS` (standalone).
 
-**Status.** Version 0.2 of 2026-11-03: the API and the MCP server exist, so the guides name the real tools (108 tools
+**Status.** Version 0.2 of 2026-11-03: the API and the MCP server exist, so the guides name the real tools (109 tools
 generated from `/api/v1/openapi.json`, see `README.md` of the repository, "MCP server for AI assistants"). Version
 0.1 (2026-10-27, Russian) had placeholders.
 
@@ -26,7 +26,7 @@ The guides are maintained together with the code:
 
 | File | Role | In short |
 |---|---|---|
-| `owner.md` | Owner (OWNER) | everything in the firma, including finance, driver pay and administration |
+| `owner.md` | Owner (OWNER) | everything in the firma, including finance, driver pay and the audit journal |
 | `dispatcher.md` | Dispatcher (DISPATCHER) | fleet, drivers without pay, absences, tachograph, orders, trips, CMR |
 | `logistician.md` | Logistician (LOGISTICIAN) | orders, trips, CMR, trip calculator; fleet, drivers and hours read-only |
 | `accountant.md` | Accountant (ACCOUNTANT) | invoices, payments, debts and reminders, fuel, driver pay |

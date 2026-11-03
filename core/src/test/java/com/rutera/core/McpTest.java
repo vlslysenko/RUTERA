@@ -105,7 +105,7 @@ class McpTest extends AbstractIntegrationTest {
         assertThat(names).contains("vehicles_list", "vehicles_get", "vehicles_create", "cmr_issue", "cmr_from_order",
                 "orders_create_trip", "calc_trip", "invoices_list", "fuel_transactions_assign", "tacho_violations_ack",
                 "tacho_violations_unack", "drivers_absences_create", "reminders_schedule_get", "debts_list",
-                "calc_route", "drivers_absences_decide", "trips_files_list", "trips_files_delete");
+                "calc_route", "drivers_absences_decide", "trips_files_list", "trips_files_delete", "audit_list");
         assertThat(names).doesNotContain("cmr_pdf_list", "tacho_files_create", "fuel_imports_create",
                 "trips_files_create", "trips_files_content_list", "calc_route_create");
         assertThat(find(list, "drivers_absences_decide").get("description").asString())

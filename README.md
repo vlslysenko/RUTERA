@@ -201,6 +201,21 @@ password here or deletes themselves: 403 `admin.user.self_forbidden` (own name, 
 deleting a user ends their session on their next request; a role change takes effect for an open session on its
 next `GET /app/auth/me` (the client calls it on every load).
 
+### Audit journal (`/app/admin/audit`, privilege `admin.audit/view`)
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/admin/audit?from=&to=&userId=&module=&channel=&q=&firmaId=&page=&size=` | `{items: Entry[], total}`, newest first; size 1..200 (default 50) |
+
+`Entry = {id, at, firmaId, userId, userLogin, channel: UI | API | MCP | SYSTEM, module, action, entityType, entityId,
+summary, details (JSON) | null, ip, requestId}`. `channel` tells where the action came from: the web application
+(UI), the public API or OAuth (API), a tool of the MCP server (MCP), a scheduled job (SYSTEM); API and MCP are the
+actions "via AI". `from` / `to` are days in the firma's time zone (both included), `module` e.g. `fleet`, `driver`,
+`trip`, `finance`, `fuel`, `api`, `operator`; `q` searches summary, action and entity type; an unknown channel is 422
+`channel: validation.invalid_value`. Only the own firma: another `firmaId` is 403; the operator (SUPERUSER) passes
+`firmaId` or reads all firmas (days in UTC then). Also `GET /api/v1/audit` (MCP tool `audit_list`), the one admin
+function of the public API. The journal is never changed or deleted through the API.
+
 ### Operator console (`/app/operator/firmas`, role SUPERUSER)
 
 For the operator of a cloud installation: logins with role `SUPERUSER` and no firma (`/app/auth/me` answers
@@ -729,7 +744,7 @@ Resources (paths, bodies and privileges as described in the sections above, `/ap
 `/api/v1/vehicles` (the web path is `/app/fleet/vehicles`), `/drivers` with absences, days, pay rates and payments,
 `/absences`, `/payments`, `/contractors`, `/orders`, `/trips` with their files, `/cmr`, `/invoices`, `/debts`,
 `/reminders/schedule`, `/fuel/transactions`, `/fuel/cards`, `/fuel/imports`, `/fuel/mappings`, `/calc/trip`,
-`/calc/route`, `/calc/toll-tariffs`,
+`/calc/route`, `/calc/toll-tariffs`, `/audit` (read-only, `admin.audit/view`),
 `/tacho/files`, `/tacho/activity`, `/tacho/violations`. The OpenAPI 3 document of these paths with the bearer scheme
 is public at `GET /api/v1/openapi.json` (springdoc-openapi 3.0.3).
 
@@ -743,7 +758,8 @@ validation, privileges and answers are identical; the result carries the JSON an
 `structuredContent` (a list as `{items}`), and `isError` for 4xx/5xx with the `{code, message, details}` body. Left
 out: binary and multipart operations (CMR PDF, tachograph and trip file contents, tachograph, fuel and trip file
 uploads). Internal endpoints (sign-in, profile, administration, tokens, firma settings, operator console) are not
-part of `/api/v1`, so they are neither in the OpenAPI document nor tools.
+part of `/api/v1`, so they are neither in the OpenAPI document nor tools; reading the audit journal is the
+exception (`audit_list`).
 
 Tool names: the resource path joined with `_` plus `list`, `get`, `create`, `update`, `patch` or `delete`
 (`vehicles_list`, `drivers_absences_create`, `invoices_payments_delete`), actions by their name (`cmr_issue`,
