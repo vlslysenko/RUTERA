@@ -921,7 +921,7 @@ route('PUT', '/app/admin/firma', withPrivilege('admin.firma/manage', (_u, { body
 
 // --- audit journal (admin.audit/view) ------------------------------------------------------------------
 
-route('GET', '/app/admin/audit', withPrivilege('admin.audit/view', (_u, req) => auditMock.list(req.query)));
+route('GET', '/app/admin/audit', withPrivilege('admin.audit/view', (u, req) => auditMock.list(req.query, u.role === 'SUPERUSER' ? null : MOCK_FIRMA.id)));
 
 // --- operator console (SUPERUSER only) ------------------------------------------------------------------
 

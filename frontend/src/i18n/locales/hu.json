@@ -1153,6 +1153,7 @@
   "audit.entity": "Objektum",
   "audit.entry": "Naplóbejegyzés",
   "audit.intro": "Ki mit csinált a cégben, a legújabbak elöl. A „MI-n keresztül” a szkriptek és MI-asszisztensek műveleteit jelöli, amelyek tokennel (API, MCP) valaki nevében dolgoznak. A leírások angolul kerülnek rögzítésre.",
+  "audit.operator_hint": "Az időszak napjai UTC szerint vagy a kiválasztott cég időzónájában számítanak; az időpontok az Ön időzónájában jelennek meg.",
   "audit.ip": "IP-cím",
   "audit.module.admin": "Adminisztráció",
   "audit.module.auth": "Bejelentkezés",

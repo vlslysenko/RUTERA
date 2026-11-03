@@ -1153,6 +1153,7 @@
   "audit.entity": "Objekt",
   "audit.entry": "Záznam auditu",
   "audit.intro": "Kto čo vo firme urobil, najnovšie navrchu. „Cez AI“ označuje akcie skriptov a asistentov AI, ktorí pracujú s tokenom (API, MCP) v mene niekoho iného. Popisy sa zapisujú po anglicky.",
+  "audit.operator_hint": "Dni obdobia sa počítajú v UTC alebo v časovom pásme vybranej firmy; časy sa zobrazujú vo vašom časovom pásme.",
   "audit.ip": "IP adresa",
   "audit.module.admin": "Správa",
   "audit.module.auth": "Prihlásenie",

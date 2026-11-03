@@ -1,9 +1,9 @@
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm, type FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, Group, NumberInput, Stack, Switch, TextInput } from '@mantine/core';
+import { Anchor, Button, Group, NumberInput, Stack, Switch, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
@@ -113,6 +113,9 @@ export function OperatorFirmaDetail({ mode = 'drawer' }: { mode?: 'drawer' | 'pa
                 { label: t('operator.created'), value: formatInstantShort(f.createdAt, lang) },
               ]}
             />
+            <Anchor component={Link} to={`/operator/audit?firma=${f.id}`} size="sm">
+              {t('settings.tab.audit')}
+            </Anchor>
             <form onSubmit={(e) => void onSubmit(e)} noValidate>
               <section className={classes.section}>
                 <h3 className={classes.sectionTitle}>{t('operator.options')}</h3>

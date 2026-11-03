@@ -1153,6 +1153,7 @@
   "audit.entity": "Kohde",
   "audit.entry": "Lokimerkintä",
   "audit.intro": "Kuka teki mitä yrityksessä, uusimmat ensin. ”Tekoälyn kautta” merkitsee skriptien ja tekoälyavustajien toimintoja, jotka käyttävät tunnusta (API, MCP) jonkun puolesta. Kuvaukset tallennetaan englanniksi.",
+  "audit.operator_hint": "Jakson päivät lasketaan UTC-ajassa tai valitun yrityksen aikavyöhykkeellä; ajat näytetään omalla aikavyöhykkeelläsi.",
   "audit.ip": "IP-osoite",
   "audit.module.admin": "Hallinta",
   "audit.module.auth": "Kirjautuminen",

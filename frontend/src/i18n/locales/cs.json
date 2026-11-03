@@ -1153,6 +1153,7 @@
   "audit.entity": "Objekt",
   "audit.entry": "Záznam auditu",
   "audit.intro": "Kdo co ve firmě udělal, nejnovější nahoře. „Přes AI“ označuje akce skriptů a asistentů AI, kteří pracují s tokenem (API, MCP) jménem někoho jiného. Popisy se zapisují anglicky.",
+  "audit.operator_hint": "Dny období se počítají v UTC nebo v časovém pásmu vybrané firmy; časy se zobrazují ve vašem časovém pásmu.",
   "audit.ip": "IP adresa",
   "audit.module.admin": "Správa",
   "audit.module.auth": "Přihlášení",

@@ -1153,6 +1153,7 @@
   "audit.entity": "Réad",
   "audit.entry": "Iontráil iniúchta",
   "audit.intro": "Cé a rinne cad sa chomhlacht, na cinn is nua ar dtús. Marcálann „Trí AI“ gníomhartha scripteanna agus cúntóirí AI a oibríonn le comhartha (API, MCP) thar ceann duine. Taifeadtar na cur síos i mBéarla.",
+  "audit.operator_hint": "Áirítear laethanta na tréimhse in UTC nó i gcrios ama an chomhlachta roghnaithe; taispeántar na hamanna i do chrios ama féin.",
   "audit.ip": "Seoladh IP",
   "audit.module.admin": "Riarachán",
   "audit.module.auth": "Síniú isteach",

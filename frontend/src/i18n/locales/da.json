@@ -1153,6 +1153,7 @@
   "audit.entity": "Objekt",
   "audit.entry": "Logpost",
   "audit.intro": "Hvem gjorde hvad i virksomheden, nyeste først. \"Via AI\" markerer handlinger fra scripts og AI-assistenter, der arbejder med et token (API, MCP) på en persons vegne. Beskrivelser gemmes på engelsk.",
+  "audit.operator_hint": "Periodens dage regnes i UTC eller i den valgte virksomheds tidszone; tidspunkter vises i din tidszone.",
   "audit.ip": "IP-adresse",
   "audit.module.admin": "Administration",
   "audit.module.auth": "Login",

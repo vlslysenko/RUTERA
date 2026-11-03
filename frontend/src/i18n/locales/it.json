@@ -1153,6 +1153,7 @@
   "audit.entity": "Oggetto",
   "audit.entry": "Voce del registro",
   "audit.intro": "Chi ha fatto cosa nell’azienda, le più recenti prima. «Tramite IA» indica le azioni di script e assistenti IA che lavorano con un token (API, MCP) a nome di qualcuno. Le descrizioni sono registrate in inglese.",
+  "audit.operator_hint": "I giorni del periodo sono calcolati in UTC o nel fuso orario dell’azienda scelta; gli orari sono mostrati nel tuo fuso orario.",
   "audit.ip": "Indirizzo IP",
   "audit.module.admin": "Amministrazione",
   "audit.module.auth": "Accesso",

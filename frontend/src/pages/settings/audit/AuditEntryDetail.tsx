@@ -1,12 +1,12 @@
 import { useLocation, useOutletContext, useParams } from 'react-router';
 import { Stack, Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
-import type { AuditEntry } from '@/api/audit';
 import { useUser } from '@/auth/useAuth';
 import { DetailDrawer } from '@/components/DetailDrawer';
 import { KeyValueList } from '@/components/KeyValueList';
 import { formatInstantShort } from '@/pages/trips/tripFormat';
 import { ChannelChip } from './AuditChips';
+import type { AuditOutlet } from './AuditPage';
 import classes from './Audit.module.css';
 
 /**
@@ -19,9 +19,10 @@ export function AuditEntryDetail() {
   const tz = useUser().firma?.timezone;
   const { id } = useParams();
   const { search } = useLocation();
-  const entries = useOutletContext<AuditEntry[]>();
+  const { entries, basePath, firmaName } = useOutletContext<AuditOutlet>();
   const e = entries.find((x) => String(x.id) === id);
-  const listPath = `/settings/audit${search}`;
+  const listPath = `${basePath}${search}`;
+  const firma = e ? firmaName(e.firmaId) : null;
 
   if (!e) {
     return (
@@ -38,6 +39,7 @@ export function AuditEntryDetail() {
       <Stack gap="md">
         <KeyValueList
           items={[
+            ...(firma ? [{ label: t('operator.col.company'), value: firma }] : []),
             { label: t('audit.col.user'), value: <span className={classes.mono}>{e.userLogin ?? t('audit.system')}</span> },
             { label: t('audit.col.module'), value: t(`audit.module.${e.module}`, { defaultValue: e.module }) },
             { label: t('audit.action'), value: <span className={classes.mono}>{e.action}</span> },

@@ -1153,6 +1153,7 @@
   "audit.entity": "Obiect",
   "audit.entry": "Înregistrare de audit",
   "audit.intro": "Cine ce a făcut în firmă, cele mai noi primele. „Prin AI” marchează acțiunile scripturilor și asistenților AI care lucrează cu un token (API, MCP) în numele cuiva. Descrierile sunt înregistrate în engleză.",
+  "audit.operator_hint": "Zilele perioadei se calculează în UTC sau în fusul orar al firmei alese; orele sunt afișate în fusul dumneavoastră orar.",
   "audit.ip": "Adresă IP",
   "audit.module.admin": "Administrare",
   "audit.module.auth": "Autentificare",

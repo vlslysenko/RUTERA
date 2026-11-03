@@ -1153,6 +1153,7 @@
   "audit.entity": "Objekt",
   "audit.entry": "Revizijski vnos",
   "audit.intro": "Kdo je kaj naredil v podjetju, najnovejše najprej. »Prek UI« označuje dejanja skriptov in pomočnikov UI, ki delajo z žetonom (API, MCP) v imenu nekoga. Opisi se zapisujejo v angleščini.",
+  "audit.operator_hint": "Dnevi obdobja se štejejo v UTC ali v časovnem pasu izbranega podjetja; časi so prikazani v vašem časovnem pasu.",
   "audit.ip": "Naslov IP",
   "audit.module.admin": "Upravljanje",
   "audit.module.auth": "Prijava",

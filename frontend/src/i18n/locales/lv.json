@@ -1153,6 +1153,7 @@
   "audit.entity": "Objekts",
   "audit.entry": "Audita ieraksts",
   "audit.intro": "Kas ko darīja uzņēmumā, jaunākie vispirms. “Ar MI” apzīmē skriptu un MI asistentu darbības, kas strādā ar žetonu (API, MCP) kāda vārdā. Apraksti tiek saglabāti angliski.",
+  "audit.operator_hint": "Perioda dienas tiek skaitītas UTC vai izvēlētā uzņēmuma laika joslā; laiki tiek rādīti jūsu laika joslā.",
   "audit.ip": "IP adrese",
   "audit.module.admin": "Administrēšana",
   "audit.module.auth": "Pieteikšanās",

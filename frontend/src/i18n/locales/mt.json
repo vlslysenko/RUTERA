@@ -1153,6 +1153,7 @@
   "audit.entity": "Oġġett",
   "audit.entry": "Entrata tal-awditjar",
   "audit.intro": "Min għamel xiex fil-kumpanija, l-aktar ġodda l-ewwel. “Permezz tal-AI” jimmarka azzjonijiet ta’ skripts u assistenti tal-AI li jaħdmu b’token (API, MCP) f’isem xi ħadd. Id-deskrizzjonijiet jinkitbu bl-Ingliż.",
+  "audit.operator_hint": "Il-jiem tal-perjodu jingħaddu f’UTC jew fiż-żona tal-ħin tal-kumpanija magħżula; il-ħinijiet jintwerew fiż-żona tal-ħin tiegħek.",
   "audit.ip": "Indirizz IP",
   "audit.module.admin": "Amministrazzjoni",
   "audit.module.auth": "Dħul",

@@ -1153,6 +1153,7 @@
   "audit.entity": "Object",
   "audit.entry": "Audit entry",
   "audit.intro": "Who did what in the company, newest first. \"Via AI\" marks actions of scripts and AI assistants that work with a token (API, MCP) in someone's name. Descriptions are recorded in English.",
+  "audit.operator_hint": "Days of the period are cut in UTC, or in the time zone of the chosen company; times are shown in your time zone.",
   "audit.ip": "IP address",
   "audit.module.admin": "Administration",
   "audit.module.auth": "Sign-in",

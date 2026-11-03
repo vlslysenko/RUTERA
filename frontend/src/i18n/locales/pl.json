@@ -1153,6 +1153,7 @@
   "audit.entity": "Obiekt",
   "audit.entry": "Wpis dziennika",
   "audit.intro": "Kto co zrobił w firmie, od najnowszych. „Przez AI” oznacza działania skryptów i asystentów AI, które pracują z tokenem (API, MCP) w czyimś imieniu. Opisy są zapisywane po angielsku.",
+  "audit.operator_hint": "Dni okresu liczone są w UTC lub w strefie czasowej wybranej firmy; godziny są pokazywane w Twojej strefie.",
   "audit.ip": "Adres IP",
   "audit.module.admin": "Administracja",
   "audit.module.auth": "Logowanie",

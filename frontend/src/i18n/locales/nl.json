@@ -1153,6 +1153,7 @@
   "audit.entity": "Object",
   "audit.entry": "Auditvermelding",
   "audit.intro": "Wie wat deed in het bedrijf, nieuwste eerst. ‘Via AI’ markeert acties van scripts en AI-assistenten die met een token (API, MCP) namens iemand werken. Beschrijvingen worden in het Engels vastgelegd.",
+  "audit.operator_hint": "De dagen van de periode worden geteld in UTC of in de tijdzone van het gekozen bedrijf; tijden worden in uw tijdzone getoond.",
   "audit.ip": "IP-adres",
   "audit.module.admin": "Beheer",
   "audit.module.auth": "Inloggen",

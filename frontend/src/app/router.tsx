@@ -29,8 +29,10 @@ import { TransactionForm } from '@/pages/fuel/TransactionForm';
 import { TransactionsPage } from '@/pages/fuel/TransactionsPage';
 import { VehicleDetail } from '@/pages/fleet/VehicleDetail';
 import { VehicleForm } from '@/pages/fleet/VehicleForm';
+import { OperatorAuditPage } from '@/pages/operator/OperatorAuditPage';
 import { OperatorFirmaCreate } from '@/pages/operator/OperatorFirmaCreate';
 import { OperatorFirmaDetail } from '@/pages/operator/OperatorFirmaDetail';
+import { OperatorLayout } from '@/pages/operator/OperatorLayout';
 import { OperatorPage } from '@/pages/operator/OperatorPage';
 import { PasswordTab } from '@/pages/settings/PasswordTab';
 import { ProfileTab } from '@/pages/settings/ProfileTab';
@@ -350,11 +352,21 @@ export const router = createBrowserRouter([
           placeholder('reports'),
           screen('operator', [
             {
-              path: SCREENS.operator.path,
-              element: <OperatorPage />,
+              element: <OperatorLayout />,
               children: [
-                { path: 'new', element: <OperatorFirmaCreate /> },
-                { path: ':id', element: <OperatorFirmaDetail mode="drawer" /> },
+                {
+                  path: SCREENS.operator.path,
+                  element: <OperatorPage />,
+                  children: [
+                    { path: 'new', element: <OperatorFirmaCreate /> },
+                    { path: ':id', element: <OperatorFirmaDetail mode="drawer" /> },
+                  ],
+                },
+                {
+                  path: `${SCREENS.operator.path}/audit`,
+                  element: <OperatorAuditPage />,
+                  children: [{ path: ':id', element: <AuditEntryDetail /> }],
+                },
               ],
             },
             { path: `${SCREENS.operator.path}/:id/page`, element: <OperatorFirmaDetail mode="page" /> },

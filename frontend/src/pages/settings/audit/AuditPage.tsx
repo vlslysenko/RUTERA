@@ -19,13 +19,27 @@ import { ChannelChip } from './AuditChips';
 import classes from './Audit.module.css';
 
 const PAGE_SIZE = 50;
-const LIST_PATH = '/settings/audit';
+
+/** What the entry panel (AuditEntryDetail) gets from the list behind it. */
+export interface AuditOutlet {
+  entries: AuditEntry[];
+  basePath: string;
+  firmaName: (id: number | null) => string | null;
+}
+
+interface Props {
+  /** Path of the list; a row opens `${basePath}/:id`. */
+  basePath: string;
+  /** Operator console: all firmas, a firma column and filter (?firma=), no user filter, intro for the operator. */
+  operator?: { firmas: { id: number; name: string }[] };
+}
 
 /**
- * Settings -> Audit log (admin.audit/view): who did what in the firma, newest first, with the channel of every
- * entry so actions "via AI" (API, MCP) stand out. Filters live in the URL; a row opens the entry in the right panel.
+ * Audit log: who did what, newest first, with the channel of every entry so actions "via AI" (API, MCP) stand out.
+ * Settings -> Audit log of the own firma (admin.audit/view), and the operator console across firmas. Filters live in
+ * the URL; a row opens the entry in the right panel.
  */
-export function AuditPage() {
+export function AuditLog({ basePath, operator }: Props) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
   const me = useUser();
@@ -36,7 +50,8 @@ export function AuditPage() {
   const get = (k: string) => params.get(k) ?? '';
   const page = Number(params.get('page') ?? '1') || 1;
   const [q] = useDebouncedValue(get('q').trim(), 300);
-  const canListUsers = hasPrivilege(me, PRIV.ADMIN_USER_VIEW);
+  const canListUsers = !operator && hasPrivilege(me, PRIV.ADMIN_USER_VIEW);
+  const firmaName = (fid: number | null) => (fid == null ? null : (operator?.firmas.find((f) => f.id === fid)?.name ?? `#${fid}`));
 
   const filter = {
     from: get('from') || undefined,
@@ -45,6 +60,7 @@ export function AuditPage() {
     module: get('module') || undefined,
     channel: get('channel') || undefined,
     q: q || undefined,
+    firmaId: operator ? get('firma') || undefined : undefined,
     page: page - 1,
     size: PAGE_SIZE,
   };
@@ -63,12 +79,13 @@ export function AuditPage() {
       },
       { replace: true },
     );
-  const open = (e: AuditEntry) => void navigate({ pathname: `${LIST_PATH}/${e.id}`, search: params.toString() });
+  const open = (e: AuditEntry) => void navigate({ pathname: `${basePath}/${e.id}`, search: params.toString() });
 
   return (
     <Stack gap="sm">
       <Text size="sm" c="dimmed">
         {t('audit.intro')}
+        {operator && ` ${t('audit.operator_hint')}`}
       </Text>
       <div className={classes.filters}>
         <TextInput
@@ -79,6 +96,18 @@ export function AuditPage() {
           value={get('q')}
           onChange={(e) => set('q', e.currentTarget.value || null)}
         />
+        {operator && (
+          <Select
+            placeholder={t('operator.col.company')}
+            aria-label={t('operator.col.company')}
+            data={operator.firmas.map((f) => ({ value: String(f.id), label: f.name }))}
+            value={get('firma') || null}
+            onChange={(v) => set('firma', v)}
+            clearable
+            searchable
+            w={240}
+          />
+        )}
         <DateField aria-label={t('orders.date_from')} value={get('from')} onChange={(v) => set('from', v || null)} w={160} />
         <DateField aria-label={t('orders.date_to')} value={get('to')} min={get('from') || undefined} onChange={(v) => set('to', v || null)} w={160} />
         {canListUsers && (
@@ -129,6 +158,7 @@ export function AuditPage() {
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>{t('audit.col.at')}</Table.Th>
+                  {operator && <Table.Th>{t('operator.col.company')}</Table.Th>}
                   <Table.Th>{t('audit.col.user')}</Table.Th>
                   <Table.Th>{t('audit.col.channel')}</Table.Th>
                   <Table.Th>{t('audit.col.module')}</Table.Th>
@@ -153,6 +183,7 @@ export function AuditPage() {
                       }}
                     >
                       <Table.Td className={classes.mono}>{formatInstantShort(e.at, lang, tz)}</Table.Td>
+                      {operator && <Table.Td>{firmaName(e.firmaId) ?? '—'}</Table.Td>}
                       <Table.Td className={classes.mono}>{e.userLogin ?? t('audit.system')}</Table.Td>
                       <Table.Td>
                         <ChannelChip channel={e.channel} />
@@ -175,7 +206,12 @@ export function AuditPage() {
           )}
         </>
       )}
-      <Outlet context={list.data?.items ?? []} />
+      <Outlet context={{ entries: list.data?.items ?? [], basePath, firmaName } satisfies AuditOutlet} />
     </Stack>
   );
+}
+
+/** Settings -> Audit log of the own firma. */
+export function AuditPage() {
+  return <AuditLog basePath="/settings/audit" />;
 }

@@ -38,6 +38,8 @@ export interface AuditFilter {
   module?: string;
   channel?: string;
   q?: string;
+  /** Operator only: one firma (days in its zone); without it all firmas (days in UTC). */
+  firmaId?: string;
   page: number;
   size: number;
 }
@@ -45,7 +47,7 @@ export interface AuditFilter {
 export const auditApi = {
   list: (f: AuditFilter) =>
     api<Page<AuditEntry>>('/admin/audit', {
-      query: { from: f.from, to: f.to, userId: f.userId, module: f.module, channel: f.channel, q: f.q, page: f.page, size: f.size },
+      query: { from: f.from, to: f.to, userId: f.userId, module: f.module, channel: f.channel, q: f.q, firmaId: f.firmaId, page: f.page, size: f.size },
     }),
 };
 

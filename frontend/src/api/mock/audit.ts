@@ -9,6 +9,7 @@ import type { MockReply } from './trips';
 const HOUR = 3_600_000;
 
 interface Seed {
+  firmaId?: number;
   hoursAgo: number;
   userId: number | null;
   userLogin: string | null;
@@ -36,6 +37,10 @@ const SEEDS: Seed[] = [
   { hoursAgo: 50, userId: 3, userLogin: 'logistician', channel: 'UI', module: 'driver', action: 'absence_decided', entityType: 'absence', entityId: 2, summary: 'Approved vacation of Jan Kowalski 10.11-14.11' },
   { hoursAgo: 75, userId: 1, userLogin: 'owner', channel: 'API', module: 'fuel', action: 'fuel_imported', entityType: 'fuel_import', entityId: 1, summary: 'Imported 42 fuel transactions (DKV)', details: { token: 'rtr_Ab12Cd34' } },
   { hoursAgo: 100, userId: 1, userLogin: 'owner', channel: 'UI', module: 'admin', action: 'firma_settings_updated', entityType: 'firma', entityId: 1, summary: 'Updated company settings' },
+  // Other firmas of the operator console (mock firmas 2 and 3).
+  { firmaId: 2, hoursAgo: 1.5, userId: 21, userLogin: 'spedpol.owner', channel: 'MCP', module: 'fleet', action: 'vehicle_created', entityType: 'vehicle', entityId: 31, summary: 'Added vehicle PO 123AB', details: { client: 'Claude', tool: 'vehicle_create' } },
+  { firmaId: 3, hoursAgo: 4, userId: 31, userLogin: 'nordfracht.disp', channel: 'UI', module: 'trip', action: 'trip_created', entityType: 'trip', entityId: 77, summary: 'Created trip T-2026-0041' },
+  { firmaId: 2, hoursAgo: 20, userId: 6, userLogin: 'operator', channel: 'UI', module: 'operator', action: 'firma_options_changed', entityType: 'firma', entityId: 2, summary: 'Operator changed plan TRIAL, vehicle limit 5 -> plan TRIAL, vehicle limit 5, expires 2026-11-12' },
 ];
 
 let entries: AuditEntry[] | null = null;
@@ -44,7 +49,7 @@ function all(): AuditEntry[] {
   entries ??= SEEDS.map((s, i) => ({
     id: SEEDS.length - i,
     at: new Date(Date.now() - s.hoursAgo * HOUR).toISOString(),
-    firmaId: 1,
+    firmaId: s.firmaId ?? 1,
     userId: s.userId,
     userLogin: s.userLogin,
     channel: s.channel,
@@ -56,13 +61,15 @@ function all(): AuditEntry[] {
     details: s.details ?? null,
     ip: s.channel === 'SYSTEM' ? null : '127.0.0.1',
     requestId: s.channel === 'SYSTEM' ? null : `req-${(SEEDS.length - i).toString(16).padStart(8, '0')}`,
-  }));
+  })).sort((a, b) => b.at.localeCompare(a.at));
   return entries;
 }
 
 const dayStart = (ymd: string) => new Date(`${ymd}T00:00:00`).getTime();
 
-export function list(query: Record<string, string>): MockReply {
+/** `scope`: the firma of the caller, or null for the operator (all firmas, or ?firmaId=). */
+export function list(query: Record<string, string>, scope: number | null): MockReply {
+  const firma = scope ?? (query.firmaId ? Number(query.firmaId) : null);
   const errors: Record<string, string> = {};
   if (query.channel && !['UI', 'API', 'MCP', 'SYSTEM'].includes(query.channel)) errors.channel = 'validation.invalid_value';
   if (query.from && query.to && query.to < query.from) errors.to = 'validation.invalid_value';
@@ -73,6 +80,7 @@ export function list(query: Record<string, string>): MockReply {
   const q = (query.q ?? '').trim().toLowerCase();
   const found = all().filter(
     (e) =>
+      (firma == null || e.firmaId === firma) &&
       (!query.from || new Date(e.at).getTime() >= dayStart(query.from)) &&
       (!query.to || new Date(e.at).getTime() < dayStart(query.to) + 86_400_000) &&
       (!query.userId || String(e.userId) === query.userId) &&

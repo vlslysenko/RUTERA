@@ -121,7 +121,9 @@ shown as "Connected apps" with a disconnect button instead of revoke.
 Settings -> Audit log (`/settings/audit`, `admin.audit/view`, backend 416af80 `GET /app/admin/audit`): who did what
 in the firma, newest first, filters in the URL (period in the firma zone, user, module, channel, text), the channel
 as a chip; API and MCP are shown as "via AI" with a violet mark on the row. A row opens the entry (details JSON,
-IP, request id) in the right panel from the page of the list. Summaries come from the backend in English.
+IP, request id) in the right panel from the page of the list. Summaries come from the backend in English. The
+operator console has the same log across firmas as a tab (`/operator/audit`, firma column, `?firma=` filter, linked
+from each firma card).
 
 Operator console `/operator` (backend 8f6708c, `/app/operator/firmas`): for role SUPERUSER only, who has no firma
 and therefore sees just this screen, profile and password. Lists every firma (search by name or short code) with

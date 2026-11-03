@@ -1153,6 +1153,7 @@
   "audit.entity": "Objekt",
   "audit.entry": "Protokolleintrag",
   "audit.intro": "Wer was in der Firma getan hat, neueste zuerst. „Über KI“ kennzeichnet Aktionen von Skripten und KI-Assistenten, die mit einem Token (API, MCP) im Namen einer Person arbeiten. Beschreibungen werden auf Englisch gespeichert.",
+  "audit.operator_hint": "Die Tage des Zeitraums werden in UTC oder in der Zeitzone der gewählten Firma gezählt; Uhrzeiten werden in Ihrer Zeitzone angezeigt.",
   "audit.ip": "IP-Adresse",
   "audit.module.admin": "Verwaltung",
   "audit.module.auth": "Anmeldung",

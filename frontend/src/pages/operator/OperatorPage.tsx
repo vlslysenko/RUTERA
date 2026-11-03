@@ -9,7 +9,6 @@ import { expiresDay, OPERATOR_KEY, operatorApi, type OperatorFirma } from '@/api
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
-import { PageHeader } from '@/components/PageHeader';
 import { cx } from '@/utils/cx';
 import { formatDate } from '@/utils/deadline';
 import { FirmaStateChips } from './OperatorChips';
@@ -53,27 +52,26 @@ export function OperatorPage() {
 
   return (
     <>
-      <PageHeader
-        title={t('nav.operator')}
-        subtitle={q.data?.total}
-        actions={
-          <Button leftSection={<IconPlus size={16} />} onClick={() => void navigate({ pathname: '/operator/new', search: params.toString() })}>
-            {t('operator.add')}
-          </Button>
-        }
-      />
       <Stack gap="sm">
         <Text size="sm" c="dimmed">
           {t('operator.intro')}
         </Text>
-        <TextInput
-          className={classes.search}
-          leftSection={<IconSearch size={16} />}
-          placeholder={t('operator.search')}
-          aria-label={t('operator.search')}
-          value={search}
-          onChange={(e) => set('q', e.currentTarget.value || null)}
-        />
+        <Group justify="space-between" align="center" gap="sm">
+          <TextInput
+            className={classes.search}
+            leftSection={<IconSearch size={16} />}
+            placeholder={t('operator.search')}
+            aria-label={t('operator.search')}
+            value={search}
+            onChange={(e) => set('q', e.currentTarget.value || null)}
+          />
+          <Group gap="sm">
+            {q.data && <Text c="dimmed">{q.data.total}</Text>}
+            <Button leftSection={<IconPlus size={16} />} onClick={() => void navigate({ pathname: '/operator/new', search: params.toString() })}>
+              {t('operator.add')}
+            </Button>
+          </Group>
+        </Group>
         {q.isPending ? (
           <FullScreenLoader fullScreen={false} />
         ) : q.isError ? (

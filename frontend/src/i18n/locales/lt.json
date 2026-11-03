@@ -1153,6 +1153,7 @@
   "audit.entity": "Objektas",
   "audit.entry": "Audito įrašas",
   "audit.intro": "Kas ką padarė įmonėje, naujausi viršuje. „Per DI“ žymi scenarijų ir DI asistentų veiksmus, atliekamus su prieigos raktu (API, MCP) kieno nors vardu. Aprašymai įrašomi anglų kalba.",
+  "audit.operator_hint": "Laikotarpio dienos skaičiuojamos UTC arba pasirinktos įmonės laiko juostoje; laikas rodomas jūsų laiko juostoje.",
   "audit.ip": "IP adresas",
   "audit.module.admin": "Administravimas",
   "audit.module.auth": "Prisijungimas",

@@ -1153,6 +1153,7 @@
   "audit.entity": "Objeto",
   "audit.entry": "Entrada de auditoría",
   "audit.intro": "Quién hizo qué en la empresa, lo más reciente primero. «Vía IA» marca acciones de scripts y asistentes de IA que trabajan con un token (API, MCP) en nombre de alguien. Las descripciones se registran en inglés.",
+  "audit.operator_hint": "Los días del periodo se cuentan en UTC o en la zona horaria de la empresa elegida; las horas se muestran en su zona horaria.",
   "audit.ip": "Dirección IP",
   "audit.module.admin": "Administración",
   "audit.module.auth": "Inicio de sesión",

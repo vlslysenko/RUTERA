@@ -1153,6 +1153,7 @@
   "audit.entity": "Objekt",
   "audit.entry": "Zapis revizije",
   "audit.intro": "Tko je što učinio u tvrtki, najnoviji prvi. „Putem AI-ja” označava radnje skripti i AI asistenata koji rade s tokenom (API, MCP) u nečije ime. Opisi se bilježe na engleskom.",
+  "audit.operator_hint": "Dani razdoblja računaju se u UTC-u ili u vremenskoj zoni odabrane tvrtke; vremena se prikazuju u vašoj vremenskoj zoni.",
   "audit.ip": "IP adresa",
   "audit.module.admin": "Administracija",
   "audit.module.auth": "Prijava",

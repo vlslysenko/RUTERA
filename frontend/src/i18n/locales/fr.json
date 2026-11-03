@@ -1153,6 +1153,7 @@
   "audit.entity": "Objet",
   "audit.entry": "Entrée du journal",
   "audit.intro": "Qui a fait quoi dans l’entreprise, les plus récentes d’abord. « Via IA » signale les actions de scripts et d’assistants IA qui travaillent avec un jeton (API, MCP) au nom de quelqu’un. Les descriptions sont enregistrées en anglais.",
+  "audit.operator_hint": "Les jours de la période sont comptés en UTC ou dans le fuseau horaire de l’entreprise choisie ; les heures sont affichées dans votre fuseau horaire.",
   "audit.ip": "Adresse IP",
   "audit.module.admin": "Administration",
   "audit.module.auth": "Connexion",
