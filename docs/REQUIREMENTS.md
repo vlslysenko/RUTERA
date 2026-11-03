@@ -2,8 +2,9 @@
 
 **Назначение:** единый входной документ для сессии планирования. Собрано из обсуждений в проекте 27.10.2026, отчёта по переиспользованию SMDP и исследования конкурентов.
 
-**Версия:** 0.6 от 2026-11-03 (0.5 от 2026-10-27). **Version 0.6** records what was built until 2026-11-03:
-section 17 (new) and the lines marked "Update 2026-11-03". Parts revised in 0.6 are written in English.
+**Версия:** 0.7 от 2026-11-03 (0.5 от 2026-10-27). **Versions 0.6 and 0.7** record what was built until
+2026-11-03: section 17 (new) and the lines marked "Update 2026-11-03". Parts revised since 0.6 are written in
+English. Release notes: `CHANGELOG.md`.
 
 **Легенда**
 
@@ -379,7 +380,7 @@ What exists in the repository (`main`); the API of every part is described in `R
 
 | Module | Built | Later |
 |---|---|---|
-| Platform | Session sign-in with CSRF and lockout, roles and privileges (`@RequiresPrivilege`), user administration, profile and password, 26 languages, audit log, Flyway V1-V14, standalone package, CI and image release | 2FA (TOTP), remember-me, invitations by e-mail, S3 storage, ShedLock and several instances, audit channel API/MCP |
+| Platform | Session sign-in with CSRF, account lockout and a throttle per client address, sessions with idle timeout and absolute lifetime, security headers (CSP), roles and privileges (`@RequiresPrivilege`), user administration, profile and password, 26 languages, audit journal with the channel of every entry (UI, API, MCP, SYSTEM) and a list for owners with a "via AI" filter, Flyway V1-V14, standalone package, CI and image release | 2FA (TOTP), remember-me, invitations by e-mail, S3 storage, ShedLock and several instances |
 | 4.1 Fleet | Vehicles and trailers (Euro class, axles, weight, height, consumption, tachograph generation), documents with deadlines | GPS devices, odometer history, service events |
 | 4.2 Map and GPS | Route map of the trip calculator | Live map, trackers (Traccar, Teltonika), GNSS from DDD |
 | 4.3 Tachograph | DDD upload (Gen1, Gen2, Gen2v2), matching to driver or vehicle, activity timeline, violations of 561/2006 with severities of 2016/403, acknowledgement | Remote download APIs, places and border crossings, events and faults |
@@ -390,9 +391,9 @@ What exists in the repository (`main`); the API of every part is described in `R
 | 4.8 Trip calculator | 561/2006 planner for one driver or a crew of two (state from tachograph data, fresh or manual), costs (fuel, driver pay, tolls from the firma's own tariffs, other), truck routing with Valhalla and geocoding | Saved plans (`trip_plan`), trip costs on the trip, toll tariffs from real invoices |
 | 4.9 Load exchanges | - | Trans.eu, TIMOCOM |
 | 4.10 Logistics | Contractors, transport orders, trips with crew, stops and orders | Planning and optimisation |
-| 4.11 Driver cabinet | Own data only: today and trips, hours and violations, absence requests, photos and documents for the trip, own pay if the firma allows it | Offline queue for photos, fuel receipts without a card |
-| 4.12 AI access | Public API `/api/v1` with OpenAPI, MCP server, personal tokens, OAuth 2.1 for claude.ai, call log and rate limit, switch per firma (operator console or standalone environment) | AI role guides with the real tool names (`docs/ai-roles/` are still 0.1), price of the module |
-| Operator (cloud) | SUPERUSER console: firmas with users and vehicles, plan, vehicle limit, AI access, blocking, end date, onboarding of a firma with its first owner | Billing (`subscription`), cloud deployment on k8s |
+| 4.11 Driver cabinet | Own data only: today and trips, hours and violations, absence requests, photos and documents for the trip, own pay if the firma allows it; works offline (saved data, marked stops sent later) and installs to the home screen | Offline queue for photos, fuel receipts without a card |
+| 4.12 AI access | Public API `/api/v1` with OpenAPI, MCP server with 109 tools and the AI role guides (`docs/ai-roles` 0.2) as resources (`rutera://guide`), personal tokens, OAuth 2.1 for claude.ai, call log and rate limit, actions marked API or MCP in the audit journal, switch per firma (operator console or standalone environment) | Price of the module, translations of the guides |
+| Operator (cloud) | SUPERUSER console: firmas with users and vehicles, plan, vehicle limit, AI access, blocking, end date, onboarding of a firma with its first owner (generated password shown once), audit journal of any firma; the operator account comes from `RUTERA_BOOTSTRAP_OPERATOR_LOGIN` | Billing (`subscription`), cloud deployment on k8s |
 
 Decisions taken during implementation (all confirmed by Volodymyr or the coordinator at the time):
 
@@ -400,6 +401,8 @@ Decisions taken during implementation (all confirmed by Volodymyr or the coordin
 - Ports: the development backend runs on 18082, the standalone package publishes 18090; 8080-8089 stay free for SMDP on the owner's machine.
 - Dependencies: versions older than 30 days, never the newest release; base images and GitHub Actions pinned to exact versions.
 - Real tachograph files hold personal data: never in the repository, the tests use synthetic files.
+- Security defaults before the pilot: 20 failed sign-ins per client address in 15 minutes, sessions at most 12 hours,
+  CSP allowing only the origin and the OSM tiles; all configurable (README, "Security").
 
 ---
 
@@ -413,3 +416,4 @@ Decisions taken during implementation (all confirmed by Volodymyr or the coordin
 | 0.4 | 2026-10-27 | API и MCP — отдельный платный модуль, а не основной канал фронт ↔ бэк (принцип 4, модуль 4.12, стек, бизнес-модель, этапы 0–1); открытый вопрос 7 (цена и состав модуля), остальные вопросы перенумерованы |
 | 0.5 | 2026-10-27 | Эскиз схемы БД (раздел 16, ссылка в разделе 14); закрыты вопросы 1, 6, 8, 9, 10, 11, 13, частично 2 (валюты) и 12 (механизм тарифов); статусы в стеке: Flyway, @TenantId, outbox, файлы, CSRF, токены API; 4.5 и 4.12 обновлены |
 | 0.6 | 2026-11-03 | State as built (in English): section 17 (status per module, decisions taken during implementation), stack table statuses and choices (MCP without Spring AI, OAuth, PDFBox, Valhalla, CI), 4.12 (MCP, OAuth, call log), roles (SUPERUSER operator console), deployment (standalone package) |
+| 0.7 | 2026-11-03 | Section 17: audit journal with channels and its list, MCP guide resources, operator onboarding and audit, security pass (throttle, session limits, CSP), offline driver cabinet; link to `CHANGELOG.md` |

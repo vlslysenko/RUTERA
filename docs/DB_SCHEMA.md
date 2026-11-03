@@ -1,7 +1,8 @@
 # RUTERA — эскиз схемы базы данных
 
-**Версия:** 0.2 от 2026-11-03 (0.1 от 2026-10-27). **Version 0.2** adds section 12 (in English): the schema as
-built by the Flyway migrations V1-V14 and how it differs from this sketch; sections 0-11 stay the planning sketch.
+**Версия:** 0.3 от 2026-11-03 (0.1 от 2026-10-27). **Versions 0.2 and 0.3** add section 12 (in English): the
+schema as built by the Flyway migrations V1-V14 and how it differs from this sketch; sections 0-11 stay the planning
+sketch.
 **Статус:** эскиз для планирования, не DDL. **Источник решений:** `docs/REQUIREMENTS.md` v0.5, раздел 16 (дефолты подтверждены 27.10.2026; закрыты открытые вопросы 1, 6, 8, 9, 10, 11, 13, частично 2 и 12).
 
 Стек: MySQL 8.4, Hibernate 7 с `@TenantId`, Flyway. 56 таблиц в 8 группах. Визуальная версия с ER-диаграммами: https://claude.ai/artifact/CaWzXPnFBAbA3WozsqBSVg.
@@ -327,7 +328,10 @@ global), `oauth_code` (authorization codes, 60 seconds, single use).
 - Group 7. `fuel_card` keeps the masked number and `card_hash` (SHA-256) for matching, never the number;
   `fuel_transaction.match_kind` records how vehicle and driver were found; no partitions yet.
 - Group 8. `job_lock` exists but ShedLock is not used yet (one instance). E-mails are plain text from the i18n
-  bundles, no template engine.
+  bundles, no template engine. `audit_log.channel` is set per request: UI (web application), API (public API and
+  OAuth endpoints), MCP (tool calls of the MCP server), SYSTEM (scheduled jobs); the journal is read through
+  `/app/admin/audit` with the index `(firma_id, at)`; API and MCP are the actions via AI. Sessions, the sign-in
+  throttle per address and the rate limit per token live in memory, not in the database.
 
 **Section 9 as built:** no partitions yet (`tacho_activity`, `fuel_transaction`, `audit_log` are plain tables with
 foreign keys; partitioning comes with the cloud volumes); no `mysqldump` before migrations: the standalone package
@@ -340,3 +344,4 @@ backs up the database and the uploaded files every night and on demand (`backup 
 |---|---|---|
 | 0.1 | 2026-10-27 | Первый эскиз: 8 групп, соглашения, заметки по MySQL и Flyway, заимствования из SMDP; соглашения подтверждены в тот же день (REQUIREMENTS.md v0.5) |
 | 0.2 | 2026-11-03 | Section 12 (in English): the schema as built by V1-V14, tables not created yet, new tables, differences per group, section 9 as built |
+| 0.3 | 2026-11-03 | Section 12: audit channel per request and the journal list; what lives in memory (no schema change) |

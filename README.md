@@ -16,6 +16,7 @@ Requirements: `docs/REQUIREMENTS.md`; database sketch: `docs/DB_SCHEMA.md`; AI r
 | `compose.yaml` | Stack built from source (MySQL 8.4 + RUTERA); its `mysql` service alone is the development database |
 | `.github/workflows/` | CI (`mvn verify`, client build) and the release of the image to ghcr.io |
 | `docs/` | Requirements, DB schema, AI role guides, UI mockups |
+| `CHANGELOG.md` | What each release contains (the next one: "Unreleased") |
 
 ## Deploy (standalone)
 
