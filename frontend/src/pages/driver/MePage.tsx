@@ -10,8 +10,9 @@ import { LanguageMenu } from '@/layout/LanguageMenu';
 import { PaymentKindChip } from '@/pages/drivers/HrChips';
 import { formatAmount, formatMonth, formatPayment, monthOf, shiftMonth } from '@/pages/drivers/hrFormat';
 import { formatMinutes, ymdIn } from '@/pages/tacho/hosFormat';
-import { Card, PartError, Stat } from './DriverParts';
+import { Card, PartError, Stat, Waiting } from './DriverParts';
 import { MyAbsences } from './MyAbsences';
+import { InstallCard } from './InstallCard';
 import classes from './DriverApp.module.css';
 
 /** "Me": absences and requests, work days of the month, own payments of three months, language and sign-out. */
@@ -51,7 +52,7 @@ export function MePage() {
 
       <Card title={`${t('drivers.tab.days')} · ${formatMonth(month, lang)}`}>
         {days.isPending ? (
-          <Text size="sm" c="dimmed">…</Text>
+          <Waiting query={days} />
         ) : days.isError || !s ? (
           <PartError error={days.error} />
         ) : (
@@ -67,7 +68,7 @@ export function MePage() {
       {!payHidden && (
       <Card title={t('drivers.tab.pay')}>
         {payments.isPending ? (
-          <Text size="sm" c="dimmed">…</Text>
+          <Waiting query={payments} />
         ) : payments.isError ? (
           <PartError error={payments.error} />
         ) : payments.data.length === 0 ? (
@@ -105,6 +106,8 @@ export function MePage() {
         )}
       </Card>
       )}
+
+      <InstallCard />
 
       <Card title={user.name}>
         <Stack gap="sm">

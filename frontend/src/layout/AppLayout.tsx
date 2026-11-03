@@ -4,6 +4,7 @@ import { AppShell, useMantineTheme } from '@mantine/core';
 import { useDisclosure, useLocalStorage } from '@mantine/hooks';
 import { DRIVER_APP_PATH, usesDriverApp } from '@/app/navigation';
 import { useUser } from '@/auth/useAuth';
+import { OfflineBanner } from '@/components/Offline';
 import { TopBar } from './TopBar';
 import { Sidebar } from './Sidebar';
 import { DetailSlotContext, type DetailSlot } from './detailSlot';
@@ -60,6 +61,7 @@ export function AppLayout() {
           <Sidebar collapsed={collapsed} onToggleCollapsed={() => setCollapsed((c) => !c)} />
         </AppShell.Navbar>
         <AppShell.Main className={classes.main}>
+          <OfflineBanner />
           <Outlet />
         </AppShell.Main>
         <AppShell.Aside className={classes.aside}>

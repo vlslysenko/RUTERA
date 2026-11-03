@@ -138,6 +138,14 @@ APPROVED ones fill the calendars; trip files (`/app/trips/{id}/files`: camera or
 address, e-mail, document language, time zone, base currency, drivers see pay); plan, vehicle limit and AI access are
 read-only. The mock implements all of it (`withPrivilegeOrSelf`).
 
+Offline (driver cabinet first): the app shell is precached by the service worker; the last answers of the cabinet
+(session, trips, tachograph, driver, HR queries) are kept in localStorage (`src/app/offlineCache.ts`, drivers only,
+7 days, cleared on sign-out and sign-in) and restored before the first render, so the phone shows the trip and hours
+without a connection. A bar says when the device is offline; parts with nothing saved say so instead of loading
+forever; queries refetch when the connection is back. Marking a stop done offline is queued with the time of the tap
+and sent on reconnect (while the app stays open). The UI dictionaries are kept per language for offline starts. The
+"Me" tab offers installation (`beforeinstallprompt`; on iPhone the Share -> Add to Home Screen hint).
+
 The vehicle–driver link lives on the vehicle (`defaultDriverId` in the vehicle form); `Driver.defaultVehicle` is
 derived from it. Documents of vehicles and drivers share `components/DeadlineDocuments`.
 

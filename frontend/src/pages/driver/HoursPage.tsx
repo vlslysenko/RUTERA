@@ -7,7 +7,7 @@ import { formatMinutes, shiftDays, ymdIn } from '@/pages/tacho/hosFormat';
 import { SeverityChip } from '@/pages/tacho/ViolationChips';
 import { formatInstantShort } from '@/pages/trips/tripFormat';
 import { cx } from '@/utils/cx';
-import { Card, PartError, Stat } from './DriverParts';
+import { Card, PartError, Stat, Waiting } from './DriverParts';
 import classes from './DriverApp.module.css';
 
 /** "Hours": what is left under 561/2006, driving of the last seven days and own violations of four weeks. */
@@ -33,7 +33,7 @@ export function HoursPage() {
     <Stack gap="sm">
       <Card title={t('driver_app.hours_now')}>
         {hos.isPending ? (
-          <Text size="sm" c="dimmed">…</Text>
+          <Waiting query={hos} />
         ) : hos.isError || !day ? (
           <PartError error={hos.error} />
         ) : (
@@ -78,7 +78,7 @@ export function HoursPage() {
 
       <Card title={t('driver_app.violations')}>
         {violations.isPending ? (
-          <Text size="sm" c="dimmed">…</Text>
+          <Waiting query={violations} />
         ) : violations.isError ? (
           <PartError error={violations.error} />
         ) : violations.data.items.length === 0 ? (

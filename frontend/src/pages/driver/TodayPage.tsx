@@ -10,6 +10,7 @@ import { driverHrKey, hrApi } from '@/api/hr';
 import { TRIPS_KEY, tripsApi, type Trip, type TripStop } from '@/api/trips';
 import { useUser } from '@/auth/useAuth';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
+import { OfflineNote } from '@/components/Offline';
 import { formatMinutes, shiftDays, ymdIn } from '@/pages/tacho/hosFormat';
 import { TripStatusChip } from '@/pages/trips/TripChips';
 import { TripFiles } from '@/pages/trips/TripFiles';
@@ -17,7 +18,7 @@ import { formatInstantShort } from '@/pages/trips/tripFormat';
 import { countryName } from '@/utils/countries';
 import { cx } from '@/utils/cx';
 import { formatDate } from '@/utils/deadline';
-import { Card, PartError, Stat } from './DriverParts';
+import { Card, PartError, Stat, Waiting } from './DriverParts';
 import classes from './DriverApp.module.css';
 
 /** Only the first letter: month names stay lower case where the language writes them so. */
@@ -34,8 +35,9 @@ function TripCard({ trip, title }: { trip: Trip; title: string }) {
   const qc = useQueryClient();
   const next = trip.status === 'RUNNING' ? trip.stops.find((s) => s.status === 'PLANNED') : undefined;
   const coDriver = trip.drivers.find((d) => d.id !== user.driver?.id);
+  // The time of the tap is kept: offline the mark waits and is sent when the connection is back.
   const mark = useMutation({
-    mutationFn: (s: TripStop) => tripsApi.markStop(trip.id, s.id, 'DONE', new Date().toISOString()),
+    mutationFn: ({ stop, at }: { stop: TripStop; at: string }) => tripsApi.markStop(trip.id, stop.id, 'DONE', at),
     onSuccess: () => void qc.invalidateQueries({ queryKey: TRIPS_KEY }),
     onError: (e) => notifications.show({ color: 'red', message: t(errorCode(e)) }),
   });
@@ -87,7 +89,13 @@ function TripCard({ trip, title }: { trip: Trip; title: string }) {
                   </ActionIcon>
                 )}
                 {s === next && (
-                  <Button size="md" onClick={() => mark.mutate(s)} loading={mark.isPending} aria-label={t('driver_app.stop_done')}>
+                  <Button
+                    size="md"
+                    onClick={() => mark.mutate({ stop: s, at: new Date().toISOString() })}
+                    loading={mark.isPending && !mark.isPaused}
+                    disabled={mark.isPaused}
+                    aria-label={t('driver_app.stop_done')}
+                  >
                     <IconCheck size={18} />
                   </Button>
                 )}
@@ -95,6 +103,7 @@ function TripCard({ trip, title }: { trip: Trip; title: string }) {
             </li>
           ))}
         </ol>
+        {mark.isPaused && <OfflineNote text={t('offline.queued')} />}
         <h3 className={classes.cardTitle} style={{ marginTop: 8 }}>
           {t('trip_files.title')}
         </h3>
@@ -143,7 +152,7 @@ export function TodayPage() {
       )}
       <Card title={t('driver_app.hours_now')} right={<Anchor component={Link} to="/driver/hours" size="sm">{t('driver_app.more')}</Anchor>}>
         {hos.isPending ? (
-          <Text size="sm" c="dimmed">…</Text>
+          <Waiting query={hos} />
         ) : hos.isError || !day ? (
           <PartError error={hos.error} />
         ) : (
@@ -156,7 +165,13 @@ export function TodayPage() {
         )}
       </Card>
       {trips.isPending ? (
-        <FullScreenLoader fullScreen={false} />
+        trips.fetchStatus === 'paused' ? (
+          <Card>
+            <OfflineNote />
+          </Card>
+        ) : (
+          <FullScreenLoader fullScreen={false} />
+        )
       ) : trips.isError ? (
         <Card>
           <PartError error={trips.error} />

@@ -9,7 +9,7 @@ import { driverHrKey, hrApi, type Absence } from '@/api/hr';
 import { AbsenceKindChip, AbsenceStatusChip } from '@/pages/drivers/HrChips';
 import { formatRange } from '@/pages/drivers/hrFormat';
 import { AbsenceRequestForm } from './AbsenceRequestForm';
-import { Card, PartError } from './DriverParts';
+import { Card, PartError, Waiting } from './DriverParts';
 import classes from './DriverApp.module.css';
 
 /** Own absences in the cabinet: approved vacation days of the year, coming absences and requests, a new request. */
@@ -58,7 +58,7 @@ export function MyAbsences({ driverId, today }: { driverId: number; today: strin
       {asking ? (
         <AbsenceRequestForm driverId={driverId} onDone={() => setAsking(false)} />
       ) : q.isPending ? (
-        <Text size="sm" c="dimmed">…</Text>
+        <Waiting query={q} />
       ) : q.isError ? (
         <PartError error={q.error} />
       ) : (

@@ -6,7 +6,7 @@ import { useUser } from '@/auth/useAuth';
 import { DeadlineChip, NextDownloadChip } from '@/components/DeadlineChip';
 import { formatInstantShort } from '@/pages/trips/tripFormat';
 import { formatDate } from '@/utils/deadline';
-import { Card, PartError } from './DriverParts';
+import { Card, PartError, Waiting } from './DriverParts';
 import classes from './DriverApp.module.css';
 
 /** Driver cards are read at least every 28 days (Regulation (EU) 581/2010); a week ahead the chip turns yellow. */
@@ -27,7 +27,7 @@ export function DocumentsPage() {
     <Stack gap="sm">
       <Card title={t('drivers.card')}>
         {driver.isPending ? (
-          <Text size="sm" c="dimmed">…</Text>
+          <Waiting query={driver} />
         ) : driver.isError ? (
           <PartError error={driver.error} />
         ) : !card ? (
@@ -55,7 +55,7 @@ export function DocumentsPage() {
       </Card>
       <Card title={t('drivers.tab.documents')}>
         {documents.isPending ? (
-          <Text size="sm" c="dimmed">…</Text>
+          <Waiting query={documents} />
         ) : documents.isError ? (
           <PartError error={documents.error} />
         ) : documents.data.length === 0 ? (

@@ -13,6 +13,8 @@ import '@fontsource/ibm-plex-mono/500.css';
 import './app/global.css';
 
 import './i18n';
+// Catches the browser's install prompt before it fires (offered later in the driver cabinet).
+import './app/install';
 import { App } from './app/App';
 
 registerSW({ immediate: true });

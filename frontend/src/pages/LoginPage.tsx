@@ -8,6 +8,7 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
 import { useLogin, useMe } from '@/auth/useAuth';
+import { OfflineBanner } from '@/components/Offline';
 import { LanguageMenu } from '@/layout/LanguageMenu';
 import classes from './LoginPage.module.css';
 
@@ -62,6 +63,7 @@ export function LoginPage() {
           </Text>
         </div>
 
+        <OfflineBanner />
         <form onSubmit={(e) => void onSubmit(e)} noValidate>
           <Stack gap="sm">
             <TextInput

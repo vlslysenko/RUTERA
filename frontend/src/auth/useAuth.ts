@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authApi, type LoginRequest } from '@/api/auth';
+import { clearOfflineCache } from '@/app/offlineCache';
 import type { User, UserSettingsPatch } from '@/app/types';
 
 export const ME_QUERY_KEY = ['auth', 'me'] as const;
@@ -20,7 +21,14 @@ export function useLogin() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (req: LoginRequest) => authApi.login(req),
-    onSuccess: (user) => qc.setQueryData<User | null>(ME_QUERY_KEY, user),
+    // Offline the sign-in answers "no connection" at once instead of waiting.
+    networkMode: 'always',
+    onSuccess: (user) => {
+      // A new session starts clean: nothing restored from an earlier one (offline data of the driver cabinet).
+      qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'auth' });
+      clearOfflineCache();
+      qc.setQueryData<User | null>(ME_QUERY_KEY, user);
+    },
   });
 }
 
@@ -32,6 +40,7 @@ export function useLogout() {
       // Drop everything that belonged to the previous session. The session query is reset rather than set to
       // null so the login page asks the backend again, which also issues a fresh CSRF cookie after sign-out.
       qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'auth' });
+      clearOfflineCache();
       void qc.resetQueries({ queryKey: ME_QUERY_KEY });
     },
   });

@@ -29,9 +29,28 @@ const backend: BackendModule = {
   type: 'backend',
   init() {},
   read(language: string, _namespace: string, callback: ReadCallback) {
+    // The last dictionary of each language is kept, so the app starts in its language without a connection.
+    const cacheKey = `rutera.i18n.${language}`;
     fetchDictionary(language)
-      .then((dict) => callback(null, dict))
-      .catch((e: unknown) => callback(e instanceof Error ? e : new Error(String(e)), null));
+      .then((dict) => {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(dict));
+        } catch {
+          // quota or private mode
+        }
+        callback(null, dict);
+      })
+      .catch((e: unknown) => {
+        let cached: Record<string, string> | null = null;
+        try {
+          const raw = localStorage.getItem(cacheKey);
+          cached = raw ? (JSON.parse(raw) as Record<string, string>) : null;
+        } catch {
+          cached = null;
+        }
+        if (cached) callback(null, cached);
+        else callback(e instanceof Error ? e : new Error(String(e)), null);
+      });
   },
 };
 

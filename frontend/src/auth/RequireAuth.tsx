@@ -5,11 +5,12 @@ import { errorCode } from '@/api/errors';
 import { currentLanguage, setLanguage } from '@/i18n';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { ErrorState } from '@/components/ErrorState';
+import { OfflineScreen } from '@/components/Offline';
 import { useMe } from './useAuth';
 
 /** Loads the session once; redirects to /login when there is none. Applies the profile language. */
 export function RequireAuth() {
-  const { data: user, isPending, isError, error, refetch } = useMe();
+  const { data: user, isPending, isError, error, refetch, fetchStatus } = useMe();
   const location = useLocation();
   const { t } = useTranslation();
 
@@ -18,6 +19,8 @@ export function RequireAuth() {
     if (profileLanguage && profileLanguage !== currentLanguage()) void setLanguage(profileLanguage);
   }, [profileLanguage]);
 
+  // Offline before anything is saved on this device: say so instead of an endless loader (resumes by itself).
+  if (isPending && fetchStatus === 'paused') return <OfflineScreen />;
   if (isPending) return <FullScreenLoader />;
   if (isError) return <ErrorState fullScreen message={t(errorCode(error))} onRetry={() => void refetch()} />;
   if (!user) {

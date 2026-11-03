@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
+import type { FetchStatus } from '@tanstack/react-query';
 import { Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
+import { OfflineNote } from '@/components/Offline';
 import classes from './DriverApp.module.css';
 
 /** A white block of the driver cabinet with an optional caption. */
@@ -35,6 +37,8 @@ export function Stat({ label, value }: { label: string; value: ReactNode }) {
  */
 export function PartError({ error }: { error: unknown }) {
   const { t } = useTranslation();
+  // No answer at all (the phone thinks it is online, but the request does not get through).
+  if (error instanceof ApiError && error.status === 0) return <OfflineNote text={t('error.network')} />;
   if (error instanceof ApiError && (error.status === 403 || error.status === 404)) {
     return (
       <Text size="sm" c="dimmed">
@@ -45,6 +49,16 @@ export function PartError({ error }: { error: unknown }) {
   return (
     <Text size="sm" c="red">
       {t(errorCode(error))}
+    </Text>
+  );
+}
+
+/** Placeholder of a part that is loading; offline (the query waits for the connection) it says so instead. */
+export function Waiting({ query }: { query: { fetchStatus: FetchStatus } }) {
+  if (query.fetchStatus === 'paused') return <OfflineNote />;
+  return (
+    <Text size="sm" c="dimmed">
+      …
     </Text>
   );
 }

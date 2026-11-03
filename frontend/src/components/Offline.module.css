@@ -1,0 +1,23 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--mantine-color-orange-0);
+  border-bottom: 1px solid var(--mantine-color-orange-2);
+  color: var(--mantine-color-orange-9);
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.35;
+}
+
+.banner svg {
+  flex: none;
+}
+
+.screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 16px;
+}
