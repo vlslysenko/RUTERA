@@ -118,6 +118,11 @@ the `claude mcp add` command; the dev server proxies `/api` and `/mcp` to the ba
 Rows of kind `OAUTH` are apps connected over OAuth (MCP clients after the consent page of the backend): they are
 shown as "Connected apps" with a disconnect button instead of revoke.
 
+Settings -> Audit log (`/settings/audit`, `admin.audit/view`, backend 416af80 `GET /app/admin/audit`): who did what
+in the firma, newest first, filters in the URL (period in the firma zone, user, module, channel, text), the channel
+as a chip; API and MCP are shown as "via AI" with a violet mark on the row. A row opens the entry (details JSON,
+IP, request id) in the right panel from the page of the list. Summaries come from the backend in English.
+
 Operator console `/operator` (backend 8f6708c, `/app/operator/firmas`): for role SUPERUSER only, who has no firma
 and therefore sees just this screen, profile and password. Lists every firma (search by name or short code) with
 plan, vehicles against the limit, active logins, AI access, state (active / blocked / expired, test) and access

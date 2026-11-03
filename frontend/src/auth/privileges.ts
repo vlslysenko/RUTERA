@@ -6,6 +6,7 @@ export const PRIV = {
   ADMIN_USER_MANAGE: 'admin.user/manage',
   ADMIN_API_TOKEN_MANAGE: 'admin.api_token/manage',
   ADMIN_FIRMA_MANAGE: 'admin.firma/manage',
+  ADMIN_AUDIT_VIEW: 'admin.audit/view',
   FLEET_VEHICLE_VIEW: 'fleet.vehicle/view',
   FLEET_VEHICLE_MANAGE: 'fleet.vehicle/manage',
   FLEET_DOCUMENT_MANAGE: 'fleet.document/manage',

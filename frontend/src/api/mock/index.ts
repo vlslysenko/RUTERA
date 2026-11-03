@@ -53,6 +53,7 @@ import * as cmrMock from './cmr';
 import type { OperatorFirmaCreate, OperatorFirmaInput } from '@/api/operator';
 import type { ApiTokenInput } from '@/api/tokens';
 import type { FirmaSettings, FirmaSettingsInput } from '@/api/admin';
+import * as auditMock from './audit';
 import * as operatorMock from './operator';
 import * as tokenMock from './tokens';
 /*
@@ -917,6 +918,10 @@ route('PUT', '/app/admin/firma', withPrivilege('admin.firma/manage', (_u, { body
   });
   return { status: 200, body: firmaSettings };
 }));
+
+// --- audit journal (admin.audit/view) ------------------------------------------------------------------
+
+route('GET', '/app/admin/audit', withPrivilege('admin.audit/view', (_u, req) => auditMock.list(req.query)));
 
 // --- operator console (SUPERUSER only) ------------------------------------------------------------------
 

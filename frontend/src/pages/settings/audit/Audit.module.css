@@ -1,0 +1,101 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.search {
+  flex: 1 1 220px;
+  max-width: 320px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table th {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+}
+
+.row {
+  height: var(--rutera-row-height);
+  cursor: pointer;
+}
+
+.row td {
+  white-space: nowrap;
+}
+
+.row:focus-visible {
+  outline-offset: -2px;
+}
+
+.selected,
+.selected:hover {
+  background: var(--mantine-color-blue-0);
+}
+
+/* Actions done through a token (API / MCP) stand out in the list. */
+.ai td:first-child {
+  box-shadow: inset 3px 0 0 var(--mantine-color-violet-5);
+}
+
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.what {
+  white-space: normal !important;
+  min-width: 260px;
+}
+
+.code {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.json {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-gray-1);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: $mantine-breakpoint-sm) {
+  /* Phone: filters two per row, the search on its own row; the time column stays in view. */
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filters > * {
+    width: 100% !important;
+    max-width: none;
+  }
+
+  .search {
+    grid-column: 1 / -1;
+  }
+
+  .table tr > :first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--mantine-color-body);
+  }
+
+  .selected > :first-child {
+    background: var(--mantine-color-blue-0);
+  }
+}

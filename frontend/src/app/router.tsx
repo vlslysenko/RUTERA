@@ -44,6 +44,8 @@ import { ViolationDetail } from '@/pages/tacho/ViolationDetail';
 import { ViolationsPage } from '@/pages/tacho/ViolationsPage';
 import { UsersPage } from '@/pages/settings/users/UsersPage';
 import { DocumentsPage } from '@/pages/driver/DocumentsPage';
+import { AuditEntryDetail } from '@/pages/settings/audit/AuditEntryDetail';
+import { AuditPage } from '@/pages/settings/audit/AuditPage';
 import { FirmaTab } from '@/pages/settings/FirmaTab';
 import { AllTokensPage } from '@/pages/settings/tokens/AllTokensPage';
 import { TokensPage } from '@/pages/settings/tokens/TokensPage';
@@ -374,6 +376,10 @@ export const router = createBrowserRouter([
               {
                 element: <PrivilegeGuard privilege={PRIV.ADMIN_FIRMA_MANAGE} />,
                 children: [{ path: 'firma', element: <FirmaTab /> }],
+              },
+              {
+                element: <PrivilegeGuard privilege={PRIV.ADMIN_AUDIT_VIEW} />,
+                children: [{ path: 'audit', element: <AuditPage />, children: [{ path: ':id', element: <AuditEntryDetail /> }] }],
               },
               {
                 element: <PrivilegeGuard privilege={PRIV.ADMIN_USER_VIEW} />,

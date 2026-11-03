@@ -23,6 +23,7 @@ export function SettingsLayout() {
     ...(firma && hasPrivilege(user, PRIV.ADMIN_USER_VIEW) ? [{ value: '/settings/users', label: t('settings.tab.users') }] : []),
     ...(firma && hasPrivilege(user, PRIV.ADMIN_FIRMA_MANAGE) ? [{ value: '/settings/firma', label: t('settings.tab.firma') }] : []),
     ...(firma && hasPrivilege(user, PRIV.ADMIN_API_TOKEN_MANAGE) ? [{ value: '/settings/api-tokens', label: t('settings.tab.api_tokens') }] : []),
+    ...(firma && hasPrivilege(user, PRIV.ADMIN_AUDIT_VIEW) ? [{ value: '/settings/audit', label: t('settings.tab.audit') }] : []),
   ];
   const active =
     tabs

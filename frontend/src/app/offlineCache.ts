@@ -60,11 +60,22 @@ export function startOfflineCache(client: QueryClient, meKey: readonly unknown[]
   if (started) return;
   started = true;
   const saved = read();
-  if (saved && Date.now() - saved.savedAt < MAX_AGE_MS) hydrate(client, saved.state);
-  else if (saved) clearOfflineCache();
+  // Whose data was restored: if the server answers with another session, that data goes away.
+  let restoredFor: number | null = null;
+  if (saved && Date.now() - saved.savedAt < MAX_AGE_MS) {
+    hydrate(client, saved.state);
+    restoredFor = saved.userId;
+    // Restored answers are shown at once but always asked again (the session first) as soon as there is a connection.
+    void client.invalidateQueries({ refetchType: 'none' });
+  } else if (saved) clearOfflineCache();
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   client.getQueryCache().subscribe((event) => {
+    if (restoredFor !== null && event.type === 'updated' && event.action.type === 'success' && event.query.queryKey.join('/') === meKey.join('/')) {
+      const me = event.query.state.data as User | null | undefined;
+      if (me?.id !== restoredFor) client.removeQueries({ predicate: (q) => q.queryKey[0] !== meKey[0] });
+      restoredFor = null;
+    }
     if (event.type !== 'updated' && event.type !== 'removed') return;
     if (event.type === 'updated' && event.action.type !== 'success') return;
     clearTimeout(timer);
