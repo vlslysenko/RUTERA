@@ -1182,6 +1182,7 @@
   "common.cancel": "Отмена",
   "common.create": "Создать",
   "common.confirm": "Подтвердить",
+  "common.clear": "Очистить",
   "common.edit": "Изменить",
   "validation.required": "Обязательное поле",
   "validation.invalid_value": "Недопустимое значение",

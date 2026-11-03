@@ -3,6 +3,7 @@ import { useController, type Control, type FieldValues, type Path } from 'react-
 import { DateInput, useDatesContext, type DateInputProps } from '@mantine/dates';
 import { IconCalendar } from '@tabler/icons-react';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 
 /*
  * Date (and date + time) field on the Mantine picker, replacing <input type="date"> / "datetime-local".
@@ -48,6 +49,7 @@ export type DateFieldProps = Omit<
 };
 
 export function DateField({ value, onChange, withTime = false, min, max, clearable = true, ...rest }: DateFieldProps) {
+  const { t } = useTranslation();
   const ctx = useDatesContext();
   const locale = ctx.getLocale();
   // Value produced by typing; anything else reaching onChange was picked in the calendar.
@@ -80,6 +82,7 @@ export function DateField({ value, onChange, withTime = false, min, max, clearab
       minDate={min || undefined}
       maxDate={max || undefined}
       clearable={clearable && !rest.readOnly}
+      clearButtonProps={{ 'aria-label': t('common.clear') }}
       leftSection={<IconCalendar size={16} stroke={1.5} />}
     />
   );

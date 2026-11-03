@@ -1182,6 +1182,7 @@
   "common.cancel": "Zrušiť",
   "common.create": "Vytvoriť",
   "common.confirm": "Potvrdiť",
+  "common.clear": "Vymazať",
   "common.edit": "Upraviť",
   "validation.required": "Povinné",
   "validation.invalid_value": "Neplatná hodnota",

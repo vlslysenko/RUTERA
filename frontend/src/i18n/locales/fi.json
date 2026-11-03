@@ -1182,6 +1182,7 @@
   "common.cancel": "Peruuta",
   "common.create": "Luo",
   "common.confirm": "Vahvista",
+  "common.clear": "Tyhjennä",
   "common.edit": "Muokkaa",
   "validation.required": "Pakollinen",
   "validation.invalid_value": "Virheellinen arvo",

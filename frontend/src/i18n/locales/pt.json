@@ -1182,6 +1182,7 @@
   "common.cancel": "Cancelar",
   "common.create": "Criar",
   "common.confirm": "Confirmar",
+  "common.clear": "Limpar",
   "common.edit": "Editar",
   "validation.required": "Obrigatório",
   "validation.invalid_value": "Valor inválido",

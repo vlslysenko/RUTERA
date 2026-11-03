@@ -1182,6 +1182,7 @@
   "common.cancel": "Atšaukti",
   "common.create": "Sukurti",
   "common.confirm": "Patvirtinti",
+  "common.clear": "Išvalyti",
   "common.edit": "Redaguoti",
   "validation.required": "Privaloma",
   "validation.invalid_value": "Netinkama reikšmė",

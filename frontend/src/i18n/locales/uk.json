@@ -1182,6 +1182,7 @@
   "common.cancel": "Скасувати",
   "common.create": "Створити",
   "common.confirm": "Підтвердити",
+  "common.clear": "Очистити",
   "common.edit": "Змінити",
   "validation.required": "Обов'язкове поле",
   "validation.invalid_value": "Неприпустиме значення",

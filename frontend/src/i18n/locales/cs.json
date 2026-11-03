@@ -1182,6 +1182,7 @@
   "common.cancel": "Zrušit",
   "common.create": "Vytvořit",
   "common.confirm": "Potvrdit",
+  "common.clear": "Vymazat",
   "common.edit": "Upravit",
   "validation.required": "Povinné",
   "validation.invalid_value": "Neplatná hodnota",

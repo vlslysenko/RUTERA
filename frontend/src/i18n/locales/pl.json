@@ -1182,6 +1182,7 @@
   "common.cancel": "Anuluj",
   "common.create": "Utwórz",
   "common.confirm": "Potwierdź",
+  "common.clear": "Wyczyść",
   "common.edit": "Edytuj",
   "validation.required": "Pole wymagane",
   "validation.invalid_value": "Nieprawidłowa wartość",

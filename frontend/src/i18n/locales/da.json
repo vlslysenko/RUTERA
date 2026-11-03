@@ -1182,6 +1182,7 @@
   "common.cancel": "Annuller",
   "common.create": "Opret",
   "common.confirm": "Bekræft",
+  "common.clear": "Ryd",
   "common.edit": "Rediger",
   "validation.required": "Påkrævet",
   "validation.invalid_value": "Ugyldig værdi",

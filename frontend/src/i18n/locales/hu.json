@@ -1182,6 +1182,7 @@
   "common.cancel": "Mégse",
   "common.create": "Létrehozás",
   "common.confirm": "Megerősítés",
+  "common.clear": "Törlés",
   "common.edit": "Szerkesztés",
   "validation.required": "Kötelező",
   "validation.invalid_value": "Érvénytelen érték",

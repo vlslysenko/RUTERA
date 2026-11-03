@@ -1182,6 +1182,7 @@
   "common.cancel": "Avbryt",
   "common.create": "Skapa",
   "common.confirm": "Bekräfta",
+  "common.clear": "Rensa",
   "common.edit": "Redigera",
   "validation.required": "Obligatoriskt",
   "validation.invalid_value": "Ogiltigt värde",

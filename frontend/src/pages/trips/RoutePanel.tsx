@@ -160,6 +160,7 @@ export function RoutePanel({ vehicleId, onRoute }: { vehicleId: number | null; o
               size="xs"
               style={{ flex: 1 }}
               placeholder={t('calc.route.point_hint')}
+              aria-label={`${t('calc.route.point_hint')} (${i + 1})`}
               value={p.text}
               onChange={(e) => set(p.key, e.currentTarget.value)}
               classNames={p.lat != null ? { input: classes.mono } : undefined}

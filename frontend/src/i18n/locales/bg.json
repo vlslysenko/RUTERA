@@ -1182,6 +1182,7 @@
   "common.cancel": "Отказ",
   "common.create": "Създай",
   "common.confirm": "Потвърди",
+  "common.clear": "Изчисти",
   "common.edit": "Редактирай",
   "validation.required": "Задължително",
   "validation.invalid_value": "Невалидна стойност",

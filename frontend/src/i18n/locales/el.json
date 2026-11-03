@@ -1182,6 +1182,7 @@
   "common.cancel": "Ακύρωση",
   "common.create": "Δημιουργία",
   "common.confirm": "Επιβεβαίωση",
+  "common.clear": "Καθαρισμός",
   "common.edit": "Επεξεργασία",
   "validation.required": "Υποχρεωτικό",
   "validation.invalid_value": "Μη έγκυρη τιμή",

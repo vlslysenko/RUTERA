@@ -1182,6 +1182,7 @@
   "common.cancel": "Annuleren",
   "common.create": "Aanmaken",
   "common.confirm": "Bevestigen",
+  "common.clear": "Wissen",
   "common.edit": "Bewerken",
   "validation.required": "Verplicht",
   "validation.invalid_value": "Ongeldige waarde",

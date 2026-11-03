@@ -1182,6 +1182,7 @@
   "common.cancel": "Anulează",
   "common.create": "Creează",
   "common.confirm": "Confirmă",
+  "common.clear": "Șterge",
   "common.edit": "Editează",
   "validation.required": "Obligatoriu",
   "validation.invalid_value": "Valoare nevalidă",

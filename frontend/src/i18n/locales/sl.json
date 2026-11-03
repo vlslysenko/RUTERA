@@ -1182,6 +1182,7 @@
   "common.cancel": "Prekliči",
   "common.create": "Ustvari",
   "common.confirm": "Potrdi",
+  "common.clear": "Počisti",
   "common.edit": "Uredi",
   "validation.required": "Obvezno",
   "validation.invalid_value": "Neveljavna vrednost",
