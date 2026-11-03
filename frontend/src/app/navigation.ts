@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import {
+  IconBuildingSkyscraper,
   IconChartBar,
   IconClockHour4,
   IconFileInvoice,
@@ -64,6 +65,8 @@ export const SCREENS: Record<ScreenKey, NavItem> = {
   },
   fuel: { key: 'fuel', path: '/fuel', icon: IconGasStation, labelKey: 'nav.fuel', privileges: [PRIV.FUEL_TRANSACTION_VIEW] },
   reports: { key: 'reports', path: '/reports', icon: IconChartBar, labelKey: 'nav.reports', privileges: [PRIV.REPORT_VIEW] },
+  // Operator console of the cloud installation: role SUPERUSER only (see canSee).
+  operator: { key: 'operator', path: '/operator', icon: IconBuildingSkyscraper, labelKey: 'nav.operator' },
 };
 
 export const SETTINGS_ITEM: NavItem = {
@@ -81,11 +84,12 @@ export const NAV_GROUPS: NavGroup[] = [
     labelKey: 'nav.group.documents',
     items: [SCREENS.documents, SCREENS.finance, SCREENS.fuel, SCREENS.reports],
   },
+  { key: 'operator', labelKey: 'nav.group.operator', items: [SCREENS.operator] },
 ];
 
 /** Default start screen per role (REQUIREMENTS.md, section 15). The user can override it in the profile. */
 export const DEFAULT_START_SCREEN: Record<Role, ScreenKey> = {
-  SUPERUSER: 'overview',
+  SUPERUSER: 'operator',
   OWNER: 'overview',
   DISPATCHER: 'map',
   LOGISTICIAN: 'trips',
@@ -95,8 +99,18 @@ export const DEFAULT_START_SCREEN: Record<Role, ScreenKey> = {
   CUSTOM: 'overview',
 };
 
-/** Menu items follow the effective privileges the backend sends with the user (role defaults + custom + overrides). */
+/** The operator of the cloud installation: role SUPERUSER (a login without a firma on the backend). */
+export function isOperator(user: User): boolean {
+  return user.role === 'SUPERUSER';
+}
+
+/**
+ * Menu items follow the effective privileges the backend sends with the user (role defaults + custom + overrides).
+ * The operator console is for the operator only; the firma screens need a firma (the operator has none).
+ */
 export function canSee(item: NavItem, user: User): boolean {
+  if (item.key === 'operator') return isOperator(user);
+  if (item.key !== 'settings' && !user.firma) return false;
   return hasAnyPrivilege(user, item.privileges);
 }
 

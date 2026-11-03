@@ -1,0 +1,81 @@
+.tableWrap {
+  overflow-x: auto;
+}
+
+.search {
+  flex: 1 1 220px;
+  max-width: 360px;
+}
+
+.table th {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+}
+
+.row {
+  height: var(--rutera-row-height);
+  cursor: pointer;
+}
+
+.row td {
+  white-space: nowrap;
+}
+
+.row:focus-visible {
+  outline-offset: -2px;
+}
+
+.selected,
+.selected:hover {
+  background: var(--mantine-color-blue-0);
+}
+
+.num {
+  text-align: right;
+}
+
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.over {
+  color: var(--mantine-color-red-7);
+  font-weight: 600;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+}
+
+@media (max-width: $mantine-breakpoint-sm) {
+  /* Phone: the company name stays in view while the table scrolls sideways. */
+  .table tr > :first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--mantine-color-body);
+  }
+
+  .selected > :first-child {
+    background: var(--mantine-color-blue-0);
+  }
+
+  .search {
+    max-width: none;
+  }
+}

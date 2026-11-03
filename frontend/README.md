@@ -23,7 +23,7 @@ Node 22+ (npm 10+). Dependencies are pinned to exact versions; bump them deliber
   Copy `.env.example` to `.env.local` to change it. Production builds never use the mock.
 
 Mock test accounts (login = password): `owner`, `dispatcher`, `logistician`, `accountant` (locked), `driver`
-(driver cabinet of Jan Kowalski). Firma "TransPol Sp. z o.o.". Mock users live in memory per page load.
+(driver cabinet of Jan Kowalski), `operator` (SUPERUSER without a firma: operator console). Firma "TransPol Sp. z o.o.". Mock users live in memory per page load.
 
 Internal endpoints used (all under `/app`, session cookie + CSRF header `X-XSRF-TOKEN` from cookie `XSRF-TOKEN`;
 the backend clears the cookie on logout, the client fetches a new one with `GET /app/auth/me` and retries once):
@@ -115,6 +115,14 @@ the MCP server, creates one (the whole token is shown once, with a copy button; 
 the add-on), revokes it and shows its call log; with `admin.api_token/manage` the tab "All API tokens"
 (`/settings/api-tokens`) lists and revokes every token of the firma. The page links `/api/v1/openapi.json` and shows
 the `claude mcp add` command; the dev server proxies `/api` and `/mcp` to the backend as well.
+Rows of kind `OAUTH` are apps connected over OAuth (MCP clients after the consent page of the backend): they are
+shown as "Connected apps" with a disconnect button instead of revoke.
+
+Operator console `/operator` (backend 8f6708c, `/app/operator/firmas`): for role SUPERUSER only, who has no firma
+and therefore sees just this screen, profile and password. Lists every firma (search by name or short code) with
+plan, vehicles against the limit, active logins, AI access, state (active / blocked / expired, test) and access
+end; the card edits plan, vehicle limit, AI access, access on/off and "access until" (the end of that day in UTC,
+empty = no end) with PUT.
 
 The driver cabinet `/driver` is a separate shell for the phone (tabs Today / Hours / Documents / Me at the bottom, no
 side menu); users with role DRIVER start there. It reads the driver linked to the login (`User.driver` from

@@ -50,8 +50,10 @@ import * as calcMock from './calc';
 import * as routeMock from './route';
 import type { CmrInput } from '@/api/cmr';
 import * as cmrMock from './cmr';
+import type { OperatorFirmaInput } from '@/api/operator';
 import type { ApiTokenInput } from '@/api/tokens';
 import type { FirmaSettings, FirmaSettingsInput } from '@/api/admin';
+import * as operatorMock from './operator';
 import * as tokenMock from './tokens';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
@@ -130,7 +132,8 @@ function toUser(u: MockUser): User {
     login: u.login,
     name: fullName(u),
     role: u.role,
-    firma: { ...MOCK_FIRMA, name: firmaSettings.name, timezone: firmaSettings.timezone, driversSeePay: firmaSettings.driversSeePay },
+    // The operator (SUPERUSER) has no firma, like on the backend.
+    firma: u.role === 'SUPERUSER' ? null : { ...MOCK_FIRMA, name: firmaSettings.name, timezone: firmaSettings.timezone, driversSeePay: firmaSettings.driversSeePay },
     language: saved.language ?? u.language,
     startScreen: saved.startScreen ?? null,
     privileges: ROLE_PRIVILEGES[u.role],
@@ -915,6 +918,20 @@ route('PUT', '/app/admin/firma', withPrivilege('admin.firma/manage', (_u, { body
   return { status: 200, body: firmaSettings };
 }));
 
+// --- operator console (SUPERUSER only) ------------------------------------------------------------------
+
+operatorMock.initOperator({ ...firmaSettings, vehicleLimit: firmaSettings.vehicleLimit ?? 0 }, (f) => {
+  if (f.id === MOCK_FIRMA.id) Object.assign(firmaSettings, { plan: f.plan, vehicleLimit: f.vehicleLimit, aiAccess: f.aiAccess });
+});
+
+function withOperator(fn: (user: MockUser, req: MockRequest) => MockResponse | Promise<MockResponse>): Handler {
+  return withAuth((u, req) => (u.role === 'SUPERUSER' ? fn(u, req) : error(403, 'auth.access_denied')));
+}
+
+route('GET', '/app/operator/firmas', withOperator((_u, req) => operatorMock.list(req.query)));
+route('GET', '/app/operator/firmas/:id', withOperator((_u, req) => operatorMock.get(req.params.id)));
+route('PUT', '/app/operator/firmas/:id', withOperator((_u, { params, body }) => operatorMock.update(params.id, (body ?? {}) as Partial<OperatorFirmaInput>)));
+
 // --- personal API tokens (the mock firma has the AI access add-on) ---------------------------------------
 
 route('GET', '/app/me/tokens', withPrivilege('profile.self/manage', (u) => tokenMock.listMine({ id: u.id, name: fullName(u) })));
@@ -1011,7 +1028,7 @@ function findUser(id: string): MockUser | undefined {
 route('GET', '/app/admin/users', withPrivilege('admin.user/view', () => ({
   status: 200,
   body: users
-    .filter((u) => !u.deleted)
+    .filter((u) => !u.deleted && u.role !== 'SUPERUSER')
     .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName))
     .map(toAdminUser),
 })));

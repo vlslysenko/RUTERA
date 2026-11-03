@@ -13,14 +13,16 @@ export function SettingsLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  // Tokens, users and company settings belong to a firma; the operator (no firma) keeps profile and password.
+  const firma = user.firma != null;
   const tabs = [
     { value: '/settings', label: t('settings.tab.profile') },
     { value: '/settings/password', label: t('settings.tab.password') },
     // Drivers use the cabinet, not the public API.
-    ...(hasPrivilege(user, PRIV.PROFILE_SELF_MANAGE) && !usesDriverApp(user) ? [{ value: '/settings/tokens', label: t('settings.tab.tokens') }] : []),
-    ...(hasPrivilege(user, PRIV.ADMIN_USER_VIEW) ? [{ value: '/settings/users', label: t('settings.tab.users') }] : []),
-    ...(hasPrivilege(user, PRIV.ADMIN_FIRMA_MANAGE) ? [{ value: '/settings/firma', label: t('settings.tab.firma') }] : []),
-    ...(hasPrivilege(user, PRIV.ADMIN_API_TOKEN_MANAGE) ? [{ value: '/settings/api-tokens', label: t('settings.tab.api_tokens') }] : []),
+    ...(firma && hasPrivilege(user, PRIV.PROFILE_SELF_MANAGE) && !usesDriverApp(user) ? [{ value: '/settings/tokens', label: t('settings.tab.tokens') }] : []),
+    ...(firma && hasPrivilege(user, PRIV.ADMIN_USER_VIEW) ? [{ value: '/settings/users', label: t('settings.tab.users') }] : []),
+    ...(firma && hasPrivilege(user, PRIV.ADMIN_FIRMA_MANAGE) ? [{ value: '/settings/firma', label: t('settings.tab.firma') }] : []),
+    ...(firma && hasPrivilege(user, PRIV.ADMIN_API_TOKEN_MANAGE) ? [{ value: '/settings/api-tokens', label: t('settings.tab.api_tokens') }] : []),
   ];
   const active =
     tabs

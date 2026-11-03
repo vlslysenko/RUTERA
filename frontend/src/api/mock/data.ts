@@ -31,6 +31,8 @@ export const MOCK_USERS: MockUser[] = [
   { id: 3, login: 'logistician', password: 'logistician', firstName: 'Oleh', lastName: 'Shevchenko', role: 'LOGISTICIAN', language: 'uk', phone: null, active: true, locked: false, failedLogins: 2, deleted: false, createdAt: T0, updatedAt: T0 },
   { id: 4, login: 'accountant', password: 'accountant', firstName: 'Ewa', lastName: 'Zielinska', role: 'ACCOUNTANT', language: 'pl', phone: null, active: true, locked: true, failedLogins: 0, deleted: false, createdAt: T0, updatedAt: T0 },
   { id: 5, login: 'driver', password: 'driver', firstName: 'Jan', lastName: 'Kowalski', role: 'DRIVER', language: 'pl', phone: '+48 600 100 500', active: true, locked: false, failedLogins: 0, deleted: false, createdAt: T0, updatedAt: T0 },
+  // Operator of the cloud installation: role SUPERUSER without a firma (operator console only).
+  { id: 6, login: 'operator', password: 'operator', firstName: 'Olga', lastName: 'Operator', role: 'SUPERUSER', language: 'en', phone: null, active: true, locked: false, failedLogins: 0, deleted: false, createdAt: T0, updatedAt: T0 },
 ];
 
 /** Role defaults, mirrored from com.rutera.common.security.RolePrivileges. */

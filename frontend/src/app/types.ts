@@ -22,7 +22,8 @@ export type ScreenKey =
   | 'documents'
   | 'finance'
   | 'fuel'
-  | 'reports';
+  | 'reports'
+  | 'operator';
 
 export interface Firma {
   id: number;

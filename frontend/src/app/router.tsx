@@ -29,6 +29,8 @@ import { TransactionForm } from '@/pages/fuel/TransactionForm';
 import { TransactionsPage } from '@/pages/fuel/TransactionsPage';
 import { VehicleDetail } from '@/pages/fleet/VehicleDetail';
 import { VehicleForm } from '@/pages/fleet/VehicleForm';
+import { OperatorFirmaDetail } from '@/pages/operator/OperatorFirmaDetail';
+import { OperatorPage } from '@/pages/operator/OperatorPage';
 import { PasswordTab } from '@/pages/settings/PasswordTab';
 import { ProfileTab } from '@/pages/settings/ProfileTab';
 import { SettingsLayout } from '@/pages/settings/SettingsLayout';
@@ -343,6 +345,14 @@ export const router = createBrowserRouter([
             { path: `${SCREENS.fuel.path}/cards/:id/page`, element: <CardDetail mode="page" /> },
           ]),
           placeholder('reports'),
+          screen('operator', [
+            {
+              path: SCREENS.operator.path,
+              element: <OperatorPage />,
+              children: [{ path: ':id', element: <OperatorFirmaDetail mode="drawer" /> }],
+            },
+            { path: `${SCREENS.operator.path}/:id/page`, element: <OperatorFirmaDetail mode="page" /> },
+          ]),
           {
             path: 'settings',
             element: <SettingsLayout />,
