@@ -17,15 +17,15 @@ function useOnline(): boolean {
   );
 }
 
-/** Slim bar under the header while offline: the screen shows saved data and refreshes by itself later. */
-export function OfflineBanner() {
+/** Slim bar under the header while offline: the screen shows saved data and refreshes by itself later (or `text`). */
+export function OfflineBanner({ text }: { text?: string }) {
   const { t } = useTranslation();
   const online = useOnline();
   if (online) return null;
   return (
     <div className={classes.banner} role="status">
       <IconWifiOff size={16} stroke={2} />
-      <span>{t('offline.banner')}</span>
+      <span>{text ?? t('offline.banner')}</span>
     </div>
   );
 }

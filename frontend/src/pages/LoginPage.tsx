@@ -63,7 +63,7 @@ export function LoginPage() {
           </Text>
         </div>
 
-        <OfflineBanner />
+        <OfflineBanner text={t('offline.sign_in')} />
         <form onSubmit={(e) => void onSubmit(e)} noValidate>
           <Stack gap="sm">
             <TextInput
