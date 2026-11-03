@@ -12,6 +12,7 @@ import com.rutera.common.domain.InvoiceLine;
 import com.rutera.common.domain.InvoicePayment;
 import com.rutera.common.domain.TransportOrder;
 import com.rutera.common.domain.Trip;
+import com.rutera.common.domain.TripFile;
 import com.rutera.common.domain.TripStop;
 import com.rutera.common.domain.Vehicle;
 import org.slf4j.Logger;
@@ -53,13 +54,14 @@ public class McpTools {
     private static final String PREFIX = "/api/v1/";
     private static final Pattern SKIP = Pattern.compile(".*/(pdf|content)$");
     private static final Set<String> ACTIONS = Set.of("issue", "cancel", "ack", "trip", "driver", "vehicle",
-            "from_order", "from_trip");
+            "from_order", "from_trip", "route");
     private static final Map<String, String> NAMES = Map.of(
             "POST /api/v1/orders/{id}/trip", "orders_create_trip",
             "GET /api/v1/reminders/schedule", "reminders_schedule_get",
             "PATCH /api/v1/fuel/transactions/{id}", "fuel_transactions_assign",
             "GET /api/v1/tacho/activity", "tacho_activity_get",
-            "DELETE /api/v1/tacho/violations/{id}/ack", "tacho_violations_unack");
+            "DELETE /api/v1/tacho/violations/{id}/ack", "tacho_violations_unack",
+            "PATCH /api/v1/drivers/{id}/absences/{absenceId}", "drivers_absences_decide");
     private static final Map<String, String> ACTION_TEXT = Map.ofEntries(
             Map.entry("orders_create_trip", "Create a trip for this order in one step (vehicle, optional trailer, "
                     + "drivers, planned start); the order's loading and unloading become the stops."),
@@ -71,6 +73,11 @@ public class McpTools {
             Map.entry("cmr_cancel", "Cancel a CMR note."),
             Map.entry("calc_trip", "Plan a trip under EU 561/2006: breaks, daily and weekly rests, arrival time and "
                     + "cost estimate (fuel, driver pay, tolls) for the given legs, vehicle and drivers."),
+            Map.entry("calc_route", "Compute a truck route through 2 to 25 points (coordinates or addresses, which "
+                    + "are geocoded): distance, duration, km per country and the legs for calc_trip. Needs the "
+                    + "routing server of the installation (else error calc.routing.disabled)."),
+            Map.entry("drivers_absences_decide", "Approve or reject an absence requested by a driver (status "
+                    + "APPROVED or REJECTED, optional note)."),
             Map.entry("tacho_violations_ack", "Acknowledge a driving-time violation (with an optional note)."),
             Map.entry("tacho_violations_unack", "Remove the acknowledgement of a driving-time violation."),
             Map.entry("tacho_files_driver", "Create a driver from the card holder of a tachograph card file and "
@@ -101,8 +108,12 @@ public class McpTools {
             Map.entry("fuel", "provider = " + values(FuelProvider.values())),
             Map.entry("vehicles", "kind = " + values(Vehicle.Kind.values()) + "; status = "
                     + values(Vehicle.Status.values()) + "; euroClass = " + values(Vehicle.EuroClass.values())),
-            Map.entry("drivers_absences", "kind = " + values(DriverAbsence.Kind.values())),
-            Map.entry("absences", "kind = " + values(DriverAbsence.Kind.values())),
+            Map.entry("drivers_absences", "kind = " + values(DriverAbsence.Kind.values()) + "; status = "
+                    + values(DriverAbsence.Status.values())),
+            Map.entry("absences", "kind = " + values(DriverAbsence.Kind.values()) + "; status = "
+                    + values(DriverAbsence.Status.values())),
+            Map.entry("trips_files", "kind = " + values(TripFile.Kind.values())
+                    + "; uploads and file contents are not tools (multipart and binary)"),
             Map.entry("drivers_payments", "kind = " + values(DriverPayment.Kind.values())),
             Map.entry("payments", "kind = " + values(DriverPayment.Kind.values())),
             Map.entry("drivers_days", "kind = " + values(DriverDay.Kind.values())),

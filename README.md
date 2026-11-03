@@ -738,12 +738,15 @@ API. Every JSON operation of `/api/v1` is a tool, generated from the OpenAPI doc
 new endpoints become tools without code. A tool call runs the same `/api/v1` request with the caller's token, so
 validation, privileges and answers are identical; the result carries the JSON answer as text and as
 `structuredContent` (a list as `{items}`), and `isError` for 4xx/5xx with the `{code, message, details}` body. Left
-out: binary and multipart operations (CMR PDF, tachograph file content, tachograph and fuel uploads).
+out: binary and multipart operations (CMR PDF, tachograph and trip file contents, tachograph, fuel and trip file
+uploads). Internal endpoints (sign-in, profile, administration, tokens, firma settings, operator console) are not
+part of `/api/v1`, so they are neither in the OpenAPI document nor tools.
 
 Tool names: the resource path joined with `_` plus `list`, `get`, `create`, `update`, `patch` or `delete`
 (`vehicles_list`, `drivers_absences_create`, `invoices_payments_delete`), actions by their name (`cmr_issue`,
-`cmr_cancel`, `cmr_from_order`, `cmr_from_trip`, `orders_create_trip`, `calc_trip`, `tacho_violations_ack`,
-`tacho_violations_unack`, `fuel_transactions_assign`, `reminders_schedule_get`, `tacho_activity_get`). The input is
+`cmr_cancel`, `cmr_from_order`, `cmr_from_trip`, `orders_create_trip`, `calc_trip`, `calc_route`,
+`drivers_absences_decide`, `tacho_violations_ack`, `tacho_violations_unack`, `fuel_transactions_assign`,
+`reminders_schedule_get`, `tacho_activity_get`). The input is
 `{<path parameters>, <query parameters>, body}`; descriptions name the REST operation and the allowed values of the
 coded fields (statuses, VAT codes, products, providers, kinds). Annotations: `readOnlyHint` for GET,
 `destructiveHint` for DELETE, `idempotentHint` for GET, PUT and DELETE.
