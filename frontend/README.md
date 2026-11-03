@@ -118,12 +118,7 @@ the `claude mcp add` command; the dev server proxies `/api` and `/mcp` to the ba
 Rows of kind `OAUTH` are apps connected over OAuth (MCP clients after the consent page of the backend): they are
 shown as "Connected apps" with a disconnect button instead of revoke.
 
-Settings -> Audit log (`/settings/audit`, `admin.audit/view`, backend 416af80 `GET /app/admin/audit`): who did what
-in the firma, newest first, filters in the URL (period in the firma zone, user, module, channel, text), the channel
-as a chip; API and MCP are shown as "via AI" with a violet mark on the row. A row opens the entry (details JSON,
-IP, request id) in the right panel from the page of the list. Summaries come from the backend in English. The
-operator console has the same log across firmas as a tab (`/operator/audit`, firma column, `?firma=` filter, linked
-from each firma card).
+Audit log: see "Audit screens" below (backend 416af80, `GET /app/admin/audit`).
 
 Operator console `/operator` (backend 8f6708c, `/app/operator/firmas`): for role SUPERUSER only, who has no firma
 and therefore sees just this screen, profile and password. Lists every firma (search by name or short code) with
@@ -145,13 +140,53 @@ APPROVED ones fill the calendars; trip files (`/app/trips/{id}/files`: camera or
 address, e-mail, document language, time zone, base currency, drivers see pay); plan, vehicle limit and AI access are
 read-only. The mock implements all of it (`withPrivilegeOrSelf`).
 
-Offline (driver cabinet first): the app shell is precached by the service worker; the last answers of the cabinet
-(session, trips, tachograph, driver, HR queries) are kept in localStorage (`src/app/offlineCache.ts`, drivers only,
-7 days, cleared on sign-out and sign-in) and restored before the first render, so the phone shows the trip and hours
-without a connection. A bar says when the device is offline; parts with nothing saved say so instead of loading
-forever; queries refetch when the connection is back. Marking a stop done offline is queued with the time of the tap
-and sent on reconnect (while the app stays open). The UI dictionaries are kept per language for offline starts. The
-"Me" tab offers installation (`beforeinstallprompt`; on iPhone the Share -> Add to Home Screen hint).
+### Offline and installation
+
+The app shell (JS, CSS, fonts, icons, `index.html`) is precached by the service worker; server routes (`/app`,
+`/api`, `/mcp`, `/oauth`, `/.well-known`, `/actuator`) are never answered from it.
+
+Offline data (`src/app/offlineCache.ts`):
+
+- **Who:** only users who use the driver cabinet (role DRIVER with `driver_app.self/use`). Office users keep nothing
+  on the device.
+- **What:** answers of the queries whose key starts with `auth` (the session), `trips`, `tacho`, `drivers` or `hr`,
+  as long as they have data (also when their last refresh failed). Paused mutations are not stored. Everything is
+  JSON from the API (no dates as objects, no files: downloads and PDFs are not queries).
+- **Where and how long:** localStorage `rutera.offline.v1`, written about a second after each change, kept 7 days.
+  Quota or private-mode errors are ignored (the app works online); a damaged or old saved state is dropped at start.
+- **Restore:** before the first render. Restored answers are shown at once and always asked again (the session
+  first) as soon as there is a connection; when `/app/auth/me` answers with another user (or none), everything
+  restored is dropped.
+- **Cleared:** on sign-out, on every sign-in, when the saved state is older than 7 days, and when the current user is
+  not a cabinet user.
+- **Known edge case:** with two tabs open, a tab that still holds a signed-out driver's data in memory can write it
+  back until its own session check runs; on the next start that data is dropped because the session no longer
+  matches.
+
+Connection state comes from TanStack Query's `onlineManager` (set from `navigator.onLine` at start, then the
+online/offline events). Offline, queries pause instead of failing; a bar says so in the cabinet, the office layout and
+the login page; parts with nothing saved say "no connection" instead of loading forever; a failed refresh keeps the
+data already on screen; everything stale refetches when the connection is back. Marking a stop done offline keeps
+the time of the tap and is sent on reconnect while the app stays open (it is not stored across a reload). Sign-in
+fails at once offline. The UI dictionary of each language used is kept in localStorage (`rutera.i18n.<lang>`) for
+offline starts.
+
+Installation: `src/app/install.ts` catches `beforeinstallprompt` at start (imported in `main.tsx`); the cabinet's
+"Me" tab shows "Install RUTERA on this phone" with a button where the browser offers it, the Share -> Add to Home
+Screen hint on iPhone/iPad, and nothing when the app already runs installed.
+
+### Audit screens
+
+- `/settings/audit`: tab "Audit log" for `admin.audit/view` (owners by default) in a firma; the entry panel is
+  `/settings/audit/:id`.
+- `/operator/audit`: the same list for the operator (SUPERUSER) across firmas, with a firma column and filter
+  (`?firma=<id>`, then days are cut in that firma's zone, otherwise in UTC); each firma card links to its log; the
+  entry panel is `/operator/audit/:id`.
+
+Both use `AuditLog` (`src/pages/settings/audit/AuditPage.tsx`) on `GET /app/admin/audit`. Filters live in the URL;
+API and MCP entries are marked "via AI" (chip and a violet mark on the row). The entry panel takes the entry from the
+current page of the list (there is no single-entry endpoint). Summaries and action codes come from the backend
+untranslated.
 
 The vehicle–driver link lives on the vehicle (`defaultDriverId` in the vehicle form); `Driver.defaultVehicle` is
 derived from it. Documents of vehicles and drivers share `components/DeadlineDocuments`.
