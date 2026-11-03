@@ -101,6 +101,7 @@ export function TachoFilesPage() {
             </Group>
             <div className={classes.filters}>
               <SegmentedControl
+                className={classes.wide}
                 value={kind}
                 onChange={(v) => change(setKind)(v as KindFilter)}
                 data={[

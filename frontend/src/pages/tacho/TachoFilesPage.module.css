@@ -103,3 +103,21 @@
   font-size: var(--mantine-font-size-xs);
   color: var(--mantine-color-dimmed);
 }
+
+@media (max-width: $mantine-breakpoint-sm) {
+  /* Phone: filters two per row, full width. */
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+
+  .filters > * {
+    width: 100% !important;
+    max-width: none;
+  }
+
+  .wide {
+    grid-column: 1 / -1;
+  }
+}

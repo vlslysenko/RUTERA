@@ -166,7 +166,7 @@ export function DriverActivityPage() {
           w={240}
           placeholder={t('hos.choose_driver')}
         />
-        <Group gap={4} wrap="nowrap">
+        <Group gap={4}>
           <Tooltip label={t('hos.week.prev')}>
             <ActionIcon variant="default" size="lg" aria-label={t('hos.week.prev')} onClick={() => setParam('week', shiftDays(week, -7))}>
               <IconChevronLeft size={16} />

@@ -27,3 +27,15 @@ body {
     animation: none !important;
   }
 }
+
+/*
+ * Phone: rows of form fields (Group grow) wrap instead of squeezing three fields into a 375 px drawer; a field is
+ * at least 9rem wide, so two fit side by side and a third moves to the next line. Groups set to nowrap keep theirs.
+ */
+@media (max-width: $mantine-breakpoint-xs) {
+  .mantine-Group-root[data-grow]:not([style*='nowrap']) > * {
+    flex: 1 1 9rem;
+    min-width: 9rem;
+    max-width: none;
+  }
+}

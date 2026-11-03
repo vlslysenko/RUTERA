@@ -69,6 +69,8 @@ export function DateField({ value, onChange, withTime = false, min, max, clearab
 
   return (
     <DateInput
+      // A filter without a label shows its aria-label ("From", "To") while empty.
+      placeholder={rest.label ? undefined : rest['aria-label']}
       {...rest}
       value={toPicker(value, withTime)}
       onChange={change}

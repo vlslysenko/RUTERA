@@ -61,3 +61,21 @@
 .notes {
   white-space: pre-wrap;
 }
+
+@media (max-width: $mantine-breakpoint-sm) {
+  /* Phone: the first column stays in view while the table scrolls sideways. */
+  .table tr > :first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--mantine-color-body);
+  }
+
+  .selected > :first-child {
+    background: var(--mantine-color-blue-0);
+  }
+
+  .search {
+    max-width: none;
+  }
+}
