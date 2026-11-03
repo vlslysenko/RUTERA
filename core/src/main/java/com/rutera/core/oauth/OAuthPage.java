@@ -87,8 +87,10 @@ final class OAuthPage {
                 + htmlEscape(value == null ? "" : value) + "\" autocomplete=\"" + autocomplete + "\" required></label>";
     }
 
+    /** A submit button; only sign-in validates the form (Deny and another account work with empty fields). */
     static String button(String action, String label, String css) {
         return "<button type=\"submit\" name=\"action\" value=\"" + action + "\""
+                + ("login".equals(action) ? "" : " formnovalidate")
                 + (css == null ? "" : " class=\"" + css + "\"") + ">" + htmlEscape(label) + "</button>";
     }
 

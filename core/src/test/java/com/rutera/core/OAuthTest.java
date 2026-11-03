@@ -246,7 +246,8 @@ class OAuthTest extends AbstractIntegrationTest {
         assertThat(loginPage.getResponse().getStatus()).isEqualTo(200);
         assertThat(loginPage.getResponse().getHeader("Content-Security-Policy")).contains("frame-ancestors 'none'");
         assertThat(loginPage.getResponse().getContentAsString(StandardCharsets.UTF_8))
-                .contains("name=\"password\"").contains("Claude");
+                .contains("name=\"password\"").contains("Claude")
+                .as("Deny works without filling the sign-in fields").contains("value=\"deny\" formnovalidate");
         MvcResult wrong = submit(c, loginPage, params, Map.of("action", "login", "login", owner.getLogin(),
                 "password", "wrong-password"));
         assertThat(wrong.getResponse().getStatus()).isEqualTo(200);
