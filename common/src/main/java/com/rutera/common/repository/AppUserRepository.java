@@ -24,6 +24,11 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
     long countByFirmaIdAndDeletedFalse(Long firmaId);
 
+    /** Active, not deleted logins per firma: rows of {firmaId, count}. */
+    @Query("select u.firmaId, count(u) from AppUser u where u.deleted = false and u.active = true"
+            + " and u.firmaId is not null group by u.firmaId")
+    List<Object[]> countActivePerFirma();
+
     @Modifying
     @Query("update AppUser u set u.failedLogins = u.failedLogins + 1 where u.id = :id")
     int incrementFailedLogins(@Param("id") Long id);

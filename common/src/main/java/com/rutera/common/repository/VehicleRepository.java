@@ -12,6 +12,10 @@ import java.util.Optional;
 /** Tenant-filtered: results always belong to the firma of the current request context. */
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
+    /** Not deleted vehicles per firma: rows of {firmaId, count} (all firmas only in root scope). */
+    @Query("select v.firmaId, count(v) from Vehicle v where v.deleted = false group by v.firmaId")
+    List<Object[]> countPerFirma();
+
     List<Vehicle> findByDeletedFalseOrderByPlateAsc();
 
     Optional<Vehicle> findByIdAndDeletedFalse(Long id);

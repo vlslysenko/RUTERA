@@ -199,6 +199,26 @@ password here or deletes themselves: 403 `admin.user.self_forbidden` (own name, 
 deleting a user ends their session on their next request; a role change takes effect for an open session on its
 next `GET /app/auth/me` (the client calls it on every load).
 
+### Operator console (`/app/operator/firmas`, role SUPERUSER)
+
+For the operator of a cloud installation: logins with role `SUPERUSER` and no firma (`/app/auth/me` answers
+`role: "SUPERUSER"`, `firma: null`). Everyone else gets 403 `auth.access_denied`.
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/operator/firmas?q=&page=&size=` | `{items: FirmaItem[], total}` by id; `q` searches name and short code |
+| GET | `/app/operator/firmas/{id}` | `FirmaItem` |
+| PUT | `/app/operator/firmas/{id}` | `{plan, vehicleLimit, aiAccess, active, expiresAt?}` -> `FirmaItem`; 422 per field (`plan`: letters, digits, `_`, up to 32, upper-cased; `vehicleLimit` 0..100000) |
+
+`FirmaItem = {id, name, shortCode, country, plan, vehicleLimit, aiAccess, active, test, expiresAt, users, vehicles,
+createdAt}`; `users` = active logins, `vehicles` = vehicles not deleted. A firma with `active: false` or a past
+`expiresAt` cannot sign in (`auth.login.firma_inactive`; open sessions end on their next request). Changes are
+written to the firma's audit log (module `operator`). `vehicleLimit` is shown, not enforced. The operator account:
+`RUTERA_BOOTSTRAP_OPERATOR_LOGIN` (and `RUTERA_BOOTSTRAP_OPERATOR_PASSWORD`, else generated and logged once like the
+owner's) creates the SUPERUSER at start when that login does not exist yet; empty (the default) creates nothing. A
+standalone installation sets these options from its environment instead (`RUTERA_AI_ACCESS` and the others win
+again at every start when set).
+
 ### Fleet (`/app/fleet/vehicles`, privileges `fleet.vehicle/view`, `fleet.vehicle/manage`, `fleet.document/manage`)
 
 | Method | Path | Body / result |
