@@ -33,6 +33,8 @@ import org.springframework.security.web.context.RequestAttributeSecurityContextR
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -122,7 +124,8 @@ public class SecurityConfig {
                                             SessionUserService sessionUsers,
                                             SecurityContextRepository securityContextRepository,
                                             CsrfTokenRepository csrfTokenRepository,
-                                            AuditLogoutHandler auditLogoutHandler) throws Exception {
+                                            AuditLogoutHandler auditLogoutHandler,
+                                            RuteraSecurityProperties properties) throws Exception {
         http
                 .securityContext(sc -> sc.securityContextRepository(securityContextRepository))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
@@ -132,6 +135,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository)
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
+                // nosniff, X-Frame-Options DENY and HSTS (on HTTPS) are Spring Security defaults. The OAuth consent
+                // page sets its own, stricter policy, which the writer keeps.
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(properties.contentSecurityPolicy()))
+                        .referrerPolicy(referrer -> referrer.policy(
+                                ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy",
+                                "camera=(self), geolocation=(self), microphone=(), payment=(), usb=()")))
                 .logout(logout -> logout
                         .logoutUrl(LOGOUT_PATH)
                         .addLogoutHandler(auditLogoutHandler)
@@ -146,11 +157,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, LOGIN_PATH).permitAll()
                         .requestMatchers(HttpMethod.GET, "/app/i18n/**").permitAll()
                         .requestMatchers("/app/**").authenticated()
-                        .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers("/actuator/**").authenticated()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().permitAll())
-                .addFilterAfter(new SessionUserFilter(sessionUsers), SecurityContextHolderFilter.class);
+                .addFilterAfter(new SessionUserFilter(sessionUsers, properties.sessionMaxAge()),
+                        SecurityContextHolderFilter.class);
         return http.build();
     }
 

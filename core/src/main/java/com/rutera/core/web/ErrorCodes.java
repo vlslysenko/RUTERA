@@ -8,6 +8,8 @@ public final class ErrorCodes {
     public static final String CSRF_INVALID = "auth.csrf_invalid";
     public static final String LOGIN_INVALID = "auth.login.invalid";
     public static final String LOGIN_LOCKED = "auth.login.locked";
+    /** Too many failed sign-ins from one client address (429 with Retry-After). */
+    public static final String LOGIN_THROTTLED = "auth.login.throttled";
     public static final String LOGIN_DISABLED = "auth.login.disabled";
     public static final String LOGIN_FIRMA_INACTIVE = "auth.login.firma_inactive";
 

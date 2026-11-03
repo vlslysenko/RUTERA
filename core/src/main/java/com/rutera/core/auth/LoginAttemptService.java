@@ -72,6 +72,16 @@ public class LoginAttemptService {
                 null, null);
     }
 
+    /** A client address reached the limit of failed sign-ins: audited once per window, without a user. */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void throttled(String address, String login) {
+        audit.record(AuditEvent.of(AuthService.MODULE, "login_throttled",
+                        "Sign-in blocked for a while: too many failures from one address")
+                        .detail("address", address)
+                        .detail("login", login),
+                null, null);
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void succeeded(AppUser user) {
         if (user.getFailedLogins() > 0 || user.getLockedUntil() != null) {

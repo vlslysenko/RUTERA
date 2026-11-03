@@ -46,8 +46,9 @@ in `.env.standalone.example`; lines left commented out keep the built-in default
 Volumes are named `rutera-standalone_<volume>`; `docker compose ... down` keeps them, `down -v` deletes all data.
 
 **HTTPS.** Put a reverse proxy (Caddy, nginx, Traefik) in front, publish RUTERA only to it
-(`RUTERA_BIND_ADDRESS=127.0.0.1` when it runs on the same host), set `RUTERA_COOKIE_SECURE=true` and
-`RUTERA_PUBLIC_URL=https://<host>` (the OAuth issuer of the claude.ai connector). The proxy has
+(`RUTERA_BIND_ADDRESS=127.0.0.1` when it runs on the same host), set `RUTERA_COOKIE_SECURE=true`,
+`RUTERA_PUBLIC_URL=https://<host>` (the OAuth issuer of the claude.ai connector) and `RUTERA_FORWARD_HEADERS=native`
+(client addresses for the sign-in protection; see "Security"). The proxy has
 to allow request bodies of 200 MB (tachograph import).
 
 **Paid options.** A standalone installation has no operator console: `RUTERA_AI_ACCESS=true` (public API, MCP
@@ -842,6 +843,20 @@ claude mcp add --transport http rutera http://localhost:18082/mcp      # then /m
 - Storage: `oauth_client` (registrations), `oauth_code` (codes, SHA-256), and the connection is an `api_token` row
   of kind `OAUTH` (`token_hash` = current access token, `refresh_hash`), so the add-on gate, the rate limit and the
   call log are those of personal tokens.
+
+## Security
+
+| Topic | Behaviour | Settings |
+|---|---|---|
+| Sign-in per account | after 5 failed passwords in a row the account is locked for 15 minutes (401 `auth.login.locked`); a success resets the counter | `RUTERA_LOCKOUT_ATTEMPTS`, `RUTERA_LOCKOUT_DURATION` |
+| Sign-in per address | after 20 failed sign-ins (unknown login, wrong password, locked account) from one client address within 15 minutes, that address gets 429 `auth.login.throttled` with `Retry-After` until the window ends, whatever login it tries; audited once as `login_throttled`; nothing is locked permanently | `RUTERA_LOGIN_IP_MAX_FAILURES`, `RUTERA_LOGIN_IP_WINDOW` |
+| Client address behind a proxy | the address, scheme and host come from `X-Forwarded-*` only with `RUTERA_FORWARD_HEADERS=native`; set it only when RUTERA is reachable through the proxy alone, otherwise clients could fake their address | `RUTERA_FORWARD_HEADERS` (default none) |
+| Session | cookie `RUTERA_SESSION`: HttpOnly, SameSite=Lax, Secure with `RUTERA_COOKIE_SECURE=true`; new session id and CSRF token at every sign-in; ends after 4 hours without requests and 12 hours after the sign-in at the latest (then 401 `auth.unauthenticated`) | `RUTERA_SESSION_TIMEOUT`, `RUTERA_SESSION_MAX_AGE`, `RUTERA_COOKIE_SECURE` |
+| CSRF | cookie `XSRF-TOKEN` mirrored in `X-XSRF-TOKEN` (forms: `_csrf`) on every state-changing request of the session | - |
+| Headers of the web application | `Content-Security-Policy` (same origin; inline styles; images also from `tile.openstreetmap.org`; service worker and manifest from the origin; `frame-ancestors 'none'`), `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera and location for the origin only), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, HSTS on HTTPS; the OAuth page sends its own stricter policy | `RUTERA_CSP` (a whole policy, e.g. to allow another tile server) |
+| Actuator | only `/actuator/health` is exposed and public; details for signed-in users | - |
+| Uploads | every upload is checked by its content, not its name: tachograph files by the parser (rejected files are not stored), trip files by their signature (JPEG, PNG, WebP, HEIC, PDF), fuel exports as CSV or XLSX (zip signature, 200 MB uncompressed at most, binary XLS refused); sizes: 25 MB per file, 200 MB per request, 20 MB per tachograph file, 15 MB per trip file; stored files are served with their checked type and `nosniff` | - |
+| API and MCP | bearer tokens and OAuth access tokens (SHA-256 in the database), 120 calls per token and minute, every call logged; actions in the audit journal with channel API or MCP | `RUTERA_API_RATE_PER_MINUTE` |
 
 ## Conventions
 

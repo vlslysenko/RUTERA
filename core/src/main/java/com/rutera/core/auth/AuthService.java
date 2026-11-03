@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,13 +59,14 @@ public class AuthService {
     private final SecurityContextRepository securityContextRepository;
     private final CsrfTokenRepository csrfTokenRepository;
     private final ObjectMapper objectMapper;
+    private final LoginThrottle throttle;
     private final String dummyHash;
 
     public AuthService(AppUserRepository users, FirmaRepository firmas, DriverRepository drivers,
                        PasswordEncoder passwordEncoder,
                        SessionUserService sessionUsers, LoginAttemptService attempts,
                        SecurityContextRepository securityContextRepository, CsrfTokenRepository csrfTokenRepository,
-                       ObjectMapper objectMapper) {
+                       ObjectMapper objectMapper, LoginThrottle throttle) {
         this.users = users;
         this.firmas = firmas;
         this.drivers = drivers;
@@ -74,25 +76,35 @@ public class AuthService {
         this.securityContextRepository = securityContextRepository;
         this.csrfTokenRepository = csrfTokenRepository;
         this.objectMapper = objectMapper;
+        this.throttle = throttle;
         this.dummyHash = passwordEncoder.encode(DUMMY_PASSWORD);
     }
 
     public UserDto login(LoginRequest request, HttpServletRequest http, HttpServletResponse response) {
         Instant now = Instant.now();
         String login = request.login().trim().toLowerCase(Locale.ROOT);
+        String address = http.getRemoteAddr();
+        long wait = throttle.retryAfter(address, now.toEpochMilli());
+        if (wait > 0) {
+            response.setHeader("Retry-After", String.valueOf(wait));
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, ErrorCodes.LOGIN_THROTTLED);
+        }
         Optional<AppUser> found = users.findByLoginAndDeletedFalse(login);
         if (found.isEmpty()) {
             passwordEncoder.matches(request.password(), dummyHash);
             attempts.unknownLogin(login);
+            failed(address, login, now);
             throw ApiException.unauthorized(ErrorCodes.LOGIN_INVALID);
         }
         AppUser user = found.get();
         if (user.isLockedAt(now)) {
             attempts.rejected(user, "locked");
+            failed(address, login, now);
             throw ApiException.unauthorized(ErrorCodes.LOGIN_LOCKED);
         }
         if (user.getPasswordHash() == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             attempts.wrongPassword(user, now);
+            failed(address, login, now);
             throw ApiException.unauthorized(ErrorCodes.LOGIN_INVALID);
         }
         Optional<SessionUserService.Rejection> rejection = sessionUsers.rejectionOf(user, now);
@@ -111,6 +123,13 @@ public class AuthService {
         attempts.succeeded(user);
         log.info("User {} signed in", user.getId());
         return toDto(user, principal);
+    }
+
+    /** Counts a failure of the address; audits the moment it reaches the limit. */
+    private void failed(String address, String login, Instant now) {
+        if (throttle.failed(address, now.toEpochMilli())) {
+            attempts.throttled(address, login);
+        }
     }
 
     /** {@code GET /app/auth/me}: current user, with the session snapshot refreshed from the database. */
@@ -147,6 +166,7 @@ public class AuthService {
             http.changeSessionId();
         }
         storeAuthentication(principal, http, response);
+        http.getSession().setAttribute(SessionUserFilter.SIGNED_IN_AT, Instant.now());
         SessionUserFilter.scope(principal);
         CsrfToken fresh = csrfTokenRepository.generateToken(http);
         csrfTokenRepository.saveToken(fresh, http, response);

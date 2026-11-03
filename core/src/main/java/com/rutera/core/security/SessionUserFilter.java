@@ -16,13 +16,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
 /**
  * Sits in the security filter chain right after the security context has been restored from the session.
- * For a signed-in user it re-checks the account in the database (deleted, disabled, locked, firma inactive)
- * and then scopes the request: {@link RequestContext} gets the firma and user (root scope for the superuser)
+ * For a signed-in user it re-checks the account in the database (deleted, disabled, locked, firma inactive) and the
+ * absolute age of the session ({@code rutera.security.session-max-age} since {@link #SIGNED_IN_AT}; the idle timeout
+ * is the servlet session timeout) and then scopes the request: {@link RequestContext} gets the firma and user (root scope for the superuser)
  * and the MDC gets {@code firmaId} / {@code userId}. A session whose user is no longer usable is invalidated
  * and the request continues anonymously, so protected endpoints answer 401.
  * <p>
@@ -33,10 +35,15 @@ public class SessionUserFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(SessionUserFilter.class);
 
-    private final SessionUserService sessionUsers;
+    /** Session attribute: when the user signed in (set by the login, read for the absolute session age). */
+    public static final String SIGNED_IN_AT = "rutera.signedInAt";
 
-    public SessionUserFilter(SessionUserService sessionUsers) {
+    private final SessionUserService sessionUsers;
+    private final Duration maxAge;
+
+    public SessionUserFilter(SessionUserService sessionUsers, Duration maxAge) {
         this.sessionUsers = sessionUsers;
+        this.maxAge = maxAge;
     }
 
     @Override
@@ -44,11 +51,14 @@ public class SessionUserFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof AuthenticatedUser principal) {
-            Optional<AppUser> valid = sessionUsers.validate(principal, Instant.now());
-            if (valid.isPresent()) {
+            Instant now = Instant.now();
+            Optional<AppUser> valid = sessionUsers.validate(principal, now);
+            boolean expired = expired(request, now);
+            if (valid.isPresent() && !expired) {
                 scope(principal);
             } else {
-                log.info("Session of user {} dropped: account no longer usable", principal.id());
+                log.info("Session of user {} dropped: {}", principal.id(),
+                        expired ? "older than " + maxAge : "account no longer usable");
                 SecurityContextHolder.clearContext();
                 HttpSession session = request.getSession(false);
                 if (session != null) {
@@ -63,6 +73,19 @@ public class SessionUserFilter extends OncePerRequestFilter {
             MDC.remove(RequestIdFilter.MDC_FIRMA_ID);
             MDC.remove(RequestIdFilter.MDC_USER_ID);
         }
+    }
+
+    /** Is the session older than the absolute maximum? Sessions from before this check get the current time. */
+    private boolean expired(HttpServletRequest request, Instant now) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return false;
+        }
+        if (!(session.getAttribute(SIGNED_IN_AT) instanceof Instant signedIn)) {
+            session.setAttribute(SIGNED_IN_AT, now);
+            return false;
+        }
+        return signedIn.plus(maxAge).isBefore(now);
     }
 
     /** Also used by the login flow once the user has been authenticated within the same request. */
