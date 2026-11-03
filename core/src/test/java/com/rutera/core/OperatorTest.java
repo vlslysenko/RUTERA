@@ -82,6 +82,61 @@ class OperatorTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void operatorOnboardsAFirmaWithItsOwner() throws Exception {
+        createUser("operator2@test.local", "Operator-123", Role.SUPERUSER, null, true);
+        users.findByLoginAndDeletedFalse("owner-new@test.local").ifPresent(users::delete);
+        Client op = client();
+        assertThat(op.login("operator2@test.local", "Operator-123").getResponse().getStatus()).isEqualTo(200);
+
+        Map<String, Object> owner = new HashMap<>();
+        owner.put("login", "Owner-New@test.local");
+        owner.put("firstName", "Nowa");
+        owner.put("lastName", "Właścicielka");
+        Map<String, Object> input = new HashMap<>();
+        input.put("name", "Nowa Spedycja");
+        input.put("shortCode", "nowa-1");
+        input.put("country", "pl");
+        input.put("lang", "pl");
+        input.put("timezone", "Europe/Warsaw");
+        input.put("baseCurrency", "pln");
+        input.put("aiAccess", true);
+        input.put("owner", owner);
+        MvcResult created = op.post("/app/operator/firmas", input);
+        assertThat(created.getResponse().getStatus()).as(created.getResponse().getContentAsString()).isEqualTo(201);
+        JsonNode answer = body(created);
+        assertThat(answer.get("firma").get("shortCode").asString()).isEqualTo("NOWA-1");
+        assertThat(answer.get("firma").get("plan").asString()).isEqualTo("STANDARD");
+        assertThat(answer.get("firma").get("aiAccess").asBoolean()).isTrue();
+        assertThat(answer.get("ownerLogin").asString()).isEqualTo("owner-new@test.local");
+        String password = answer.get("password").asString();
+        assertThat(password).hasSize(16);
+
+        Client newOwner = client();
+        MvcResult login = newOwner.login("owner-new@test.local", password);
+        assertThat(login.getResponse().getStatus()).isEqualTo(200);
+        assertThat(body(login).get("role").asString()).isEqualTo("OWNER");
+        assertThat(body(login).get("firma").get("timezone").asString()).isEqualTo("Europe/Warsaw");
+        assertThat(newOwner.post("/app/operator/firmas", input).getResponse().getStatus()).isEqualTo(403);
+
+        JsonNode again = body(op.post("/app/operator/firmas", input));
+        assertThat(again.get("details").get("shortCode").asString()).isEqualTo("operator.firma.short_code_taken");
+        assertThat(again.get("details").get("owner.login").asString()).isEqualTo("admin.user.login_taken");
+        input.put("shortCode", "NOWA-2");
+        input.put("timezone", "Mars/Base");
+        owner.put("login", "owner-new2@test.local");
+        owner.put("password", "short");
+        JsonNode invalid = body(op.post("/app/operator/firmas", input));
+        assertThat(invalid.get("details").get("timezone").asString()).isEqualTo("validation.invalid_value");
+        assertThat(invalid.get("details").get("owner.password").asString()).isEqualTo("validation.too_short");
+        input.put("timezone", "UTC");
+        owner.put("password", "Given-Password-1");
+        JsonNode given = body(op.post("/app/operator/firmas", input));
+        assertThat(given.get("password").isNull()).as("a given password is not echoed").isTrue();
+        assertThat(client().login("owner-new2@test.local", "Given-Password-1").getResponse().getStatus())
+                .isEqualTo(200);
+    }
+
+    @Test
     void operatorAccountFromTheEnvironment() {
         users.findByLoginAndDeletedFalse("ops@test.local").ifPresent(users::delete);
         new OperatorBootstrap(users, passwordEncoder, " Ops@Test.local ", "Ops-Password-1").run(null);

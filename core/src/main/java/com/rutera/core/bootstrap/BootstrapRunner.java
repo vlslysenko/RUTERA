@@ -99,7 +99,7 @@ public class BootstrapRunner implements ApplicationRunner {
         return new String[] {trimmed.substring(0, space).trim(), trimmed.substring(space + 1).trim()};
     }
 
-    static String generatePassword() {
+    public static String generatePassword() {
         SecureRandom random = new SecureRandom();
         StringBuilder sb = new StringBuilder(PASSWORD_LENGTH);
         for (int i = 0; i < PASSWORD_LENGTH; i++) {

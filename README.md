@@ -81,6 +81,8 @@ Flyway migrates the database at start. Going back to an older version needs the 
 **Backups.** The `backup` service writes `rutera-db-<yyyy-mm-dd_hhmm>.sql.gz` (mysqldump in one transaction, RUTERA
 keeps running) and `rutera-files-<stamp>.tar.gz` (uploaded files) every night at `RUTERA_BACKUP_TIME` (`RUTERA_TZ`,
 default 02:30) into `RUTERA_BACKUP_DIR` (`./backups`) and deletes those older than `RUTERA_BACKUP_KEEP_DAYS` (14).
+Both archives are tested after writing; a failed backup leaves `.last-failed` (time and reason) in the folder and
+the `backup` service shows as unhealthy in `docker compose ps` until the next good backup.
 Copy that folder off the server (rsync, restic, a NAS): a backup on the same disk does not survive a disk failure.
 The files hold personal data (drivers, tachograph downloads); keep them encrypted and access-restricted.
 
@@ -96,7 +98,7 @@ docker compose -f docker-compose.standalone.yml start rutera
 with `rutera-files-<stamp>.tar.gz`; it refuses while RUTERA is still connected to the database.
 
 **Logs and health.** `docker compose -f docker-compose.standalone.yml logs -f rutera`; the files are in the `logs`
-volume (daily, 30 days). `GET /actuator/health` answers `{"status":"UP"}` (the container health check uses it).
+volume (daily, 30 days, 1 GB at most); the container output of every service is rotated by Docker (5 x 10 MB). `GET /actuator/health` answers `{"status":"UP"}` (the container health check uses it).
 
 **Releases.** A tag `v<major>.<minor>.<patch>` runs `.github/workflows/release.yml`: CI first, then the image
 `ghcr.io/vlslysenko/rutera:<version>` (plus `<major>.<minor>` and `latest`, linux/amd64). Every push and pull
@@ -207,13 +209,21 @@ For the operator of a cloud installation: logins with role `SUPERUSER` and no fi
 | Method | Path | Body / result |
 |---|---|---|
 | GET | `/app/operator/firmas?q=&page=&size=` | `{items: FirmaItem[], total}` by id; `q` searches name and short code |
+| POST | `/app/operator/firmas` | onboarding, see below -> 201 `{firma: FirmaItem, ownerId, ownerLogin, password}` |
 | GET | `/app/operator/firmas/{id}` | `FirmaItem` |
 | PUT | `/app/operator/firmas/{id}` | `{plan, vehicleLimit, aiAccess, active, expiresAt?}` -> `FirmaItem`; 422 per field (`plan`: letters, digits, `_`, up to 32, upper-cased; `vehicleLimit` 0..100000) |
 
 `FirmaItem = {id, name, shortCode, country, plan, vehicleLimit, aiAccess, active, test, expiresAt, users, vehicles,
 createdAt}`; `users` = active logins, `vehicles` = vehicles not deleted. A firma with `active: false` or a past
 `expiresAt` cannot sign in (`auth.login.firma_inactive`; open sessions end on their next request). Changes are
-written to the firma's audit log (module `operator`). `vehicleLimit` is shown, not enforced. The operator account:
+written to the firma's audit log (module `operator`). `vehicleLimit` is shown, not enforced.
+
+Onboarding body: `{name, shortCode, country, lang? (en), timezone? (UTC), baseCurrency? (EUR), plan? (STANDARD),
+vehicleLimit? (10), aiAccess?, test?, expiresAt?, owner: {login, firstName, lastName?, password?}}`. The short code
+(letters, digits, `-`, `_`, 2 to 32, upper-cased) is unique (`shortCode: operator.firma.short_code_taken`), the
+owner's login too (`owner.login: admin.user.login_taken`); per-field codes as in user administration. Without
+`owner.password` a 16-character password is generated and returned in `password` this once (never logged); a given
+password is checked like any other (`owner.password: validation.too_short`) and not echoed (`password: null`). The operator account:
 `RUTERA_BOOTSTRAP_OPERATOR_LOGIN` (and `RUTERA_BOOTSTRAP_OPERATOR_PASSWORD`, else generated and logged once like the
 owner's) creates the SUPERUSER at start when that login does not exist yet; empty (the default) creates nothing. A
 standalone installation sets these options from its environment instead (`RUTERA_AI_ACCESS` and the others win
