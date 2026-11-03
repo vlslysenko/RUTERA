@@ -1,5 +1,6 @@
 package com.rutera.core.mcp;
 
+import com.rutera.core.security.CurrentUser;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -38,13 +40,16 @@ public class McpController {
             + "operations of the RUTERA REST API v1 and act with the privileges of the token's user. Use the *_list "
             + "tools to find ids, dates are ISO (yyyy-MM-dd), times ISO instants (UTC), amounts in the currency of "
             + "the record. Create and update tools take the record under \"body\"; update (PUT) replaces the whole "
-            + "record. Errors come back as {code, message, details} with per-field codes.";
+            + "record. Errors come back as {code, message, details} with per-field codes. Read the resource "
+            + McpGuides.GUIDE_URI + " first: the guide of the user's role with typical tasks and the tools for them.";
 
     private final McpTools tools;
+    private final McpGuides guides;
     private final ObjectMapper json;
 
-    public McpController(McpTools tools, ObjectMapper json) {
+    public McpController(McpTools tools, McpGuides guides, ObjectMapper json) {
         this.tools = tools;
+        this.guides = guides;
         this.json = json;
     }
 
@@ -106,6 +111,13 @@ public class McpController {
                     yield result(id, r);
                 }
                 case "tools/call" -> call(id, params, authorization);
+                case "resources/list" -> result(id, resources());
+                case "resources/templates/list" -> {
+                    ObjectNode r = json.createObjectNode();
+                    r.putArray("resourceTemplates");
+                    yield result(id, r);
+                }
+                case "resources/read" -> read(id, params);
                 default -> error(id, -32601, "Method not found: " + method);
             };
         } catch (IllegalArgumentException e) {
@@ -120,13 +132,45 @@ public class McpController {
         String requested = params.path("protocolVersion").asString("");
         ObjectNode r = json.createObjectNode();
         r.put("protocolVersion", PROTOCOL_VERSIONS.contains(requested) ? requested : PROTOCOL_VERSIONS.getFirst());
-        r.putObject("capabilities").putObject("tools").put("listChanged", false);
+        ObjectNode capabilities = r.putObject("capabilities");
+        capabilities.putObject("tools").put("listChanged", false);
+        capabilities.putObject("resources").put("listChanged", false);
         ObjectNode info = r.putObject("serverInfo");
         info.put("name", "rutera");
         info.put("title", "RUTERA");
         info.put("version", "1");
         r.put("instructions", INSTRUCTIONS);
         return r;
+    }
+
+    /** The role guides: the caller's own ({@code rutera://guide}) and every guide by name. */
+    private ObjectNode resources() {
+        ObjectNode r = json.createObjectNode();
+        ArrayNode list = r.putArray("resources");
+        for (McpGuides.Guide g : guides.all(CurrentUser.require().role()).values()) {
+            ObjectNode item = list.addObject();
+            item.put("uri", g.uri());
+            item.put("name", g.name());
+            item.put("title", g.title());
+            item.put("mimeType", McpGuides.MIME);
+            item.put("size", g.text().getBytes(StandardCharsets.UTF_8).length);
+        }
+        return r;
+    }
+
+    /** {@code resources/read}; an unknown URI is error -32002 (resource not found). */
+    private JsonNode read(JsonNode id, JsonNode params) {
+        String uri = params.path("uri").asString("");
+        McpGuides.Guide g = guides.read(uri, CurrentUser.require().role()).orElse(null);
+        if (g == null) {
+            return error(id, -32002, "Resource not found: " + uri);
+        }
+        ObjectNode r = json.createObjectNode();
+        ObjectNode content = r.putArray("contents").addObject();
+        content.put("uri", g.uri());
+        content.put("mimeType", McpGuides.MIME);
+        content.put("text", g.text());
+        return result(id, r);
     }
 
     /** Runs the tool; an HTTP error of the operation is a tool result with isError, not a JSON-RPC error. */

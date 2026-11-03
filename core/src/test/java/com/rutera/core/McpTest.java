@@ -3,7 +3,11 @@ package com.rutera.core;
 import com.rutera.common.domain.AppUser;
 import com.rutera.common.domain.Firma;
 import com.rutera.common.security.Role;
+import com.rutera.common.domain.AuditLog;
+import com.rutera.common.repository.AuditLogRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MvcResult;
@@ -30,6 +34,9 @@ class McpTest extends AbstractIntegrationTest {
     private int port;
 
     private final HttpClient http = HttpClient.newHttpClient();
+
+    @Autowired
+    private AuditLogRepository auditLog;
 
     private Firma firma;
 
@@ -87,6 +94,8 @@ class McpTest extends AbstractIntegrationTest {
         assertThat(init.get("result").get("protocolVersion").asString()).isEqualTo("2025-06-18");
         assertThat(init.get("result").get("serverInfo").get("name").asString()).isEqualTo("rutera");
         assertThat(init.get("result").get("capabilities").has("tools")).isTrue();
+        assertThat(init.get("result").get("capabilities").has("resources")).isTrue();
+        assertThat(init.get("result").get("instructions").asString()).contains("rutera://guide");
         assertThat(mcp(token, Map.of("jsonrpc", "2.0", "method", "notifications/initialized")).statusCode())
                 .isEqualTo(202);
 
@@ -112,6 +121,9 @@ class McpTest extends AbstractIntegrationTest {
         assertThat(created.get("isError").asBoolean()).as(created.toString()).isFalse();
         assertThat(created.get("structuredContent").get("plate").asString()).isEqualTo("MCP 001");
         long vehicleId = created.get("structuredContent").get("id").asLong();
+        AuditLog entry = auditLog.findByFirmaIdOrderByAtDesc(firma.getId(), PageRequest.of(0, 20)).stream()
+                .filter(a -> "vehicle_created".equals(a.getAction())).findFirst().orElseThrow();
+        assertThat(entry.getChannel()).as("an action of a tool is marked as MCP").isEqualTo(AuditLog.Channel.MCP);
         JsonNode one = call(token, "vehicles_get", Map.of("id", vehicleId));
         assertThat(one.get("content").get(0).get("text").asString()).contains("MCP 001");
         JsonNode missing = call(token, "vehicles_get", Map.of("id", 999_999));
@@ -121,16 +133,38 @@ class McpTest extends AbstractIntegrationTest {
         assertThat(invalid.get("isError").asBoolean()).isTrue();
         assertThat(invalid.get("structuredContent").get("details").has("plate")).isTrue();
 
+        JsonNode resources = rpc(token, 4, "resources/list", Map.of()).get("result").get("resources");
+        List<String> uris = new ArrayList<>();
+        resources.forEach(r -> uris.add(r.get("uri").asString()));
+        assertThat(uris).startsWith("rutera://guide").contains("rutera://guides/readme", "rutera://guides/owner",
+                "rutera://guides/dispatcher", "rutera://guides/logistician", "rutera://guides/accountant",
+                "rutera://guides/driver");
+        assertThat(resources.get(0).get("mimeType").asString()).isEqualTo("text/markdown");
+        JsonNode guide = rpc(token, 5, "resources/read", Map.of("uri", "rutera://guide")).get("result");
+        assertThat(guide.get("contents").get(0).get("text").asString())
+                .as("the owner gets the owner guide").contains("role \"Owner\"").contains("debts_list");
+        JsonNode driverGuide = rpc(token, 6, "resources/read", Map.of("uri", "rutera://guides/driver"));
+        assertThat(driverGuide.get("result").get("contents").get(0).get("text").asString())
+                .contains("role \"Driver\"");
+        assertThat(rpc(token, 7, "resources/read", Map.of("uri", "rutera://guides/nobody")).get("error").get("code")
+                .asInt()).isEqualTo(-32002);
+        assertThat(rpc(token, 8, "resources/templates/list", Map.of()).get("result").get("resourceTemplates")
+                .isEmpty()).isTrue();
+
         JsonNode noId = rpc(token, 3, "tools/call", Map.of("name", "vehicles_get", "arguments", Map.of()));
         assertThat(noId.get("error").get("code").asInt()).isEqualTo(-32602);
-        JsonNode unknown = rpc(token, 4, "resources/list", Map.of());
+        JsonNode unknown = rpc(token, 4, "prompts/list", Map.of());
         assertThat(unknown.get("error").get("code").asInt()).isEqualTo(-32601);
 
         AppUser dispatcher = createUser("dispatcher-mcp@test.local", "McpDisp-1", Role.DISPATCHER, firma.getId(),
                 true);
         Client d = client();
         assertThat(d.login(dispatcher.getLogin(), "McpDisp-1").getResponse().getStatus()).isEqualTo(200);
-        JsonNode denied = call(token(d), "invoices_list", Map.of());
+        String dispatcherToken = token(d);
+        JsonNode denied = call(dispatcherToken, "invoices_list", Map.of());
+        assertThat(rpc(dispatcherToken, 10, "resources/read", Map.of("uri", "rutera://guide")).get("result")
+                .get("contents").get(0).get("text").asString()).as("each role gets its own guide")
+                .contains("role \"Dispatcher\"");
         assertThat(denied.get("isError").asBoolean()).isTrue();
         assertThat(denied.get("structuredContent").get("code").asString()).isEqualTo("auth.access_denied");
 

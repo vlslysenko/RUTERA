@@ -3,6 +3,7 @@ package com.rutera.core.audit;
 import com.rutera.common.context.RequestContext;
 import com.rutera.common.domain.AuditLog;
 import com.rutera.common.repository.AuditLogRepository;
+import com.rutera.core.mcp.McpTools;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +19,10 @@ import java.util.UUID;
 
 /**
  * Writes the audit journal (SMDP Dziennik). Firma, user and request id come from {@link RequestContext}, the
- * client address from the current HTTP request; the channel is {@code UI} for everything that arrives through
- * the internal {@code /app} API (the public API and MCP will pass their own channel).
+ * client address from the current HTTP request. The channel tells where the action came from: {@code UI} for the
+ * web application ({@code /app}), {@code API} for the public API and the OAuth endpoints, {@code MCP} for tool
+ * calls of the MCP server (its loopback calls of the API carry {@code X-Rutera-Via: mcp}), {@code SYSTEM} for
+ * scheduled jobs without a request. API and MCP are the actions "via AI".
  * <p>
  * {@link #record(AuditEvent)} joins the caller's transaction, so a rolled-back business operation leaves no
  * trace; {@link #recordSeparately} commits on its own and is meant for failed logins and other events that
@@ -47,12 +50,30 @@ public class AuditService {
     /** Same as {@link #record(AuditEvent)} but with an explicit firma and user (used before sign-in). */
     @Transactional(propagation = Propagation.REQUIRED)
     public void record(AuditEvent event, Long firmaId, Long userId) {
-        repository.save(toEntity(event, firmaId, userId, AuditLog.Channel.UI));
+        repository.save(toEntity(event, firmaId, userId, channel()));
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordSeparately(AuditEvent event, Long firmaId, Long userId) {
-        repository.save(toEntity(event, firmaId, userId, AuditLog.Channel.UI));
+        repository.save(toEntity(event, firmaId, userId, channel()));
+    }
+
+    /** Channel of the current request (see the class comment). */
+    static AuditLog.Channel channel() {
+        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attrs)) {
+            return AuditLog.Channel.SYSTEM;
+        }
+        HttpServletRequest request = attrs.getRequest();
+        String path = request.getRequestURI();
+        if (path == null || !(path.startsWith("/api/") || path.startsWith("/oauth/") || path.equals("/mcp"))) {
+            return AuditLog.Channel.UI;
+        }
+        String via = request.getHeader(McpTools.VIA_HEADER);
+        String from = request.getRemoteAddr();
+        boolean loopback = from != null && (from.equals("127.0.0.1") || from.equals("0:0:0:0:0:0:0:1")
+                || from.equals("::1"));
+        return path.equals("/mcp") || ("mcp".equalsIgnoreCase(via) && loopback)
+                ? AuditLog.Channel.MCP : AuditLog.Channel.API;
     }
 
     private AuditLog toEntity(AuditEvent event, Long firmaId, Long userId, AuditLog.Channel channel) {

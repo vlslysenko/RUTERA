@@ -52,6 +52,8 @@ public class McpTools {
 
     private static final Logger log = LoggerFactory.getLogger(McpTools.class);
     private static final String PREFIX = "/api/v1/";
+    /** Marks the loopback calls of the tools, so the audit log records the channel MCP (core.audit.AuditService). */
+    public static final String VIA_HEADER = "X-Rutera-Via";
     private static final Pattern SKIP = Pattern.compile(".*/(pdf|content)$");
     private static final Set<String> ACTIONS = Set.of("issue", "cancel", "ack", "trip", "driver", "vehicle",
             "from_order", "from_trip", "route");
@@ -187,7 +189,7 @@ public class McpTools {
             }
         }
         RestClient.RequestBodySpec request = client().method(HttpMethod.valueOf(tool.method()))
-                .uri(path + query).header(HttpHeaders.AUTHORIZATION, authorization)
+                .uri(path + query).header(HttpHeaders.AUTHORIZATION, authorization).header(VIA_HEADER, "mcp")
                 .accept(MediaType.APPLICATION_JSON);
         JsonNode body = arguments.get("body");
         if (tool.hasBody() && body != null && !body.isNull()) {

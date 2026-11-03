@@ -136,6 +136,35 @@
                     <mainClass>com.rutera.RuteraApplication</mainClass>
                 </configuration>
             </plugin>
+            <!-- The AI role guides (docs/ai-roles/*.md, without the template) go into the jar as classpath:/ai-roles/,
+                 where the MCP server serves them as resources (core.mcp.McpGuides). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>ai-role-guides</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/ai-roles</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.parent.basedir}/docs/ai-roles</directory>
+                                    <includes>
+                                        <include>*.md</include>
+                                    </includes>
+                                    <excludes>
+                                        <exclude>_template.md</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

@@ -14,6 +14,7 @@ logs
 **/*.log
 conf
 docs
+!docs/ai-roles
 # Local settings and secrets (frontend/.env.local could switch the client to the mock API)
 **/.env
 **/.env.*

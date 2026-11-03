@@ -700,6 +700,9 @@ The same resources as the web application, for scripts and integrations, availab
 access add-on (`firma.ai_access`). Personal tokens act as their user with the user's current privileges, inside the
 user's firma; auth, profile, administration and the i18n dictionaries are not part of the public API. The MCP
 server for AI assistants offers the same operations as tools, with the same tokens or OAuth (see below).
+Actions are written to `audit_log` with the channel they came through: `API` for the public API and the OAuth
+endpoints, `MCP` for tool calls of the MCP server (these are the actions "via AI"), `UI` for the web application and
+`SYSTEM` for scheduled jobs.
 
 Tokens (web application, session):
 
@@ -751,7 +754,13 @@ Tool names: the resource path joined with `_` plus `list`, `get`, `create`, `upd
 coded fields (statuses, VAT codes, products, providers, kinds). Annotations: `readOnlyHint` for GET,
 `destructiveHint` for DELETE, `idempotentHint` for GET, PUT and DELETE.
 
-Protocol: JSON-RPC 2.0, one message or a batch per POST; `initialize`, `ping`, `tools/list`, `tools/call`;
+Resources: the AI role guides of `docs/ai-roles` (packaged into the jar): `rutera://guide` is the guide of the
+caller's role (owner, dispatcher, logistician, accountant, driver; other roles get the README), and
+`rutera://guides/{readme|owner|dispatcher|logistician|accountant|driver}` every guide, all `text/markdown`. The
+`initialize` instructions point the assistant at `rutera://guide`.
+
+Protocol: JSON-RPC 2.0, one message or a batch per POST; `initialize`, `ping`, `tools/list`, `tools/call`,
+`resources/list`, `resources/read` (unknown URI: -32002), `resources/templates/list` (empty);
 notifications are answered with 202. No sessions (`Mcp-Session-Id`) and no server-initiated stream: `GET` and
 `DELETE /mcp` answer 405. Errors: -32700 parse error, -32600 invalid request, -32601 unknown method, -32602 unknown
 tool or missing path argument, -32603 internal error.

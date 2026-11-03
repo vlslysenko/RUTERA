@@ -3,7 +3,11 @@ package com.rutera.core;
 import com.rutera.common.domain.AppUser;
 import com.rutera.common.domain.Firma;
 import com.rutera.common.security.Role;
+import com.rutera.common.domain.AuditLog;
+import com.rutera.common.repository.AuditLogRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
@@ -26,6 +30,14 @@ class ApiTest extends AbstractIntegrationTest {
     private static final AtomicInteger FIRMAS = new AtomicInteger();
 
     private Firma firma;
+
+    @Autowired
+    private AuditLogRepository auditLog;
+
+    private AuditLog.Channel channelOf(String action) {
+        return auditLog.findByFirmaIdOrderByAtDesc(firma.getId(), PageRequest.of(0, 50)).stream()
+                .filter(a -> action.equals(a.getAction())).findFirst().orElseThrow().getChannel();
+    }
 
     private Client newFirmaOwner(boolean aiAccess) throws Exception {
         int n = FIRMAS.incrementAndGet();
@@ -78,6 +90,8 @@ class ApiTest extends AbstractIntegrationTest {
         MvcResult created = api(MockMvcRequestBuilders.post("/api/v1/vehicles"), token,
                 Map.of("kind", "TRACTOR", "plate", "API 001"));
         assertThat(created.getResponse().getStatus()).as("bearer, no CSRF").isEqualTo(201);
+        assertThat(channelOf("vehicle_created")).as("via the public API").isEqualTo(AuditLog.Channel.API);
+        assertThat(channelOf("api_token_created")).as("in the web application").isEqualTo(AuditLog.Channel.UI);
         assertThat(created.getResponse().getCookie("RUTERA_SESSION")).as("stateless").isNull();
         JsonNode vehicles = body(api(MockMvcRequestBuilders.get("/api/v1/vehicles"), token, null));
         assertThat(vehicles.toString()).contains("API 001");

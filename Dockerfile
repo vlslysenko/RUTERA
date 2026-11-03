@@ -25,6 +25,8 @@ COPY tacho/pom.xml tacho/
 COPY common/src common/src
 COPY core/src core/src
 COPY tacho/src tacho/src
+# The AI role guides go into the jar (served by the MCP server as resources).
+COPY docs/ai-roles docs/ai-roles
 COPY --from=frontend /build/frontend/dist frontend/dist
 RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp -Pfrontend -Dexec.skip=true -DskipTests package
 
