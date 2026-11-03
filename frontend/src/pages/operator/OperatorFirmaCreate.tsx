@@ -185,7 +185,8 @@ export function OperatorFirmaCreate() {
           password: v.ownerPassword || null,
         },
       });
-      void qc.invalidateQueries({ queryKey: [...OPERATOR_KEY, 'list'] });
+      // The list and the firma names of the audit log.
+      void qc.invalidateQueries({ queryKey: OPERATOR_KEY });
       setCreated(result);
     } catch (e) {
       if (!applyServerErrors(e, setError, FIELDS, ALIASES)) notifications.show({ color: 'red', message: t(errorCode(e)) });

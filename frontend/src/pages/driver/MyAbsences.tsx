@@ -59,7 +59,7 @@ export function MyAbsences({ driverId, today }: { driverId: number; today: strin
         <AbsenceRequestForm driverId={driverId} onDone={() => setAsking(false)} />
       ) : q.isPending ? (
         <Waiting query={q} />
-      ) : q.isError ? (
+      ) : q.isError && q.data === undefined ? (
         <PartError error={q.error} />
       ) : (
         <>

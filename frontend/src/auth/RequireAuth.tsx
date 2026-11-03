@@ -22,7 +22,8 @@ export function RequireAuth() {
   // Offline before anything is saved on this device: say so instead of an endless loader (resumes by itself).
   if (isPending && fetchStatus === 'paused') return <OfflineScreen />;
   if (isPending) return <FullScreenLoader />;
-  if (isError) return <ErrorState fullScreen message={t(errorCode(error))} onRetry={() => void refetch()} />;
+  // A failed re-check keeps the session it already knows (restored offline data, weak signal on the road).
+  if (isError && user === undefined) return <ErrorState fullScreen message={t(errorCode(error))} onRetry={() => void refetch()} />;
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   }

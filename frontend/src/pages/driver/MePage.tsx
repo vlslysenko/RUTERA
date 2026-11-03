@@ -53,7 +53,7 @@ export function MePage() {
       <Card title={`${t('drivers.tab.days')} · ${formatMonth(month, lang)}`}>
         {days.isPending ? (
           <Waiting query={days} />
-        ) : days.isError || !s ? (
+        ) : (days.isError && days.data === undefined) || !s ? (
           <PartError error={days.error} />
         ) : (
           <div className={classes.stats}>
@@ -69,7 +69,7 @@ export function MePage() {
       <Card title={t('drivers.tab.pay')}>
         {payments.isPending ? (
           <Waiting query={payments} />
-        ) : payments.isError ? (
+        ) : payments.isError && payments.data === undefined ? (
           <PartError error={payments.error} />
         ) : payments.data.length === 0 ? (
           <Text size="sm" c="dimmed">

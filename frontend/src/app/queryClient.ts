@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { onlineManager, QueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/client';
 
 export const queryClient = new QueryClient({
@@ -17,3 +17,7 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+// TanStack Query v5 assumes "online" until an offline event; a phone that starts without a connection would then
+// fail its requests instead of pausing them (and hide the saved data of the driver cabinet).
+if (typeof navigator !== 'undefined' && navigator.onLine === false) onlineManager.setOnline(false);

@@ -153,7 +153,7 @@ export function TodayPage() {
       <Card title={t('driver_app.hours_now')} right={<Anchor component={Link} to="/driver/hours" size="sm">{t('driver_app.more')}</Anchor>}>
         {hos.isPending ? (
           <Waiting query={hos} />
-        ) : hos.isError || !day ? (
+        ) : (hos.isError && hos.data === undefined) || !day ? (
           <PartError error={hos.error} />
         ) : (
           <div className={classes.stats}>
@@ -172,7 +172,7 @@ export function TodayPage() {
         ) : (
           <FullScreenLoader fullScreen={false} />
         )
-      ) : trips.isError ? (
+      ) : trips.isError && trips.data === undefined ? (
         <Card>
           <PartError error={trips.error} />
         </Card>

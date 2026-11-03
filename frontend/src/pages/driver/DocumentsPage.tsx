@@ -28,7 +28,7 @@ export function DocumentsPage() {
       <Card title={t('drivers.card')}>
         {driver.isPending ? (
           <Waiting query={driver} />
-        ) : driver.isError ? (
+        ) : driver.isError && driver.data === undefined ? (
           <PartError error={driver.error} />
         ) : !card ? (
           <Text size="sm" c="dimmed">
@@ -56,7 +56,7 @@ export function DocumentsPage() {
       <Card title={t('drivers.tab.documents')}>
         {documents.isPending ? (
           <Waiting query={documents} />
-        ) : documents.isError ? (
+        ) : documents.isError && documents.data === undefined ? (
           <PartError error={documents.error} />
         ) : documents.data.length === 0 ? (
           <Text size="sm" c="dimmed">

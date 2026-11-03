@@ -34,7 +34,7 @@ export function HoursPage() {
       <Card title={t('driver_app.hours_now')}>
         {hos.isPending ? (
           <Waiting query={hos} />
-        ) : hos.isError || !day ? (
+        ) : (hos.isError && hos.data === undefined) || !day ? (
           <PartError error={hos.error} />
         ) : (
           <Stack gap="sm">
@@ -79,7 +79,7 @@ export function HoursPage() {
       <Card title={t('driver_app.violations')}>
         {violations.isPending ? (
           <Waiting query={violations} />
-        ) : violations.isError ? (
+        ) : violations.isError && violations.data === undefined ? (
           <PartError error={violations.error} />
         ) : violations.data.items.length === 0 ? (
           <Text size="sm" c="dimmed">

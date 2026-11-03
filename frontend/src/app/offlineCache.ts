@@ -44,7 +44,10 @@ function save(client: QueryClient, meKey: readonly unknown[]): void {
     return;
   }
   const state = dehydrate(client, {
-    shouldDehydrateQuery: (q) => q.state.status === 'success' && ROOTS.has(String(q.queryKey[0])),
+    // Answers that have data, also when the last refresh failed (weak signal): the phone keeps showing them.
+    shouldDehydrateQuery: (q) => q.state.data !== undefined && ROOTS.has(String(q.queryKey[0])),
+    // A waiting stop mark has no way to be sent after a reload (no mutationFn); it stays in this page's memory only.
+    shouldDehydrateMutation: () => false,
   });
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ userId: me.id, savedAt: Date.now(), state } satisfies Saved));
@@ -63,10 +66,16 @@ export function startOfflineCache(client: QueryClient, meKey: readonly unknown[]
   // Whose data was restored: if the server answers with another session, that data goes away.
   let restoredFor: number | null = null;
   if (saved && Date.now() - saved.savedAt < MAX_AGE_MS) {
-    hydrate(client, saved.state);
-    restoredFor = saved.userId;
-    // Restored answers are shown at once but always asked again (the session first) as soon as there is a connection.
-    void client.invalidateQueries({ refetchType: 'none' });
+    try {
+      hydrate(client, saved.state);
+      restoredFor = saved.userId;
+      // Restored answers are shown at once but always asked again (the session first) as soon as there is a connection.
+      void client.invalidateQueries({ refetchType: 'none' });
+    } catch {
+      // Saved by an older version or damaged: start without it rather than not at all.
+      client.clear();
+      clearOfflineCache();
+    }
   } else if (saved) clearOfflineCache();
 
   let timer: ReturnType<typeof setTimeout> | undefined;
