@@ -50,7 +50,7 @@ import * as calcMock from './calc';
 import * as routeMock from './route';
 import type { CmrInput } from '@/api/cmr';
 import * as cmrMock from './cmr';
-import type { OperatorFirmaInput } from '@/api/operator';
+import type { OperatorFirmaCreate, OperatorFirmaInput } from '@/api/operator';
 import type { ApiTokenInput } from '@/api/tokens';
 import type { FirmaSettings, FirmaSettingsInput } from '@/api/admin';
 import * as operatorMock from './operator';
@@ -929,6 +929,9 @@ function withOperator(fn: (user: MockUser, req: MockRequest) => MockResponse | P
 }
 
 route('GET', '/app/operator/firmas', withOperator((_u, req) => operatorMock.list(req.query)));
+route('POST', '/app/operator/firmas', withOperator((_u, { body }) =>
+  operatorMock.create((body ?? {}) as Partial<OperatorFirmaCreate>, (login) => users.some((u) => u.login === login && !u.deleted)),
+));
 route('GET', '/app/operator/firmas/:id', withOperator((_u, req) => operatorMock.get(req.params.id)));
 route('PUT', '/app/operator/firmas/:id', withOperator((_u, { params, body }) => operatorMock.update(params.id, (body ?? {}) as Partial<OperatorFirmaInput>)));
 

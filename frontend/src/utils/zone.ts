@@ -38,3 +38,12 @@ export function fromZonedInput(v: string, timeZone?: string): string | null {
   const first = guess - zoneOffset(guess, timeZone);
   return new Date(guess - zoneOffset(first, timeZone)).toISOString();
 }
+
+/** IANA zones of the browser (all modern browsers have the list); a current value outside it stays selectable anyway. */
+export const TIME_ZONES: string[] = (() => {
+  try {
+    return (Intl as unknown as { supportedValuesOf(k: string): string[] }).supportedValuesOf('timeZone');
+  } catch {
+    return ['UTC', 'Europe/Warsaw', 'Europe/Berlin', 'Europe/Kyiv'];
+  }
+})();

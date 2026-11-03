@@ -1,8 +1,8 @@
 import { Outlet, useNavigate, useParams, useSearchParams } from 'react-router';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Group, Pagination, Paper, Stack, Table, Text, TextInput } from '@mantine/core';
+import { Button, Group, Pagination, Paper, Stack, Table, Text, TextInput } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { IconSearch } from '@tabler/icons-react';
+import { IconPlus, IconSearch } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
 import { expiresDay, OPERATOR_KEY, operatorApi, type OperatorFirma } from '@/api/operator';
@@ -53,7 +53,15 @@ export function OperatorPage() {
 
   return (
     <>
-      <PageHeader title={t('nav.operator')} subtitle={q.data?.total} />
+      <PageHeader
+        title={t('nav.operator')}
+        subtitle={q.data?.total}
+        actions={
+          <Button leftSection={<IconPlus size={16} />} onClick={() => void navigate({ pathname: '/operator/new', search: params.toString() })}>
+            {t('operator.add')}
+          </Button>
+        }
+      />
       <Stack gap="sm">
         <Text size="sm" c="dimmed">
           {t('operator.intro')}

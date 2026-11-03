@@ -34,20 +34,25 @@ export function TopBar({ mobileOpened, onToggleMobile }: Props) {
           {user.firma.name}
         </span>
       )}
-      <TextInput
-        ref={searchRef}
-        className={classes.search}
-        placeholder={t('topbar.search.placeholder')}
-        aria-label={t('topbar.search.placeholder')}
-        leftSection={<IconSearch size={16} />}
-        rightSection={
-          <Kbd size="xs" className={classes.kbd}>
-            Ctrl K
-          </Kbd>
-        }
-        rightSectionWidth={62}
-        rightSectionPointerEvents="none"
-      />
+      {/* The search covers the firma's data (plates, drivers, invoices); the operator has no firma. */}
+      {user.firma ? (
+        <TextInput
+          ref={searchRef}
+          className={classes.search}
+          placeholder={t('topbar.search.placeholder')}
+          aria-label={t('topbar.search.placeholder')}
+          leftSection={<IconSearch size={16} />}
+          rightSection={
+            <Kbd size="xs" className={classes.kbd}>
+              Ctrl K
+            </Kbd>
+          }
+          rightSectionWidth={62}
+          rightSectionPointerEvents="none"
+        />
+      ) : (
+        <div className={classes.spacer} />
+      )}
       <Tooltip label={t('topbar.notifications')}>
         {/* The counter will come from the backend (notifications endpoint); hidden until then. */}
         <Indicator color="red" size={16} offset={4} disabled>

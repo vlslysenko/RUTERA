@@ -36,7 +36,38 @@ export interface OperatorFirmaInput {
   expiresAt: string | null;
 }
 
+/**
+ * Body of POST /app/operator/firmas (backend 2d16fdc): a new firma and its first owner (role OWNER, the firma's
+ * language). Omitted options take the backend defaults (lang en, UTC, EUR, STANDARD, 10 vehicles, no AI, not test).
+ * 422 per field, nested with a dot: shortCode operator.firma.short_code_taken, owner.login admin.user.login_taken, ...
+ */
+export interface OperatorFirmaCreate {
+  name: string;
+  /** Letters, digits, - and _, 2..32, upper-cased by the backend. */
+  shortCode: string;
+  /** ISO 3166-1 alpha-2. */
+  country: string;
+  lang: string;
+  timezone: string;
+  baseCurrency: string;
+  plan: string;
+  vehicleLimit: number;
+  aiAccess: boolean;
+  test: boolean;
+  expiresAt: string | null;
+  owner: { login: string; firstName: string; lastName: string | null; password: string | null };
+}
+
+/** 201 of the creation; `password` is the generated owner password (16 characters) when none was given, shown once. */
+export interface OperatorFirmaCreated {
+  firma: OperatorFirma;
+  ownerId: number;
+  ownerLogin: string;
+  password: string | null;
+}
+
 export const operatorApi = {
+  create: (body: OperatorFirmaCreate) => api<OperatorFirmaCreated>('/operator/firmas', { method: 'POST', body }),
   list: (q: string, page: number, size: number) => api<Page<OperatorFirma>>('/operator/firmas', { query: { q: q || undefined, page, size } }),
   get: (id: number | string) => api<OperatorFirma>(`/operator/firmas/${id}`),
   update: (id: number | string, body: OperatorFirmaInput) => api<OperatorFirma>(`/operator/firmas/${id}`, { method: 'PUT', body }),

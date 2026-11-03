@@ -29,6 +29,7 @@ import { TransactionForm } from '@/pages/fuel/TransactionForm';
 import { TransactionsPage } from '@/pages/fuel/TransactionsPage';
 import { VehicleDetail } from '@/pages/fleet/VehicleDetail';
 import { VehicleForm } from '@/pages/fleet/VehicleForm';
+import { OperatorFirmaCreate } from '@/pages/operator/OperatorFirmaCreate';
 import { OperatorFirmaDetail } from '@/pages/operator/OperatorFirmaDetail';
 import { OperatorPage } from '@/pages/operator/OperatorPage';
 import { PasswordTab } from '@/pages/settings/PasswordTab';
@@ -349,7 +350,10 @@ export const router = createBrowserRouter([
             {
               path: SCREENS.operator.path,
               element: <OperatorPage />,
-              children: [{ path: ':id', element: <OperatorFirmaDetail mode="drawer" /> }],
+              children: [
+                { path: 'new', element: <OperatorFirmaCreate /> },
+                { path: ':id', element: <OperatorFirmaDetail mode="drawer" /> },
+              ],
             },
             { path: `${SCREENS.operator.path}/:id/page`, element: <OperatorFirmaDetail mode="page" /> },
           ]),

@@ -122,7 +122,8 @@ Operator console `/operator` (backend 8f6708c, `/app/operator/firmas`): for role
 and therefore sees just this screen, profile and password. Lists every firma (search by name or short code) with
 plan, vehicles against the limit, active logins, AI access, state (active / blocked / expired, test) and access
 end; the card edits plan, vehicle limit, AI access, access on/off and "access until" (the end of that day in UTC,
-empty = no end) with PUT.
+empty = no end) with PUT. "New company" (`/operator/new`, backend 2d16fdc) creates a firma with its first owner;
+an empty owner password makes the backend generate one, shown once with a copy button.
 
 The driver cabinet `/driver` is a separate shell for the phone (tabs Today / Hours / Documents / Me at the bottom, no
 side menu); users with role DRIVER start there. It reads the driver linked to the login (`User.driver` from

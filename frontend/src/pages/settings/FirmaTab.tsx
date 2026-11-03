@@ -15,17 +15,9 @@ import { applyServerErrors } from '@/forms/serverErrors';
 import { LANGUAGES } from '@/i18n/languages';
 import { CURRENCIES } from '@/pages/trips/tripFormat';
 import { countryName } from '@/utils/countries';
+import { TIME_ZONES as ZONES } from '@/utils/zone';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/** IANA zones of the browser (all modern browsers have the list); the current value stays selectable anyway. */
-const ZONES: string[] = (() => {
-  try {
-    return (Intl as unknown as { supportedValuesOf(k: string): string[] }).supportedValuesOf('timeZone');
-  } catch {
-    return ['UTC', 'Europe/Warsaw', 'Europe/Berlin', 'Europe/Kyiv'];
-  }
-})();
 
 const schema = z.object({
   name: z.string().trim().min(1, 'validation.required').max(200, 'validation.too_long'),
