@@ -211,9 +211,9 @@ next `GET /app/auth/me` (the client calls it on every load).
 `Entry = {id, at, firmaId, userId, userLogin, channel: UI | API | MCP | SYSTEM, module, action, entityType, entityId,
 summary, details (JSON) | null, ip, requestId}`. `channel` tells where the action came from: the web application
 (UI), the public API or OAuth (API), a tool of the MCP server (MCP), a scheduled job (SYSTEM); API and MCP are the
-actions "via AI". `from` / `to` are days in the firma's time zone (both included), `module` e.g. `fleet`, `driver`,
-`trip`, `finance`, `fuel`, `api`, `operator`; `q` searches summary, action and entity type; an unknown channel is 422
-`channel: validation.invalid_value`. Only the own firma: another `firmaId` is 403; the operator (SUPERUSER) passes
+actions "via AI". `channel` takes one value or a comma list (`channel=API,MCP` = everything via AI). `from` / `to`
+are days in the firma's time zone (both included), `module` e.g. `fleet`, `driver`, `trip`, `finance`, `fuel`, `api`,
+`operator`; `q` searches summary, action and entity type; an unknown channel is 422 `channel: validation.invalid_value`. Only the own firma: another `firmaId` is 403; the operator (SUPERUSER) passes
 `firmaId` or reads all firmas (days in UTC then). Also `GET /api/v1/audit` (MCP tool `audit_list`), the one admin
 function of the public API. The journal is never changed or deleted through the API.
 

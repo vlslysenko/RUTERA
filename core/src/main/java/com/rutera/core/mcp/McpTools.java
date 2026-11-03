@@ -115,7 +115,8 @@ public class McpTools {
                     + values(DriverAbsence.Status.values())),
             Map.entry("absences", "kind = " + values(DriverAbsence.Kind.values()) + "; status = "
                     + values(DriverAbsence.Status.values())),
-            Map.entry("audit", "channel = " + values(AuditLog.Channel.values()) + " (API and MCP = actions via AI); "
+            Map.entry("audit", "channel = " + values(AuditLog.Channel.values())
+                    + ", one or a comma list (API,MCP = actions via AI); "
                     + "from / to are days in the firma's time zone"),
             Map.entry("trips_files", "kind = " + values(TripFile.Kind.values())
                     + "; uploads and file contents are not tools (multipart and binary)"),

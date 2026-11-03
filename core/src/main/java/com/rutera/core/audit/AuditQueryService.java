@@ -27,16 +27,19 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * The audit journal of a firma ({@code GET /app/admin/audit}, {@code /api/v1/audit}, {@code admin.audit/view}):
- * newest first, filtered by period, user, module, channel and text. The channel shows where an action came from;
+ * newest first, filtered by period, user, module, channel (one or a comma list, e.g. {@code API,MCP} for the
+ * actions via AI) and text. The channel shows where an action came from;
  * API and MCP are the actions "via AI". The operator (SUPERUSER) may pass {@code firmaId} or read all firmas;
  * anyone else reads their own firma only.
  */
@@ -81,7 +84,19 @@ public class AuditQueryService {
             scope = me.firmaId();
         }
         Map<String, String> errors = new LinkedHashMap<>();
-        AuditLog.Channel ch = InputFields.parseEnum(AuditLog.Channel.class, "channel", channel, false, errors);
+        Set<AuditLog.Channel> channels = EnumSet.noneOf(AuditLog.Channel.class);
+        String list = InputFields.blankToNull(channel);
+        if (list == null) {
+            channels.addAll(EnumSet.allOf(AuditLog.Channel.class));
+        } else {
+            for (String one : list.split(",")) {
+                AuditLog.Channel ch = InputFields.parseEnum(AuditLog.Channel.class, "channel", one.strip(), true,
+                        errors);
+                if (ch != null) {
+                    channels.add(ch);
+                }
+            }
+        }
         if (page < 0) {
             errors.put("page", ErrorCodes.FIELD_INVALID_VALUE);
         }
@@ -98,7 +113,7 @@ public class AuditQueryService {
         String mod = InputFields.blankToNull(module);
         String text = InputFields.blankToNull(q);
         Page<AuditLog> result = journal.search(scope, start, end, userId,
-                mod == null ? null : mod.toLowerCase(Locale.ROOT), ch,
+                mod == null ? null : mod.toLowerCase(Locale.ROOT), channels,
                 text == null ? null : "%" + text.toLowerCase(Locale.ROOT) + "%", PageRequest.of(page, size));
         Map<Long, String> logins = new HashMap<>();
         for (AppUser u : users.findAllById(result.getContent().stream().map(AuditLog::getUserId)

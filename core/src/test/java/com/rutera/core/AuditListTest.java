@@ -58,6 +58,11 @@ class AuditListTest extends AbstractIntegrationTest {
         api.get("items").forEach(i -> channels.add(i.get("channel").asString()));
         assertThat(channels).containsExactly("API");
         assertThat(body(c.get("/app/admin/audit?module=fleet&q=001")).get("total").asLong()).isEqualTo(1);
+        JsonNode viaAi = body(c.get("/app/admin/audit?module=fleet&channel=API,MCP"));
+        assertThat(viaAi.get("total").asLong()).as("comma list: the actions via AI").isEqualTo(1);
+        assertThat(body(c.get("/app/admin/audit?module=fleet&channel=UI,api")).get("total").asLong()).isEqualTo(2);
+        assertThat(body(c.get("/app/admin/audit?channel=API,FAX")).get("details").get("channel").asString())
+                .isEqualTo("validation.invalid_value");
         assertThat(body(c.get("/app/admin/audit?userId=" + owner.getId() + "&module=api")).get("items").get(0)
                 .get("action").asString()).isEqualTo("api_token_created");
         assertThat(body(c.get("/app/admin/audit?from=2000-01-01&to=2000-01-31")).get("total").asLong()).isZero();
