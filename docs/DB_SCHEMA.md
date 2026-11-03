@@ -1,6 +1,8 @@
 # RUTERA — эскиз схемы базы данных
 
-**Версия:** 0.1 от 2026-10-27. **Статус:** эскиз для планирования, не DDL. **Источник решений:** `docs/REQUIREMENTS.md` v0.5, раздел 16 (дефолты подтверждены 27.10.2026; закрыты открытые вопросы 1, 6, 8, 9, 10, 11, 13, частично 2 и 12).
+**Версия:** 0.2 от 2026-11-03 (0.1 от 2026-10-27). **Version 0.2** adds section 12 (in English): the schema as
+built by the Flyway migrations V1-V14 and how it differs from this sketch; sections 0-11 stay the planning sketch.
+**Статус:** эскиз для планирования, не DDL. **Источник решений:** `docs/REQUIREMENTS.md` v0.5, раздел 16 (дефолты подтверждены 27.10.2026; закрыты открытые вопросы 1, 6, 8, 9, 10, 11, 13, частично 2 и 12).
 
 Стек: MySQL 8.4, Hibernate 7 с `@TenantId`, Flyway. 56 таблиц в 8 группах. Визуальная версия с ER-диаграммами: https://claude.ai/artifact/CaWzXPnFBAbA3WozsqBSVg.
 
@@ -263,8 +265,78 @@
 - Тарифы платных дорог: ручное ведение таблиц по странам — объём работы и актуальность; альтернатива — платный сервис позже.
 - Глубина хранения тахографических данных и позиций (значения выше — предложение).
 
+## 12. Schema as built (Flyway V1-V14, 2026-11-03)
+
+The source of truth is `common/src/main/resources/db/migration/V*.sql`; every migration starts with a comment that
+lists its deviations from this sketch. 47 tables plus `flyway_schema_history`; all 14 migrations are applied in
+every test run on a fresh MySQL 8.4 container (Testcontainers) and were checked on a fresh MySQL 8.4.11, the image of
+the standalone package. Hibernate runs with `ddl-auto=validate`.
+
+| Migration | Tables created (altered) |
+|---|---|
+| V1 init | firma, custom_role, app_user, user_privilege, remember_me_token, activation_token, totp_recovery_code, api_token, stored_file, audit_log, email_outbox, notification, firma_setting, app_setting, job_lock |
+| V2 fleet | vehicle, vehicle_document |
+| V3 drivers | driver, driver_card, driver_document (vehicle: foreign key of default_driver_id) |
+| V4 tachograph files | tacho_file |
+| V5 trips and orders | contractor, trip, transport_order, trip_driver, trip_stop |
+| V6 tachograph facts | tacho_activity, driver_violation (tacho_file.facts_version) |
+| V7 driver HR | driver_absence, driver_day, driver_pay_rate, driver_payment |
+| V8 invoices | invoice, invoice_line, invoice_payment, reminder_schedule, reminder_sent (transport_order.invoice_id) |
+| V9 fuel | fuel_card, fuel_import, fuel_transaction, fuel_mapping |
+| V10 toll tariffs | toll_tariff |
+| V11 CMR | cmr_document |
+| V12 API calls | api_call |
+| V13 driver cabinet | trip_file (driver_absence.status and decision_note, firma.drivers_see_pay) |
+| V14 OAuth | oauth_client, oauth_code (api_token: kind, oauth_client_id, access_expires_at, refresh_hash) |
+
+**Not created yet** (sketch tables that wait for their feature): `subscription` (billing), `gps_device`,
+`driver_vehicle_assignment`, `odometer_reading`, `vehicle_position`, `vehicle_live` (GPS and map), `tacho_vehicle_use`,
+`tacho_place`, `tacho_event` (further tachograph facts), `driver_hos_day` (computed on request instead, see below),
+`trip_plan` (saved calculator plans), `currency_rate` (conversion to the base currency), `reminder_step` (steps are
+JSON in `reminder_schedule`).
+
+**New tables** (not in the sketch): `invoice_payment` (the sketch's `payment`), `fuel_mapping` (column mapping of a
+provider export confirmed by the firma), `api_call` (one row per public API or MCP call with a token), `trip_file`
+(photos and documents of a trip uploaded by the driver or the office), `oauth_client` (dynamic client registration,
+global), `oauth_code` (authorization codes, 60 seconds, single use).
+
+**Differences in the tables that exist:**
+
+- Group 1. `firma_setting` / `app_setting` use `setting_key` / `setting_value` (KEY is reserved). `api_token.kind` is
+  PERSONAL or OAUTH: an OAuth connection is a token row whose `token_hash` is the current access token (one hour,
+  `access_expires_at`) and `refresh_hash` the current refresh token (`expires_at` = its end); both rotate. The role
+  SUPERUSER (no firma) is the operator of a cloud installation.
+- Group 2. `vehicle.gps_device_id` waits for `gps_device`; the plate is unique among non-deleted vehicles through the
+  generated column `plate_key`.
+- Group 3. No `driver.default_vehicle_id`: the pairing lives in `vehicle.default_driver_id` only. `driver_day` holds
+  manual entries only; the working-day calendar is computed on request from tachograph data and absences.
+  `driver_absence.status` is REQUESTED, APPROVED or REJECTED (requests from the driver cabinet), with
+  `decision_note`, `approved_by`, `approved_at`.
+- Group 4. `tacho_file` has `warnings_count` / `warnings` instead of a parse status (rejected files are not stored)
+  and `match_kind`. `tacho_activity` keeps the intervals of every file as they are (card or vehicle unit); the
+  timeline of a driver is merged when it is read, so deleting a file needs no recalculation. `driver_violation` is
+  recomputed from that timeline.
+- Group 5. `transport_order` carries its own loading and unloading place and `customer_ref`; `trip.cost_*` waits for
+  the trip costs. `cmr_document` holds CMR notes issued by RUTERA (DRAFT, ISSUED, CANCELLED; parties, goods and
+  signatures as JSON, column `goods` because LINES is reserved; the issued PDF in `stored_file`); scans with OCR can
+  use the same table later. `toll_tariff` is per firma (each firma keeps its own rates), not global; `road_class` is
+  not used yet.
+- Group 6. The order link is `transport_order.invoice_id` (several orders on one invoice); `invoice.status` is not
+  stored but follows from payments, due date and the cancelled flag; `invoice_line.vat_code` is RATE, ZW, NP or OO
+  (`vat_rate` only for RATE); `reminder_sent.offset_days` replaces `step_id`.
+- Group 7. `fuel_card` keeps the masked number and `card_hash` (SHA-256) for matching, never the number;
+  `fuel_transaction.match_kind` records how vehicle and driver were found; no partitions yet.
+- Group 8. `job_lock` exists but ShedLock is not used yet (one instance). E-mails are plain text from the i18n
+  bundles, no template engine.
+
+**Section 9 as built:** no partitions yet (`tacho_activity`, `fuel_transaction`, `audit_log` are plain tables with
+foreign keys; partitioning comes with the cloud volumes); no `mysqldump` before migrations: the standalone package
+backs up the database and the uploaded files every night and on demand (`backup now` before an update); no
+`R__demo_data.sql` (the tests create their own data); the cloud migration job does not exist yet.
+
 ## История изменений
 
 | Версия | Дата | Изменения |
 |---|---|---|
 | 0.1 | 2026-10-27 | Первый эскиз: 8 групп, соглашения, заметки по MySQL и Flyway, заимствования из SMDP; соглашения подтверждены в тот же день (REQUIREMENTS.md v0.5) |
+| 0.2 | 2026-11-03 | Section 12 (in English): the schema as built by V1-V14, tables not created yet, new tables, differences per group, section 9 as built |

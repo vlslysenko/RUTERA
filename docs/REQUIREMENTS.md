@@ -2,7 +2,8 @@
 
 **Назначение:** единый входной документ для сессии планирования. Собрано из обсуждений в проекте 27.10.2026, отчёта по переиспользованию SMDP и исследования конкурентов.
 
-**Версия:** 0.5 от 2026-10-27.
+**Версия:** 0.6 от 2026-11-03 (0.5 от 2026-10-27). **Version 0.6** records what was built until 2026-11-03:
+section 17 (new) and the lines marked "Update 2026-11-03". Parts revised in 0.6 are written in English.
 
 **Легенда**
 
@@ -129,6 +130,14 @@
 - 💡 Архитектура: один общий слой сервисов (бизнес-логика, права, фильтр по Firma), над ним два входа. (1) Внутренний интерфейс для React: контроллеры под `/app/...`, сессия + CSRF, формат ответов под нужды экранов. (2) Публичный API `/api/v1` с описанием OpenAPI и персональными токенами; MCP-сервер (Spring AI MCP) работает поверх публичного API от имени пользователя с его правами. Фронтенд не зависит от публичного API, но публичный API всё равно покрывает все функции, потому что оба входа зовут одни и те же сервисы.
 - 💡 Включение модуля: флаг тарифа на уровне Firma («Управление через ИИ»). Без него публичный API и MCP для фирмы закрыты и токены не выдаются. Действия через API/MCP пишутся в аудит с пометкой «через ИИ»; возможны лимиты вызовов по тарифу.
 - 💡 Контроль полноты: автоматический тест или отчёт о функциях сервисного слоя, которые не покрыты публичным API, чтобы принцип «все функции доступны ИИ» не разъехался с кодом со временем.
+- ✅ Update 2026-11-03: built as described, with three differences. (1) The MCP server is RUTERA's own endpoint
+  `POST /mcp` (JSON-RPC, Streamable HTTP without sessions); its tools are generated from the OpenAPI document of
+  `/api/v1`, so a new public endpoint becomes a tool without code. Spring AI MCP was not used: its starter needs
+  Spring Boot 4.1. (2) Besides personal tokens, MCP clients connect with OAuth 2.1 (authorization code with PKCE,
+  dynamic client registration, consent page served by the backend), which the claude.ai connector requires; an OAuth
+  connection is a token of kind OAUTH and is revoked like a personal one. (3) Every API and MCP call is logged per
+  token in `api_call` and rate-limited per token; the audit log does not mark the channel "via AI" yet. The
+  completeness check exists as a test of the tool list (`McpTest`) and a script comparing controllers and README.
 - ✅ (27.10.2026) Авторизация MCP и внешних API-клиентов: персональные API-токены пользователя (в базе только хеш), выдаются только при включённом модуле; права токена = права пользователя.
 - ✅ Руководства для ИИ по ролям в `docs/ai-roles/` (принцип 8) входят в этот платный модуль: контекст роли, подключение, таблица доступа, типичные задачи с инструментами, ограничения. Сейчас заготовки версии 0.1, названия инструментов — placeholder до появления API. 💡 MCP-сервер отдаёт руководство роли текущего пользователя как ресурс и стартовую инструкцию; фактическая карта прав пользователя всегда важнее текста руководства.
 
@@ -139,6 +148,12 @@
 Владелец, диспетчер, логист, бухгалтер, водитель.
 
 💡 Плюс технические роли по образцу SMDP: суперпользователь (сервис), API/MCP-клиент, пользовательская роль с индивидуальным набором прав (аналог `OwnOpRole`).
+
+✅ Update 2026-11-03: the roles in code are OWNER, DISPATCHER, LOGISTICIAN, ACCOUNTANT, DRIVER, CUSTOM (own level and
+privilege set) and SUPERUSER, the operator of a cloud installation (no firma; operator console
+`/app/operator/firmas`: plan, vehicle limit, AI access, blocking, end date, onboarding of a firma with its first
+owner). The role API exists in the enum but is not used: programs act through personal tokens or OAuth connections
+of normal users, with their privileges.
 
 ---
 
@@ -155,34 +170,35 @@
 | Слой | Компонент | Выбор | Статус |
 |---|---|---|---|
 | Бэкенд | Язык | Java | ✅ |
-| Бэкенд | Версия Java | 25 (как в SMDP) | 💡 |
-| Бэкенд | Фреймворк | Spring Boot 4, Spring Security (вход, 2FA, роли) | 💡 (как в SMDP) |
-| Бэкенд | Сервер | Jetty (как в SMDP) | 💡 |
-| Бэкенд | ORM | Hibernate 7 | 💡 |
-| Бэкенд | База данных | MySQL (8/9) | ✅ |
+| Бэкенд | Версия Java | 25 (как в SMDP) | ✅ built |
+| Бэкенд | Фреймворк | Spring Boot 4.0.8, Spring Security 7: session sign-in, lockout, roles and privileges; 2FA not built yet | ✅ built |
+| Бэкенд | Сервер | Jetty (как в SMDP) | ✅ built |
+| Бэкенд | ORM | Hibernate 7 | ✅ built |
+| Бэкенд | База данных | MySQL 8.4 LTS (8.4.11 in the standalone package) | ✅ |
 | Бэкенд | Миграции схемы | Flyway (версионные SQL в модуле `common`); в standalone перед миграцией `mysqldump` | ✅ (27.10.2026) |
 | Бэкенд | Мультитенантность | сущность Firma + Hibernate `@TenantId` на каждой бизнес-таблице, вторая проверка в сервисном слое | ✅ (27.10.2026) |
 | Бэкенд | Фронт ↔ бэк | внутренний интерфейс для React (контроллеры `/app/...`), сессионная cookie + SameSite, CSRF включён; не публичный API | ✅ решение, ✅ cookie + CSRF (27.10.2026) / 💡 детали реализации |
-| Бэкенд | Публичный API (платный модуль) | REST `/api/v1` + OpenAPI (springdoc), персональные токены (хеш в базе), флаг тарифа на Firma | 💡 (персональные токены ✅ 27.10.2026) |
-| Бэкенд | MCP (платный модуль) | Spring AI MCP поверх публичного API | 💡 |
-| Бэкенд | Фоновые задачи и почта | Spring Scheduler без брокера; очередь писем = таблица `email_outbox`; блокировка задач ShedLock на MySQL | ✅ (27.10.2026) |
-| Бэкенд | Письма | Spring Mail + шаблоны Thymeleaf (из SMDP cloud) | 💡 |
-| Бэкенд | Парсер DDD | свой на Java, на основе открытых парсеров | 💡 |
-| Бэкенд | Файлы (CMR, сканы) | одна таблица `stored_file`; хранилище — диск в standalone, S3-совместимое OVH в облаке (настройка, не схема) | ✅ (27.10.2026) |
+| Бэкенд | Публичный API (платный модуль) | REST `/api/v1` + OpenAPI 3 (springdoc-openapi 3.0.3) at `/api/v1/openapi.json`; personal tokens and OAuth connections (hash in the database); `firma.ai_access`; rate limit per token | ✅ built 2026-11-02 |
+| Бэкенд | MCP (платный модуль) | own endpoint `POST /mcp` over the public API (tools from the OpenAPI document); OAuth 2.1 for the claude.ai connector; Spring AI not used (needs Spring Boot 4.1) | ✅ built 2026-11-02 |
+| Бэкенд | Фоновые задачи и почта | Spring Scheduler без брокера; очередь писем = таблица `email_outbox`; ShedLock not used yet (one instance; table `job_lock` reserved for the cloud) | ✅ built, ShedLock later |
+| Бэкенд | Письма | Spring Mail; plain-text e-mails from the i18n bundles in the recipient's language (no Thymeleaf yet); SMTP from `SPRING_MAIL_*` | ✅ built |
+| Бэкенд | Парсер DDD | own Java module `tacho` (Gen1, Gen2, Gen2v2; driver cards and vehicle units) | ✅ built |
+| Бэкенд | Файлы (CMR, сканы) | одна таблица `stored_file`; хранилище — диск в standalone, S3-совместимое OVH в облаке (настройка, не схема) | ✅ (27.10.2026); disk built, S3 later |
 | Фронтенд | Основа | React + TypeScript | ✅ |
-| Фронтенд | Сборка | Vite | 💡 |
-| Фронтенд | UI-библиотека | Mantine (таблицы, формы) | 💡 |
-| Фронтенд | Данные / формы | TanStack Query; React Hook Form + Zod | 💡 |
-| Фронтенд | Карта | Leaflet + OpenStreetMap | 💡 |
-| Фронтенд | i18n | react-i18next, тексты из тех же языковых файлов, что у бэкенда | 💡 |
-| Фронтенд | Мобильный | PWA, один интерфейс для ПК и телефона, отдельный кабинет водителя | 💡 |
-| Инфраструктура | Standalone | Docker: один `docker compose` (приложение + MySQL) | 💡 |
+| Фронтенд | Сборка | Vite | ✅ built |
+| Фронтенд | UI-библиотека | Mantine (таблицы, формы, date pickers) | ✅ built |
+| Фронтенд | Данные / формы | TanStack Query; React Hook Form + Zod | ✅ built |
+| Фронтенд | Карта | Leaflet + OpenStreetMap (route map of the calculator) | ✅ built |
+| Фронтенд | i18n | react-i18next with its own locale files; every key is copied into the backend bundles (`messages_xx.properties`) | ✅ built |
+| Фронтенд | Мобильный | PWA, один интерфейс для ПК и телефона, отдельный кабинет водителя | ✅ built |
+| Инфраструктура | Standalone | Docker: `docker-compose.standalone.yml` (MySQL, RUTERA image from ghcr.io, nightly backups, optional Valhalla) | ✅ built 2026-11-02 |
 | Инфраструктура | Облако | Kubernetes на OVH (возможно AWS, но OVH проще и дешевле) | ✅ k8s, OVH или AWS / 💡 OVH |
-| Инфраструктура | CI/CD | GitHub Actions (бесплатно) | 💡 |
+| Инфраструктура | CI/CD | GitHub Actions: `ci.yml` (mvn verify with Testcontainers, client lint, type check and build), `release.yml` (image to ghcr.io on tags) | ✅ built |
 | Инфраструктура | Логи, мониторинг | Logback как в SMDP; позже Prometheus + Grafana | 💡 |
-| Инфраструктура | Маршрутизация | Valhalla или GraphHopper на OSM (для 4.8) | 💡 |
+| Инфраструктура | Маршрутизация | Valhalla 3.9 (MIT, truck costing) on OSM, optional service; geocoding with Nominatim | ✅ chosen and integrated |
 | Инфраструктура | GPS-сервер | Traccar (опция) | 💡 |
 | AI | OCR CMR | Tesseract основной, AI-OCR как опция | 💡 |
+| Бэкенд | PDF | Apache PDFBox 3.0.7 (CMR forms); iText avoided (AGPL) | ✅ built |
 
 Всё бесплатное и open-source, платим только за хостинг и домен.
 
@@ -196,6 +212,13 @@
 - ✅ (27.10.2026) Одна БД для всех фирм с `firma_id` в каждой бизнес-таблице и фильтрацией на уровне Hibernate (`@TenantId`); проверка совпадения фирмы в сервисном слое как второй рубеж; единственное исключение — `app_user`, где вход ищет логин до того, как известна фирма. В SMDP фильтрация только ручная, и документ `MULTITENANT_FIRMA_NULL_LEAK.md` описывает утечки, их нужно избежать. Подробности: раздел 16 и `docs/DB_SCHEMA.md`.
 - 💡 Миграция standalone → cloud по образцу модуля `utils` SMDP.
 - 💡 Standalone = `docker compose`; облако = k8s на OVH, CI/CD через GitHub Actions.
+- ✅ Update 2026-11-03: standalone package built: `docker-compose.standalone.yml` (MySQL 8.4.11, RUTERA image from
+  `ghcr.io/vlslysenko/rutera`, nightly backup of the database and the uploaded files with tested archives and
+  restore, optional Valhalla routing), settings in `.env`, host port 18090 by default. The "mysqldump before every
+  migration" of section 7 is replaced by the nightly backup plus `backup now` before an update (README, "Deploy
+  (standalone)"). The paid options of a standalone installation come from its environment (`RUTERA_AI_ACCESS`,
+  `RUTERA_PLAN`, `RUTERA_VEHICLE_LIMIT`). GitHub Actions: CI on every push, image release on tags `v*.*.*`. The
+  cloud variant (k8s, S3 storage, several instances) is not built yet; its operator console and onboarding are.
 
 ---
 
@@ -350,6 +373,36 @@
 
 ---
 
+## 17. Implementation status (as of 2026-11-03)
+
+What exists in the repository (`main`); the API of every part is described in `README.md`. "Later" = not built yet.
+
+| Module | Built | Later |
+|---|---|---|
+| Platform | Session sign-in with CSRF and lockout, roles and privileges (`@RequiresPrivilege`), user administration, profile and password, 26 languages, audit log, Flyway V1-V14, standalone package, CI and image release | 2FA (TOTP), remember-me, invitations by e-mail, S3 storage, ShedLock and several instances, audit channel API/MCP |
+| 4.1 Fleet | Vehicles and trailers (Euro class, axles, weight, height, consumption, tachograph generation), documents with deadlines | GPS devices, odometer history, service events |
+| 4.2 Map and GPS | Route map of the trip calculator | Live map, trackers (Traccar, Teltonika), GNSS from DDD |
+| 4.3 Tachograph | DDD upload (Gen1, Gen2, Gen2v2), matching to driver or vehicle, activity timeline, violations of 561/2006 with severities of 2016/403, acknowledgement | Remote download APIs, places and border crossings, events and faults |
+| 4.4 Driver HR | Absences (entered by the office or requested by the driver and decided), working-day calendar from tachograph data and manual entries, pay rates, payments | Pay calculation by country rules |
+| 4.5 Invoices | Recording of sales and purchase invoices with lines and VAT codes, payments, debts with ageing, reminder plans sent through the e-mail outbox | Issuing, KSeF, currency conversion (`currency_rate`) |
+| 4.6 CMR | CMR notes issued by RUTERA (drafts from orders and trips, numbering, PDF of the four copies), photos and documents from the road as trip files | OCR of scans, e-CMR (eFTI) |
+| 4.7 Fuel | Fuel cards, import of CSV/XLSX exports with column mapping, preview and undo, matching to vehicle, driver and trip, manual entries | Provider presets (waiting for real exports), provider APIs, consumption reports |
+| 4.8 Trip calculator | 561/2006 planner for one driver or a crew of two (state from tachograph data, fresh or manual), costs (fuel, driver pay, tolls from the firma's own tariffs, other), truck routing with Valhalla and geocoding | Saved plans (`trip_plan`), trip costs on the trip, toll tariffs from real invoices |
+| 4.9 Load exchanges | - | Trans.eu, TIMOCOM |
+| 4.10 Logistics | Contractors, transport orders, trips with crew, stops and orders | Planning and optimisation |
+| 4.11 Driver cabinet | Own data only: today and trips, hours and violations, absence requests, photos and documents for the trip, own pay if the firma allows it | Offline queue for photos, fuel receipts without a card |
+| 4.12 AI access | Public API `/api/v1` with OpenAPI, MCP server, personal tokens, OAuth 2.1 for claude.ai, call log and rate limit, switch per firma (operator console or standalone environment) | AI role guides with the real tool names (`docs/ai-roles/` are still 0.1), price of the module |
+| Operator (cloud) | SUPERUSER console: firmas with users and vehicles, plan, vehicle limit, AI access, blocking, end date, onboarding of a firma with its first owner | Billing (`subscription`), cloud deployment on k8s |
+
+Decisions taken during implementation (all confirmed by Volodymyr or the coordinator at the time):
+
+- `firma.vehicle_limit` is shown but not enforced ("no limits for now", 2026-10-30).
+- Ports: the development backend runs on 18082, the standalone package publishes 18090; 8080-8089 stay free for SMDP on the owner's machine.
+- Dependencies: versions older than 30 days, never the newest release; base images and GitHub Actions pinned to exact versions.
+- Real tachograph files hold personal data: never in the repository, the tests use synthetic files.
+
+---
+
 ## История изменений
 
 | Версия | Дата | Изменения |
@@ -359,3 +412,4 @@
 | 0.3 | 2026-10-27 | Раздел 15: каркас интерфейса и визуальный стиль (направление A, меню с группами, карточка справа + отдельная страница, стартовый экран настраиваемый, без тёмной темы); ссылка на макеты в разделе 14 |
 | 0.4 | 2026-10-27 | API и MCP — отдельный платный модуль, а не основной канал фронт ↔ бэк (принцип 4, модуль 4.12, стек, бизнес-модель, этапы 0–1); открытый вопрос 7 (цена и состав модуля), остальные вопросы перенумерованы |
 | 0.5 | 2026-10-27 | Эскиз схемы БД (раздел 16, ссылка в разделе 14); закрыты вопросы 1, 6, 8, 9, 10, 11, 13, частично 2 (валюты) и 12 (механизм тарифов); статусы в стеке: Flyway, @TenantId, outbox, файлы, CSRF, токены API; 4.5 и 4.12 обновлены |
+| 0.6 | 2026-11-03 | State as built (in English): section 17 (status per module, decisions taken during implementation), stack table statuses and choices (MCP without Spring AI, OAuth, PDFBox, Valhalla, CI), 4.12 (MCP, OAuth, call log), roles (SUPERUSER operator console), deployment (standalone package) |
