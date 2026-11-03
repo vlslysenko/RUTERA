@@ -21,7 +21,7 @@ import java.util.UUID;
  * Writes the audit journal (SMDP Dziennik). Firma, user and request id come from {@link RequestContext}, the
  * client address from the current HTTP request. The channel tells where the action came from: {@code UI} for the
  * web application ({@code /app}), {@code API} for the public API and the OAuth endpoints, {@code MCP} for tool
- * calls of the MCP server (its loopback calls of the API carry {@code X-Rutera-Via: mcp}), {@code SYSTEM} for
+ * calls of the MCP server (its loopback calls of the API carry a secret {@code X-Rutera-Via}), {@code SYSTEM} for
  * scheduled jobs without a request. API and MCP are the actions "via AI".
  * <p>
  * {@link #record(AuditEvent)} joins the caller's transaction, so a rolled-back business operation leaves no
@@ -68,11 +68,7 @@ public class AuditService {
         if (path == null || !(path.startsWith("/api/") || path.startsWith("/oauth/") || path.equals("/mcp"))) {
             return AuditLog.Channel.UI;
         }
-        String via = request.getHeader(McpTools.VIA_HEADER);
-        String from = request.getRemoteAddr();
-        boolean loopback = from != null && (from.equals("127.0.0.1") || from.equals("0:0:0:0:0:0:0:1")
-                || from.equals("::1"));
-        return path.equals("/mcp") || ("mcp".equalsIgnoreCase(via) && loopback)
+        return path.equals("/mcp") || McpTools.VIA_VALUE.equals(request.getHeader(McpTools.VIA_HEADER))
                 ? AuditLog.Channel.MCP : AuditLog.Channel.API;
     }
 

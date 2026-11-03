@@ -84,6 +84,7 @@ public class AuthService {
         Instant now = Instant.now();
         String login = request.login().trim().toLowerCase(Locale.ROOT);
         String address = http.getRemoteAddr();
+        throttle.checkProxy(http.getHeader("X-Forwarded-For"));
         long wait = throttle.retryAfter(address, now.toEpochMilli());
         if (wait > 0) {
             response.setHeader("Retry-After", String.valueOf(wait));

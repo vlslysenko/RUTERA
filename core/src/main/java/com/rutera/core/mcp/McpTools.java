@@ -53,8 +53,13 @@ public class McpTools {
 
     private static final Logger log = LoggerFactory.getLogger(McpTools.class);
     private static final String PREFIX = "/api/v1/";
-    /** Marks the loopback calls of the tools, so the audit log records the channel MCP (core.audit.AuditService). */
+    /**
+     * Marks the loopback calls of the tools, so the audit log records the channel MCP (core.audit.AuditService). The
+     * value is a secret of this process: a client cannot claim MCP for its own API calls, also not from the same
+     * host (a reverse proxy there makes every client look local).
+     */
     public static final String VIA_HEADER = "X-Rutera-Via";
+    public static final String VIA_VALUE = "mcp-" + java.util.UUID.randomUUID();
     private static final Pattern SKIP = Pattern.compile(".*/(pdf|content)$");
     private static final Set<String> ACTIONS = Set.of("issue", "cancel", "ack", "trip", "driver", "vehicle",
             "from_order", "from_trip", "route");
@@ -193,7 +198,7 @@ public class McpTools {
             }
         }
         RestClient.RequestBodySpec request = client().method(HttpMethod.valueOf(tool.method()))
-                .uri(path + query).header(HttpHeaders.AUTHORIZATION, authorization).header(VIA_HEADER, "mcp")
+                .uri(path + query).header(HttpHeaders.AUTHORIZATION, authorization).header(VIA_HEADER, VIA_VALUE)
                 .accept(MediaType.APPLICATION_JSON);
         JsonNode body = arguments.get("body");
         if (tool.hasBody() && body != null && !body.isNull()) {

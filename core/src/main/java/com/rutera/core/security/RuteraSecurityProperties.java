@@ -28,11 +28,13 @@ public record RuteraSecurityProperties(int lockoutMaxAttempts, Duration lockoutD
     /**
      * Same origin for everything, map tiles from tile.openstreetmap.org, inline styles (Mantine), the service worker
      * and the manifest from the origin, never framed. No form-action: the OAuth consent redirects to the client.
+     * object-src allows the origin and blob: because the browser's PDF viewer counts as a plugin and the client opens
+     * PDFs (CMR, trip files) from blob URLs, which inherit this policy.
      */
     public static final String DEFAULT_CSP = "default-src 'self'; script-src 'self'; "
             + "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org; "
             + "font-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; "
-            + "object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
+            + "object-src 'self' blob:; base-uri 'self'; frame-ancestors 'none'";
 
     public RuteraSecurityProperties {
         if (lockoutMaxAttempts <= 0) {
