@@ -932,6 +932,10 @@ route('PUT', '/app/admin/firma', withPrivilege('admin.firma/manage', (_u, { body
   return { status: 200, body: firmaSettings };
 }));
 
+// --- Web Push: the dev server has no service worker, so the mock answers like a server without VAPID keys ---------
+
+route('GET', '/app/push/key', withAuth(() => error(404, 'push.disabled')));
+
 // --- audit journal (admin.audit/view) ------------------------------------------------------------------
 
 route('GET', '/app/admin/audit', withPrivilege('admin.audit/view', (u, req) => auditMock.list(req.query, u.role === 'SUPERUSER' ? null : MOCK_FIRMA.id)));

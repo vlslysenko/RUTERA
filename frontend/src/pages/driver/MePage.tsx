@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { driverHrKey, hrApi } from '@/api/hr';
 import { clearOutbox, useOutbox } from '@/app/outbox';
+import { disablePush } from '@/app/push';
 import { useLogout, useUser } from '@/auth/useAuth';
 import { LanguageMenu } from '@/layout/LanguageMenu';
 import { PaymentKindChip } from '@/pages/drivers/HrChips';
@@ -15,6 +16,7 @@ import { formatMinutes, ymdIn } from '@/pages/tacho/hosFormat';
 import { Card, PartError, Stat, Waiting } from './DriverParts';
 import { MyAbsences } from './MyAbsences';
 import { InstallCard } from './InstallCard';
+import { PushCard } from './PushCard';
 import classes from './DriverApp.module.css';
 
 /** "Me": absences and requests, work days of the month, own payments of three months, language and sign-out. */
@@ -32,6 +34,8 @@ export function MePage() {
       return;
     }
     await clearOutbox(user.id).catch(() => undefined);
+    // A shared phone must not keep receiving this driver's notifications.
+    await disablePush();
     logout.mutate(undefined, { onSettled: () => void navigate('/login', { replace: true }) });
   };
   const navigate = useNavigate();
@@ -120,6 +124,7 @@ export function MePage() {
       </Card>
       )}
 
+      <PushCard />
       <InstallCard />
 
       <Card title={user.name}>

@@ -221,7 +221,15 @@ export async function clearOutbox(userId: number): Promise<void> {
 /** A network-level failure: the item waits for the next try. */
 export function isTransient(e: unknown): boolean {
   if (!(e instanceof ApiError)) return true;
-  return e.status === 0 || e.status === 408 || e.status === 429 || e.status >= 500 || (e.status === 403 && e.code === 'auth.csrf_invalid');
+  return (
+    e.status === 0 ||
+    e.status === 408 ||
+    e.status === 429 ||
+    e.status >= 500 ||
+    (e.status === 403 && e.code === 'auth.csrf_invalid') ||
+    // The first try with the same Idempotency-Key is still running on the server.
+    (e.status === 409 && e.code === 'request.in_progress')
+  );
 }
 
 function send(item: OutboxItem) {

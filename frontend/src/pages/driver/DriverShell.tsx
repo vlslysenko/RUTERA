@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { NavLink, Navigate, Outlet, useNavigate } from 'react-router';
 import { Button, Stack } from '@mantine/core';
 import { IconCalendarEvent, IconClockHour4, IconFileCertificate, IconLogout, IconUser } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { syncPush } from '@/app/push';
 import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useLogout, useUser } from '@/auth/useAuth';
 import { EmptyState } from '@/components/EmptyState';
@@ -38,6 +40,10 @@ function NotLinked() {
 export function DriverShell() {
   const { t } = useTranslation();
   const user = useUser();
+  // A phone that already receives notifications now receives them for the driver signed in now.
+  useEffect(() => {
+    void syncPush();
+  }, [user.id]);
   if (!hasPrivilege(user, PRIV.DRIVER_APP_SELF_USE)) return <Navigate to="/" replace />;
 
   return (

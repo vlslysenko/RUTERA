@@ -182,6 +182,16 @@ for the next sign-in of the same user; other refusals (422, 403, 404, 409) mark 
 "Try again" and "Remove". The bar under the cabinet header lists everything waiting; the trip files and the absence
 list show their waiting items too. Signing out with unsent items asks first and then deletes them from the phone.
 
+Web Push (`src/app/push.ts`, card in the cabinet's "Me" tab, handlers in `public/sw-extra.js`; backend `/app/push`):
+the card is shown only where push can work (a service worker is active, `GET /app/push/key` answers, on iPhone only
+for the installed app; otherwise it says how to install). Turning it on asks for permission, subscribes with the
+server's VAPID key (a subscription made with an older key is replaced) and posts it; off deletes it on the server and
+in the browser; "Send a test notification" calls `POST /app/push/test`. On cabinet start an existing subscription is
+posted again, so it follows the driver signed in now; signing out turns push off for the phone. The service worker
+shows `{type, title, body, url, tag}` and opens or focuses RUTERA at `url` on a click. The dev server has no service
+worker, so the card stays hidden there (the mock answers `push.disabled`). A replay that hits the first try still
+running (409 `request.in_progress`) waits and is tried again.
+
 Installation: `src/app/install.ts` catches `beforeinstallprompt` at start (imported in `main.tsx`); the cabinet's
 "Me" tab shows "Install RUTERA on this phone" with a button where the browser offers it, the Share -> Add to Home
 Screen hint on iPhone/iPad, and nothing when the app already runs installed.

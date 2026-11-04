@@ -5,7 +5,8 @@
  *    when the connection is back, also with the app closed. Same IndexedDB database, item shape and error rules as
  *    src/app/outbox.ts; keep both in sync. Only items of the user of the current session are sent; without a session,
  *    or without a readable CSRF cookie (no cookieStore), the page sends them later.
- * 2. Web Push: shows {title, body, url, tag} sent by the backend and opens or focuses RUTERA on a click.
+ * 2. Web Push (/app/push, backend contract of item 7): shows {type, title, body, url, tag} sent by the backend and opens
+ *    or focuses RUTERA on a click.
  */
 
 const OUTBOX_DB = 'rutera-outbox';
@@ -138,7 +139,13 @@ async function replayOutbox() {
       continue;
     }
     const code = await errorCode(res);
-    const transient = res.status === 401 || res.status === 408 || res.status === 429 || res.status >= 500 || (res.status === 403 && code === 'auth.csrf_invalid');
+    const transient =
+      res.status === 401 ||
+      res.status === 408 ||
+      res.status === 429 ||
+      res.status >= 500 ||
+      (res.status === 403 && code === 'auth.csrf_invalid') ||
+      (res.status === 409 && code === 'request.in_progress');
     await putItem(db, { ...claimed, state: transient ? 'queued' : 'failed', claimedAt: null, attempts: claimed.attempts + 1, error: code });
     broadcast({ type: 'changed' });
     if (transient) {
