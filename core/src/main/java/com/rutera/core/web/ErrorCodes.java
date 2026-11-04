@@ -10,6 +10,10 @@ public final class ErrorCodes {
     public static final String LOGIN_LOCKED = "auth.login.locked";
     /** Too many failed sign-ins from one client address (429 with Retry-After). */
     public static final String LOGIN_THROTTLED = "auth.login.throttled";
+    /** Web Push is not set up on this server (no VAPID keys). */
+    public static final String PUSH_DISABLED = "push.disabled";
+    /** A request with the same Idempotency-Key is still being processed. */
+    public static final String REQUEST_IN_PROGRESS = "request.in_progress";
     public static final String LOGIN_DISABLED = "auth.login.disabled";
     public static final String LOGIN_FIRMA_INACTIVE = "auth.login.firma_inactive";
 

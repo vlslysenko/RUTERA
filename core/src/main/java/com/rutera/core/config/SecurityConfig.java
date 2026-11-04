@@ -13,12 +13,14 @@ import com.rutera.core.security.RuteraSecurityProperties;
 import com.rutera.core.security.SessionUserFilter;
 import com.rutera.core.security.SessionUserService;
 import com.rutera.core.security.SpaCsrfTokenRequestHandler;
+import com.rutera.core.web.IdempotencyFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -30,6 +32,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.DelegatingSecurityContextRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -125,7 +128,8 @@ public class SecurityConfig {
                                             SecurityContextRepository securityContextRepository,
                                             CsrfTokenRepository csrfTokenRepository,
                                             AuditLogoutHandler auditLogoutHandler,
-                                            RuteraSecurityProperties properties) throws Exception {
+                                            RuteraSecurityProperties properties,
+                                            JdbcTemplate jdbc) throws Exception {
         http
                 .securityContext(sc -> sc.securityContextRepository(securityContextRepository))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
@@ -162,7 +166,9 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .anyRequest().permitAll())
                 .addFilterAfter(new SessionUserFilter(sessionUsers, properties.sessionMaxAge()),
-                        SecurityContextHolderFilter.class);
+                        SecurityContextHolderFilter.class)
+                // Replays of the driver cabinet's offline outbox, after CSRF and authorization
+                .addFilterAfter(new IdempotencyFilter(jdbc, errors), AuthorizationFilter.class);
         return http.build();
     }
 

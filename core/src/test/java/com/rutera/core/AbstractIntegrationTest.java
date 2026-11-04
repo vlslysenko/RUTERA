@@ -96,6 +96,18 @@ public abstract class AbstractIntegrationTest {
             return perform(withBody(MockMvcRequestBuilders.delete(path), null));
         }
 
+        public MvcResult delete(String path, Object body) throws Exception {
+            return perform(withBody(MockMvcRequestBuilders.delete(path), body));
+        }
+
+        /** Any request with the session and the CSRF token of this client (custom headers, multipart). */
+        public MvcResult send(MockHttpServletRequestBuilder builder) throws Exception {
+            if (csrf != null) {
+                builder.header(CSRF_HEADER, csrf);
+            }
+            return perform(builder);
+        }
+
         /** Same as {@link #post} but without the CSRF header (the cookie still travels). */
         public MvcResult postWithoutCsrfHeader(String path, Object body) throws Exception {
             String saved = csrf;

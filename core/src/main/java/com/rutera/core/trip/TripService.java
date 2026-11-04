@@ -22,6 +22,7 @@ import com.rutera.common.security.RequiresPrivilege;
 import com.rutera.core.audit.AuditEvent;
 import com.rutera.core.audit.AuditService;
 import com.rutera.core.driver.DriverSelf;
+import com.rutera.core.push.PushNotices;
 import com.rutera.core.web.ApiException;
 import com.rutera.core.web.ErrorCodes;
 import com.rutera.core.web.InputFields;
@@ -70,12 +71,14 @@ public class TripService {
     private final InvoiceRepository invoices;
     private final DriverSelf self;
     private final AuditService audit;
+    private final PushNotices notices;
 
     public TripService(TripRepository trips, TripDriverRepository crew, TripStopRepository stops,
                        TransportOrderRepository orders, ContractorRepository contractors, VehicleRepository vehicles,
                        DriverRepository drivers, CmrDocumentRepository cmrs, FuelTransactionRepository fuel,
-                       InvoiceRepository invoices, DriverSelf self, AuditService audit) {
+                       InvoiceRepository invoices, DriverSelf self, AuditService audit, PushNotices notices) {
         this.self = self;
+        this.notices = notices;
         this.cmrs = cmrs;
         this.fuel = fuel;
         this.invoices = invoices;
@@ -134,6 +137,7 @@ public class TripService {
         trip.setFirmaId(InputFields.requireFirmaId());
         save(trip, input);
         audit.record(AuditEvent.of(MODULE, "trip_created", "Added trip " + trip.getNumber()).entity("trip", trip.getId()));
+        notices.tripCreated(trip, crewIds(trip.getId()));
         return toDto(trip);
     }
 
@@ -141,10 +145,13 @@ public class TripService {
     @Transactional
     public TripDto update(Long id, TripDto.Input input) {
         Trip trip = load(id);
+        Set<Long> crewBefore = crewIds(trip.getId());
+        Trip.Status statusBefore = trip.getStatus();
         save(trip, input);
         audit.record(AuditEvent.of(MODULE, "trip_updated", "Updated trip " + trip.getNumber())
                 .entity("trip", trip.getId())
                 .detail("status", trip.getStatus().name()));
+        notices.tripUpdated(trip, crewBefore, crewIds(trip.getId()), statusBefore);
         return toDto(trip);
     }
 
@@ -418,6 +425,11 @@ public class TripService {
             result.add(stop);
         }
         return result;
+    }
+
+    private Set<Long> crewIds(Long tripId) {
+        return crew.findByTripId(tripId).stream().map(TripDriver::getDriverId)
+                .collect(java.util.stream.Collectors.toSet());
     }
 
     /** The crew is small: delete and insert (flushed in between, the unique keys are per role and per driver). */

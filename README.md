@@ -61,6 +61,19 @@ docker compose -f docker-compose.standalone.yml exec mysql sh -c \
   'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "UPDATE firma SET ai_access = TRUE"'
 ```
 
+**Web Push.** Notifications of the driver cabinet need a VAPID key pair of the installation, made once:
+
+```bash
+openssl ecparam -name prime256v1 -genkey -noout -out vapid.pem
+openssl ec -in vapid.pem -outform DER 2>/dev/null | tail -c +8 | head -c 32 | base64 | tr '+/' '-_' | tr -d '=\n'
+openssl ec -in vapid.pem -pubout -outform DER 2>/dev/null | tail -c 65 | base64 | tr '+/' '-_' | tr -d '=\n'
+```
+
+The first line printed is `RUTERA_PUSH_VAPID_PRIVATE`, the second `RUTERA_PUSH_VAPID_PUBLIC`; set
+`RUTERA_PUSH_SUBJECT` to a contact (`mailto:admin@your-firm.example` or the https address). Keep the keys: new keys
+invalidate every subscription. The server must reach the push services of the browsers over HTTPS (Google,
+Mozilla, Apple), and the web application must be served over HTTPS for browsers to allow push.
+
 **E-mail.** Payment reminders go out once `SPRING_MAIL_HOST` (and port, user, password, STARTTLS or SSL) is set;
 until then they wait in the outbox and are sent afterwards.
 
@@ -346,6 +359,38 @@ Firma settings (`admin.firma/manage`): `GET /app/admin/firma` -> `{id, name, sho
 email, lang, timezone, baseCurrency, plan, vehicleLimit, aiAccess, driversSeePay}`; `PUT` the editable part `{name,
 vatId?, address?, email?, lang, timezone, baseCurrency, driversSeePay?}` (plan, vehicle limit and the AI access add-on
 belong to billing). `/app/auth/me` carries `firma.driversSeePay`.
+
+Offline outbox of the cabinet: `POST /app/trips/{id}/files` and `POST /app/drivers/{id}/absences` accept an
+`Idempotency-Key` header (1-64 letters, digits, `-`, `_`; a uuid). The first request with a key runs as usual and
+its status and body are kept for 24 hours; the same key from the same user then gets the same answer
+(`Idempotency-Replayed: true`) and nothing is created again. While the first request still runs, another one gets
+409 `request.in_progress`; the same key on another path is 409 `error.conflict`; 5xx answers are not kept. Without
+the header (or with a malformed one) nothing changes; another user's key is a new request. Table
+`idempotency_record`.
+
+#### Web Push (`/app/push`)
+
+Notifications to the phones and browsers of a user, also while RUTERA is closed (standard Web Push with VAPID, no
+paid service: the browser vendor's push service delivers them). Switched on by the server's VAPID keys
+(`RUTERA_PUSH_VAPID_PUBLIC`, `RUTERA_PUSH_VAPID_PRIVATE`, contact `RUTERA_PUSH_SUBJECT`, see "Deploy (standalone)");
+without them every endpoint answers 404 `push.disabled`.
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/push/key` | `{publicKey}`: the `applicationServerKey` for `PushManager.subscribe` (base64url, uncompressed P-256) |
+| POST | `/app/push/subscriptions` | `PushSubscription.toJSON()`: `{endpoint, keys: {p256dh, auth}}` -> 204; upsert by endpoint for the current user (a device that changes user moves over); at most 10 devices per user, the oldest go; 422 `endpoint` (https URL, up to 1000 characters), `keys.p256dh` (65-byte P-256 point), `keys.auth` (16 bytes) |
+| DELETE | `/app/push/subscriptions` | `{endpoint}` -> 204, also when unknown |
+| POST | `/app/push/test` | `{sent, failed}`: a test notification to the caller's own devices |
+
+Any signed-in user of a firma (`profile.self/manage`). Notifications go to the login linked to a driver, never to
+the user who made the change: a trip created with the driver on the crew (`trip.assigned`), a saved trip (added:
+`trip.assigned`, removed: `trip.unassigned`, staying: `trip.changed`, status CANCELLED: `trip.cancelled` for the
+whole crew), the office's decision on an absence request (`absence.approved`, `absence.rejected`). The payload,
+encrypted per device (RFC 8291, aes128gcm), is `{type, title, body, url, tag}`: title and body in the user's
+language (`notify.*` keys), times in the firma's zone, `url` relative (`/driver`, `/driver/me`), `tag` `trip-<id>` or
+`absence-<id>` (also the push `Topic`, so an undelivered older one is replaced). They are sent after the commit by
+one background thread; a failing push service never fails the request. 404 / 410 from the push service remove the
+device, so do 10 failures in a row. Table `push_subscription`.
 
 ### Driver HR (absences, working days, pay rates, payments)
 

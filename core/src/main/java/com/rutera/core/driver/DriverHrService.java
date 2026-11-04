@@ -17,6 +17,7 @@ import com.rutera.common.security.Privileges;
 import com.rutera.common.security.RequiresPrivilege;
 import com.rutera.core.audit.AuditEvent;
 import com.rutera.core.audit.AuditService;
+import com.rutera.core.push.PushNotices;
 import com.rutera.core.security.CurrentUser;
 import com.rutera.core.tacho.HosService;
 import com.rutera.core.tacho.hos.HosEngine;
@@ -72,11 +73,14 @@ public class DriverHrService {
     private final DriverSelf self;
     private final FirmaRepository firmas;
     private final AuditService audit;
+    private final PushNotices notices;
 
     public DriverHrService(DriverRepository drivers, DriverAbsenceRepository absences, DriverDayRepository days,
                            DriverPayRateRepository rates, DriverPaymentRepository payments, AppUserRepository users,
-                           HosService hos, DriverSelf self, FirmaRepository firmas, AuditService audit) {
+                           HosService hos, DriverSelf self, FirmaRepository firmas, AuditService audit,
+                           PushNotices notices) {
         this.self = self;
+        this.notices = notices;
         this.firmas = firmas;
         this.drivers = drivers;
         this.absences = absences;
@@ -189,6 +193,7 @@ public class DriverHrService {
         DriverAbsence saved = absences.save(a);
         audit.record(AuditEvent.of(MODULE, "absence_decided", s.name() + " " + saved.getKind().name() + " of driver "
                 + driver.getFullName()).entity("driver_absence", saved.getId()).detail("driverId", driver.getId()));
+        notices.absenceDecided(driver, saved);
         return toAbsences(List.of(saved)).getFirst();
     }
 
