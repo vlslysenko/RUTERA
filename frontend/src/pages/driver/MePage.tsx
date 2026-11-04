@@ -1,10 +1,12 @@
 import { Link, useNavigate } from 'react-router';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Group, Stack, Text } from '@mantine/core';
+import { Alert, Button, Group, Stack, Text } from '@mantine/core';
 import { IconKey, IconLogout } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { driverHrKey, hrApi } from '@/api/hr';
+import { clearOutbox, useOutbox } from '@/app/outbox';
 import { useLogout, useUser } from '@/auth/useAuth';
 import { LanguageMenu } from '@/layout/LanguageMenu';
 import { PaymentKindChip } from '@/pages/drivers/HrChips';
@@ -21,6 +23,17 @@ export function MePage() {
   const lang = i18n.resolvedLanguage ?? 'en';
   const user = useUser();
   const logout = useLogout();
+  const unsent = useOutbox(user.id).length;
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  // Waiting items would stay on a shared phone: signing out drops them, after a warning.
+  const signOut = async () => {
+    if (unsent > 0 && !confirmLogout) {
+      setConfirmLogout(true);
+      return;
+    }
+    await clearOutbox(user.id).catch(() => undefined);
+    logout.mutate(undefined, { onSettled: () => void navigate('/login', { replace: true }) });
+  };
   const navigate = useNavigate();
   const driverId = user.driver!.id;
   const today = ymdIn(new Date().toISOString(), user.firma?.timezone ?? 'UTC');
@@ -118,13 +131,22 @@ export function MePage() {
           <Button component={Link} to="/settings/password" variant="default" size="md" leftSection={<IconKey size={18} />}>
             {t('settings.tab.password')}
           </Button>
-          <Button
-            variant="default"
-            color="red"
-            size="md"
-            leftSection={<IconLogout size={18} />}
-            onClick={() => logout.mutate(undefined, { onSettled: () => void navigate('/login', { replace: true }) })}
-          >
+          {confirmLogout && unsent > 0 && (
+            <Alert color="orange" variant="light" p="sm">
+              <Stack gap="xs">
+                <Text size="sm">{t('outbox.logout_warning', { count: unsent })}</Text>
+                <Group grow>
+                  <Button size="md" variant="default" onClick={() => setConfirmLogout(false)}>
+                    {t('common.cancel')}
+                  </Button>
+                  <Button size="md" color="red" onClick={() => void signOut()}>
+                    {t('user.logout')}
+                  </Button>
+                </Group>
+              </Stack>
+            </Alert>
+          )}
+          <Button variant="default" color="red" size="md" leftSection={<IconLogout size={18} />} onClick={() => void signOut()} loading={logout.isPending}>
             {t('user.logout')}
           </Button>
         </Stack>

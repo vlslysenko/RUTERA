@@ -38,6 +38,8 @@ export default defineConfig(({ mode }) => {
           // Server routes: OAuth consent and discovery, actuator.
           navigateFallbackDenylist: [/^\/app\//, /^\/api\//, /^\/mcp/, /^\/oauth\//, /^\/\.well-known\//, /^\/actuator\//],
           cleanupOutdatedCaches: true,
+          // Background Sync of the driver cabinet's offline outbox and Web Push (public/sw-extra.js).
+          importScripts: ['sw-extra.js'],
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         },
         devOptions: {

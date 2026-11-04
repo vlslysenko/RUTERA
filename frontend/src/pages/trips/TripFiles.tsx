@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { onlineManager, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ActionIcon, Button, Group, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconCamera, IconExternalLink, IconFileUpload, IconTrash } from '@tabler/icons-react';
@@ -7,7 +7,9 @@ import { useTranslation } from 'react-i18next';
 import { ApiError, saveBlob } from '@/api/client';
 import { errorCode } from '@/api/errors';
 import { TRIP_FILE_ACCEPT, TRIP_FILE_KINDS, TRIP_FILE_MAX_BYTES, TRIPS_KEY, tripsApi, type Trip, type TripFile, type TripFileKind } from '@/api/trips';
+import { enqueue, isTransient, newOutboxId, useOutbox, type TripFileItem } from '@/app/outbox';
 import { useUser } from '@/auth/useAuth';
+import { OutboxActions, OutboxStateChip } from '@/pages/driver/OutboxBar';
 import { formatInstantShort } from './tripFormat';
 
 const size = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} kB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
@@ -31,6 +33,8 @@ export function TripFiles({ trip, canUpload, canDeleteAll, driver = false }: { t
   const camera = useRef<HTMLInputElement>(null);
   const picker = useRef<HTMLInputElement>(null);
   const open = trip.status !== 'DONE' && trip.status !== 'CANCELLED';
+  // Cabinet: uploads made without a connection wait on the phone and are listed with the files.
+  const waiting = useOutbox(driver ? user.id : undefined).filter((i): i is TripFileItem => i.type === 'trip_file' && i.tripId === trip.id);
   const uploadAllowed = canUpload && (open || !driver);
 
   const upload = async (files: FileList | null) => {
@@ -41,14 +45,28 @@ export function TripFiles({ trip, canUpload, canDeleteAll, driver = false }: { t
       return;
     }
     setBusy(true);
+    const fileNote = note.trim() || null;
+    const stop = stopId ? Number(stopId) : null;
+    // One key for every try: an upload first sent and then queued is still stored once.
+    const id = newOutboxId();
+    const keep = async () => {
+      await enqueue(user.id, { type: 'trip_file', tripId: trip.id, tripNumber: trip.number, kind, note: fileNote, stopId: stop, file, fileName: file.name, fileType: file.type }, id);
+      setNote('');
+      notifications.show({ color: 'yellow', message: t('outbox.saved') });
+    };
     try {
-      await tripsApi.uploadFile(trip.id, file, kind, note.trim() || null, stopId ? Number(stopId) : null);
+      if (driver && !onlineManager.isOnline()) {
+        await keep();
+        return;
+      }
+      await tripsApi.uploadFile(trip.id, file, kind, fileNote, stop, id);
       void qc.invalidateQueries({ queryKey: key });
       setNote('');
       notifications.show({ color: 'green', message: t('trip_files.uploaded', { name: file.name }) });
     } catch (e) {
       const code = e instanceof ApiError && e.details ? Object.values(e.details)[0] : errorCode(e);
-      notifications.show({ color: 'red', message: t(code) });
+      if (driver && isTransient(e)) await keep().catch(() => notifications.show({ color: 'red', message: t(code) }));
+      else notifications.show({ color: 'red', message: t(code) });
     } finally {
       setBusy(false);
       if (camera.current) camera.current.value = '';
@@ -128,16 +146,36 @@ export function TripFiles({ trip, canUpload, canDeleteAll, driver = false }: { t
           {t('trip.file.trip_closed')}
         </Text>
       )}
+      {waiting.map((item) => (
+        <Group key={item.id} justify="space-between" wrap="nowrap" gap="xs">
+          <div style={{ minWidth: 0 }}>
+            <Text size="sm" fw={500} truncate>
+              {t(`trip_files.kind_${item.kind}`)} · {item.fileName}
+            </Text>
+            <Group gap={6} mt={2}>
+              <OutboxStateChip item={item} />
+              {item.state === 'failed' && item.error && (
+                <Text size="xs" c="red">
+                  {t(item.error)}
+                </Text>
+              )}
+            </Group>
+          </div>
+          <OutboxActions item={item} />
+        </Group>
+      ))}
       {q.isPending ? (
         <Text size="sm" c="dimmed">…</Text>
-      ) : q.isError ? (
+      ) : q.isError && q.data === undefined ? (
         <Text size="sm" c="red">
           {t(errorCode(q.error))}
         </Text>
       ) : q.data.length === 0 ? (
-        <Text size="sm" c="dimmed">
-          {t('trip_files.empty')}
-        </Text>
+        waiting.length === 0 && (
+          <Text size="sm" c="dimmed">
+            {t('trip_files.empty')}
+          </Text>
+        )
       ) : (
         q.data.map((f) => (
           <Group key={f.id} justify="space-between" wrap="nowrap" gap="xs">

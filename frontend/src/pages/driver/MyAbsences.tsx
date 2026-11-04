@@ -6,10 +6,13 @@ import { IconPlus } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
 import { driverHrKey, hrApi, type Absence } from '@/api/hr';
+import { useOutbox, type AbsenceItem } from '@/app/outbox';
+import { useUser } from '@/auth/useAuth';
 import { AbsenceKindChip, AbsenceStatusChip } from '@/pages/drivers/HrChips';
 import { formatRange } from '@/pages/drivers/hrFormat';
 import { AbsenceRequestForm } from './AbsenceRequestForm';
 import { Card, PartError, Waiting } from './DriverParts';
+import { OutboxActions, OutboxStateChip } from './OutboxBar';
 import classes from './DriverApp.module.css';
 
 /** Own absences in the cabinet: approved vacation days of the year, coming absences and requests, a new request. */
@@ -24,6 +27,8 @@ export function MyAbsences({ driverId, today }: { driverId: number; today: strin
     queryFn: () => hrApi.absences(driverId, `${year}-01-01`, until),
     retry: false,
   });
+  // Requests made without a connection, waiting on the phone.
+  const waiting = useOutbox(useUser().id).filter((i): i is AbsenceItem => i.type === 'absence' && i.driverId === driverId);
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState<number | null>(null);
 
@@ -66,7 +71,24 @@ export function MyAbsences({ driverId, today }: { driverId: number; today: strin
           <Text size="sm" mb={4}>
             {t('driver_app.vacation_used', { n: vacationDays, year })}
           </Text>
-          {coming.length === 0 ? (
+          {waiting.map((item) => (
+            <div key={item.id} className={classes.row} style={{ flexWrap: 'wrap', paddingBlock: 6 }}>
+              <Stack gap={2}>
+                <Text size="sm">{formatRange(item.body.fromDate, item.body.toDate, lang)}</Text>
+                {item.state === 'failed' && item.error && (
+                  <Text size="xs" c="red">
+                    {t(item.error)}
+                  </Text>
+                )}
+              </Stack>
+              <Group gap={6}>
+                <AbsenceKindChip kind={item.body.kind} />
+                <OutboxStateChip item={item} />
+                <OutboxActions item={item} />
+              </Group>
+            </div>
+          ))}
+          {coming.length === 0 && waiting.length === 0 ? (
             <Text size="sm" c="dimmed">
               {t('driver_app.no_absences')}
             </Text>

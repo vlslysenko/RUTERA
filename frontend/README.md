@@ -171,6 +171,17 @@ the time of the tap and is sent on reconnect while the app stays open (it is not
 fails at once offline. The UI dictionary of each language used is kept in localStorage (`rutera.i18n.<lang>`) for
 offline starts.
 
+Offline outbox (`src/app/outbox.ts`, `public/sw-extra.js`): in the cabinet, a trip file (photo) or an absence request
+made without a connection, or whose request got no answer, is kept in IndexedDB (`rutera-outbox`, files as Blobs)
+and sent later: by the page on start, on reconnect, on return to the app and on "Send now"; by the service worker on
+Background Sync (Chromium; it checks `/app/auth/me` and reads the CSRF cookie through `cookieStore`, otherwise it
+leaves the work to the page). An item is claimed in one IndexedDB transaction before sending, so the page and the
+service worker never send it twice at once; a claim older than two minutes counts as lost. Every try carries the
+item id as `Idempotency-Key`. Network errors, 5xx, 408, 429 and a stale CSRF token keep the item waiting; 401 waits
+for the next sign-in of the same user; other refusals (422, 403, 404, 409) mark it "not sent" with the reason, with
+"Try again" and "Remove". The bar under the cabinet header lists everything waiting; the trip files and the absence
+list show their waiting items too. Signing out with unsent items asks first and then deletes them from the phone.
+
 Installation: `src/app/install.ts` catches `beforeinstallprompt` at start (imported in `main.tsx`); the cabinet's
 "Me" tab shows "Install RUTERA on this phone" with a button where the browser offers it, the Share -> Add to Home
 Screen hint on iPhone/iPad, and nothing when the app already runs installed.

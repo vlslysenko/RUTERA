@@ -247,14 +247,17 @@ export const tripsApi = {
   update: (id: number | string, body: TripInput) => api<Trip>(`/trips/${id}`, { method: 'PUT', body }),
   remove: (id: number | string) => api<void>(`/trips/${id}`, { method: 'DELETE' }),
   files: (id: number | string) => api<TripFile[]>(`/trips/${id}/files`),
-  /** Multipart: file, kind, note?, stopId?; a driver uploads only while the trip is open (409 trip.file.trip_closed). */
-  uploadFile: (id: number | string, file: File, kind: TripFileKind, note: string | null, stopId: number | null) => {
+  /**
+   * Multipart: file, kind, note?, stopId?; a driver uploads only while the trip is open (409 trip.file.trip_closed).
+   * `idempotencyKey`: the same key for every try of one upload (offline outbox), so a replay creates nothing twice.
+   */
+  uploadFile: (id: number | string, file: File, kind: TripFileKind, note: string | null, stopId: number | null, idempotencyKey?: string) => {
     const form = new FormData();
     form.append('file', file);
     form.append('kind', kind);
     if (note) form.append('note', note);
     if (stopId != null) form.append('stopId', String(stopId));
-    return api<TripFile>(`/trips/${id}/files`, { method: 'POST', body: form });
+    return api<TripFile>(`/trips/${id}/files`, { method: 'POST', body: form, headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined });
   },
   fileContent: (id: number | string, fileId: number) => apiDownload(`/trips/${id}/files/${fileId}/content`),
   removeFile: (id: number | string, fileId: number) => api<void>(`/trips/${id}/files/${fileId}`, { method: 'DELETE' }),

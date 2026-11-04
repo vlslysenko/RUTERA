@@ -1,17 +1,20 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { onlineManager, useQueryClient } from '@tanstack/react-query';
 import { Button, Group, Select, Stack, Textarea } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
 import { ABSENCE_KINDS, driverHrKey, hrApi, type AbsenceKind } from '@/api/hr';
+import { enqueue, isTransient, newOutboxId } from '@/app/outbox';
+import { useUser } from '@/auth/useAuth';
 import { DateField } from '@/forms/DateField';
 
 /** The driver asks for an absence from the cabinet; it waits as REQUESTED until the office decides. */
 export function AbsenceRequestForm({ driverId, onDone }: { driverId: number; onDone: () => void }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const userId = useUser().id;
   const [kind, setKind] = useState<AbsenceKind>('VACATION');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -27,13 +30,26 @@ export function AbsenceRequestForm({ driverId, onDone }: { driverId: number; onD
     setErrors(local);
     if (Object.keys(local).length) return;
     setBusy(true);
+    const body = { kind, fromDate: from, toDate: to, paid: null, note: note.trim() || null };
+    // One key for every try: a request first sent and then queued is still created once.
+    const id = newOutboxId();
+    const keep = async () => {
+      await enqueue(userId, { type: 'absence', driverId, body }, id);
+      notifications.show({ color: 'yellow', message: t('outbox.saved') });
+      onDone();
+    };
     try {
-      await hrApi.createAbsence(driverId, { kind, fromDate: from, toDate: to, paid: null, note: note.trim() || null });
+      if (!onlineManager.isOnline()) {
+        await keep();
+        return;
+      }
+      await hrApi.createAbsence(driverId, body, id);
       void qc.invalidateQueries({ queryKey: driverHrKey(driverId, 'absences') });
       notifications.show({ color: 'green', message: t('driver_app.request_sent') });
       onDone();
     } catch (e) {
-      if (e instanceof ApiError && e.details) setErrors(e.details);
+      if (isTransient(e)) await keep().catch(() => notifications.show({ color: 'red', message: t(errorCode(e)) }));
+      else if (e instanceof ApiError && e.details) setErrors(e.details);
       else notifications.show({ color: 'red', message: t(errorCode(e)) });
     } finally {
       setBusy(false);

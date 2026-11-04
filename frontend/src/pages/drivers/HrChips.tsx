@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { AbsenceKind, AbsenceStatus, PaymentKind } from '@/api/hr';
 import { StatusChip, type StatusTone } from '@/components/StatusChip';
 
+// Unknown values (a newer backend, an old outbox entry) fall back to a neutral chip instead of breaking the screen.
 const ABSENCE: Record<AbsenceKind, [StatusTone, typeof IconBeach]> = {
   SICK: ['crit', IconFirstAidKit],
   VACATION: ['info', IconBeach],
@@ -27,7 +28,7 @@ const PAYMENT: Record<PaymentKind, [StatusTone, typeof IconBeach]> = {
 
 export function AbsenceKindChip({ kind }: { kind: AbsenceKind }) {
   const { t } = useTranslation();
-  const [tone, Icon] = ABSENCE[kind];
+  const [tone, Icon] = ABSENCE[kind] ?? (['neutral', IconCircleDot] as const);
   return (
     <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
       {t(`absence.kind.${kind}`)}
@@ -37,7 +38,7 @@ export function AbsenceKindChip({ kind }: { kind: AbsenceKind }) {
 
 export function PaymentKindChip({ kind }: { kind: PaymentKind }) {
   const { t } = useTranslation();
-  const [tone, Icon] = PAYMENT[kind];
+  const [tone, Icon] = PAYMENT[kind] ?? (['neutral', IconCircleDot] as const);
   return (
     <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
       {t(`payment.kind.${kind}`)}
@@ -47,7 +48,7 @@ export function PaymentKindChip({ kind }: { kind: PaymentKind }) {
 
 export function AbsenceStatusChip({ status }: { status: AbsenceStatus }) {
   const { t } = useTranslation();
-  const [tone, Icon] = ABSENCE_STATUS[status];
+  const [tone, Icon] = ABSENCE_STATUS[status] ?? (['neutral', IconCircleDot] as const);
   return (
     <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
       {t(`absence.status.${status}`)}

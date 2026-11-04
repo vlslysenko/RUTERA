@@ -6,6 +6,7 @@ import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useLogout, useUser } from '@/auth/useAuth';
 import { EmptyState } from '@/components/EmptyState';
 import { OfflineBanner } from '@/components/Offline';
+import { OutboxBar } from './OutboxBar';
 import classes from './DriverApp.module.css';
 
 const TABS = [
@@ -46,6 +47,7 @@ export function DriverShell() {
         <span className={classes.who}>{user.driver?.name ?? user.name}</span>
       </header>
       <OfflineBanner />
+      {user.driver && <OutboxBar />}
       <main className={classes.main}>{user.driver ? <Outlet /> : <NotLinked />}</main>
       <nav className={classes.tabs} aria-label={t('driver_app.title')}>
         {TABS.map(({ to, end, icon: Icon, label }) => (

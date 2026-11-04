@@ -208,3 +208,23 @@
 .row:first-of-type {
   border-top: 0;
 }
+
+/* Offline outbox under the header: what waits to be sent and what was refused. */
+.outbox {
+  padding: 8px 12px;
+  background: var(--mantine-color-yellow-0);
+  border-bottom: 1px solid var(--mantine-color-yellow-3);
+}
+
+.outboxToggle {
+  min-height: 36px;
+}
+
+.outboxItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-body);
+}

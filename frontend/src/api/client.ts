@@ -65,6 +65,8 @@ export interface RequestOptions {
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined>;
   signal?: AbortSignal;
+  /** Extra request headers, e.g. Idempotency-Key for requests replayed from the offline outbox. */
+  headers?: Record<string, string>;
 }
 
 /** Spring Security CookieCsrfTokenRepository: cookie XSRF-TOKEN -> header X-XSRF-TOKEN on state-changing requests. */
@@ -115,7 +117,7 @@ async function refreshCsrfToken(doFetch: Fetch): Promise<void> {
 export async function api<T>(path: string, opts: RequestOptions = {}, csrfRetried = false): Promise<T> {
   const method = opts.method ?? 'GET';
   const url = `${API_BASE}${path}${opts.query ? toQuery(opts.query) : ''}`;
-  const headers: Record<string, string> = { Accept: 'application/json' };
+  const headers: Record<string, string> = { Accept: 'application/json', ...opts.headers };
   // FormData (file uploads) goes as multipart: the browser sets Content-Type with the boundary itself.
   const multipart = opts.body instanceof FormData;
   if (opts.body !== undefined && !multipart) headers['Content-Type'] = 'application/json';

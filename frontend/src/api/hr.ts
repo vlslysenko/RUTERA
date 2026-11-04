@@ -124,8 +124,9 @@ export interface PaymentTotal {
 export const hrApi = {
   absences: (driverId: number | string, from?: string, to?: string, status?: AbsenceStatus) =>
     api<Absence[]>(`/drivers/${driverId}/absences`, { query: { from, to, status } }),
-  createAbsence: (driverId: number | string, body: AbsenceInput) =>
-    api<Absence>(`/drivers/${driverId}/absences`, { method: 'POST', body }),
+  /** `idempotencyKey`: the same key for every try of one request (offline outbox), so a replay creates nothing twice. */
+  createAbsence: (driverId: number | string, body: AbsenceInput, idempotencyKey?: string) =>
+    api<Absence>(`/drivers/${driverId}/absences`, { method: 'POST', body, headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined }),
   updateAbsence: (driverId: number | string, id: number, body: AbsenceInput) =>
     api<Absence>(`/drivers/${driverId}/absences/${id}`, { method: 'PUT', body }),
   /** By the office: a new one is APPROVED; by the driver for himself (driver app): REQUESTED, deletable only then (409). */
