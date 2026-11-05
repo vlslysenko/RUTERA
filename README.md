@@ -392,6 +392,24 @@ language (`notify.*` keys), times in the firma's zone, `url` relative (`/driver`
 one background thread; a failing push service never fails the request. 404 / 410 from the push service remove the
 device, so do 10 failures in a row. Table `push_subscription`.
 
+Reminders of expiring documents go out the same way (`core.push.DeadlineNotices`, every hour at minute 20, from
+`RUTERA_PUSH_DEADLINE_HOUR`, default 8, for 12 hours of the firma's time zone). An item gets one notification per
+lead time (`RUTERA_PUSH_DEADLINE_DAYS`, default `30,14,7,1`; 20 days left belongs to the 30-day one, and a day
+missed is made up the next time):
+
+| `type` | Item | To | `url` | `tag` |
+|---|---|---|---|---|
+| `deadline.document` | driver document | the login of the driver | `/driver/documents` | `deadline-document-<id>` |
+| `deadline.card` | driver card | the login of the driver | `/driver/documents` | `deadline-card-<id>` |
+| `deadline.vehicle_document` | vehicle document | owners and dispatchers | `/fleet/<vehicleId>` | `deadline-vehicle-<id>` |
+
+The `remind_days` of a document drops the longer lead times and is a lead time itself (a document with 60 also
+reminds 60 days ahead, whatever the list says); 0 switches its reminders off. Only the current item counts: the
+newest card of a driver, and per kind (except `OTHER`) the document with the latest date. Expired items, inactive
+drivers and inactive vehicles get nothing. Table `push_deadline_sent` keeps what went out per item, date and lead
+time, so a new date starts again. Nothing is recorded while no recipient has a device, so whoever subscribes later
+still gets the current reminder. Texts: `notify.deadline.*`.
+
 ### Driver HR (absences, working days, pay rates, payments)
 
 | Method | Path | Body / result |

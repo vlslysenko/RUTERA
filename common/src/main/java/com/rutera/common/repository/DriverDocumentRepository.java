@@ -3,6 +3,7 @@ package com.rutera.common.repository;
 import com.rutera.common.domain.DriverDocument;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +12,8 @@ import java.util.Optional;
 public interface DriverDocumentRepository extends JpaRepository<DriverDocument, Long> {
 
     List<DriverDocument> findByDriverId(Long driverId);
+
+    List<DriverDocument> findByValidToBetween(LocalDate from, LocalDate to);
 
     /** Documents with a deadline of the given drivers, nearest deadline first (for the driver list). */
     List<DriverDocument> findByDriverIdInAndValidToNotNullOrderByValidToAscIdAsc(Collection<Long> driverIds);

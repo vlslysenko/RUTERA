@@ -39,12 +39,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Web Push to the devices of users ({@code /app/push}): subscriptions per device and the delivery of notifications.
@@ -240,6 +242,15 @@ public class PushService {
         } else {
             submit(send);
         }
+    }
+
+    /** Those of these users with at least one subscribed device. */
+    public Set<Long> withDevices(Collection<Long> userIds) {
+        if (vapid == null || userIds.isEmpty()) {
+            return Set.of();
+        }
+        return root(() -> separate.execute(s -> subscriptions.findByUserIdIn(userIds).stream()
+                .map(PushSubscription::getUserId).collect(Collectors.toSet())));
     }
 
     private void submit(Runnable send) {

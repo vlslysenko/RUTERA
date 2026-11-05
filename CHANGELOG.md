@@ -11,7 +11,7 @@ is in `docs/REQUIREMENTS.md`, section 17.
 
 ### Platform
 
-- Spring Boot 4.0 on Java 25 and Jetty, MySQL 8.4 with Flyway migrations V1-V14, Hibernate `@TenantId` on every
+- Spring Boot 4.0 on Java 25 and Jetty, MySQL 8.4 with Flyway migrations V1-V16, Hibernate `@TenantId` on every
   firma table (one database for all firmas).
 - Sign-in with a session cookie and CSRF, roles OWNER, DISPATCHER, LOGISTICIAN, ACCOUNTANT, DRIVER, CUSTOM and
   SUPERUSER with privilege keys per role, user administration, own profile, language and password.
@@ -63,6 +63,9 @@ is in `docs/REQUIREMENTS.md`, section 17.
   documents for the trip, own pay when the firma allows it.
 - Works without a connection on the phone: saved data is shown, marked stops are sent when the connection is back;
   install prompt for the home screen.
+- Web Push to the phone or browser, no paid service: new, changed and cancelled trips, decisions on absences, and
+  reminders of expiring driver documents and driver cards (also of vehicle documents, to the owners and dispatchers)
+  30, 14, 7 and 1 days ahead, configurable.
 
 ### AI access (paid add-on per firma)
 

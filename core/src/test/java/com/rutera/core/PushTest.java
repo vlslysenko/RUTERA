@@ -2,10 +2,15 @@ package com.rutera.core;
 
 import com.rutera.common.domain.AppUser;
 import com.rutera.common.context.RequestContext;
+import com.rutera.common.domain.DriverDocument;
 import com.rutera.common.domain.Firma;
 import com.rutera.common.domain.PushSubscription;
+import com.rutera.common.domain.VehicleDocument;
+import com.rutera.common.repository.DriverDocumentRepository;
 import com.rutera.common.repository.PushSubscriptionRepository;
+import com.rutera.common.repository.VehicleDocumentRepository;
 import com.rutera.common.security.Role;
+import com.rutera.core.push.DeadlineNotices;
 import com.rutera.core.push.TestPushDevice;
 import com.rutera.core.push.WebPush;
 import com.sun.net.httpserver.HttpServer;
@@ -16,6 +21,9 @@ import org.springframework.test.context.DynamicPropertySource;
 import tools.jackson.databind.JsonNode;
 
 import java.net.InetSocketAddress;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +72,12 @@ class PushTest extends AbstractIntegrationTest {
 
     @Autowired
     private PushSubscriptionRepository subscriptions;
+    @Autowired
+    private DeadlineNotices deadlines;
+    @Autowired
+    private DriverDocumentRepository driverDocuments;
+    @Autowired
+    private VehicleDocumentRepository vehicleDocuments;
 
     /** The user's devices, read in root scope (the test thread has no firma). */
     private List<PushSubscription> devices(Long userId) throws Exception {
@@ -168,5 +182,151 @@ class PushTest extends AbstractIntegrationTest {
                 .getStatus()).isEqualTo(204);
         assertThat(devices(login.getId())).isEmpty();
         assertThat(body(phone.post("/app/push/test", null)).get("sent").asInt()).isZero();
+    }
+
+    private Client signedIn(AppUser user, String password) throws Exception {
+        Client c = client();
+        assertThat(c.login(user.getLogin(), password).getResponse().getStatus()).isEqualTo(200);
+        return c;
+    }
+
+    /** What these many notifications carry, by the name of the device that got them. */
+    private Map<String, JsonNode> arrived(Map<String, TestPushDevice> devices, int count) throws Exception {
+        Map<String, JsonNode> byDevice = new HashMap<>();
+        for (int i = 0; i < count; i++) {
+            Received r = RECEIVED.poll(10, TimeUnit.SECONDS);
+            assertThat(r).as("notification %d of %d arrived", i + 1, count).isNotNull();
+            String name = r.path().substring("/push/".length());
+            byDevice.put(name, json.readTree(devices.get(name).decrypt(r.body())));
+        }
+        return byDevice;
+    }
+
+    private DriverDocument driverDocument(long firmaId, long driverId, DriverDocument.Kind kind, LocalDate validTo,
+                                          int remindDays) throws Exception {
+        DriverDocument doc = new DriverDocument();
+        doc.setFirmaId(firmaId);
+        doc.setDriverId(driverId);
+        doc.setKind(kind);
+        doc.setValidTo(validTo);
+        doc.setRemindDays(remindDays);
+        return RequestContext.runAsFirma(firmaId, null, () -> driverDocuments.save(doc));
+    }
+
+    @Test
+    void remindersOfExpiringDocumentsGoOutOncePerLeadTime() throws Exception {
+        RECEIVED.clear();
+        // 10:30 in Warsaw, the first day of the story.
+        Instant now = Instant.parse("2031-03-03T09:30:00Z");
+        LocalDate today = LocalDate.parse("2031-03-03");
+        Firma firma = new Firma();
+        firma.setName("Deadline Test");
+        firma.setShortCode("PUSH2");
+        firma.setCountry("PL");
+        firma.setTimezone("Europe/Warsaw");
+        long firmaId = firmas.save(firma).getId();
+        AppUser owner = createUser("owner-deadline@test.local", "DeadOwner-1", Role.OWNER, firmaId, true);
+        AppUser dispatcher = createUser("disp-deadline@test.local", "DeadDisp-1", Role.DISPATCHER, firmaId, true);
+        AppUser accountant = createUser("acc-deadline@test.local", "DeadAcc-1", Role.ACCOUNTANT, firmaId, true);
+        AppUser login = createUser("driver-deadline@test.local", "DeadDriver-1", Role.DRIVER, firmaId, true);
+        login.setLang("pl");
+        users.save(login);
+        Client office = signedIn(owner, "DeadOwner-1");
+        Map<String, Object> d = new HashMap<>();
+        d.put("firstName", "Anna");
+        d.put("lastName", "Terminowa");
+        d.put("userId", login.getId());
+        d.put("cardNumber", "PL99990000111122");
+        d.put("cardIssuingCountry", "PL");
+        d.put("cardValidTo", today.plusDays(1).toString());
+        long driverId = body(office.post("/app/drivers", d)).get("id").asLong();
+        long vehicleId = body(office.post("/app/fleet/vehicles", Map.of("kind", "TRACTOR", "plate", "DL 0001")))
+                .get("id").asLong();
+        DriverDocument license = driverDocument(firmaId, driverId, DriverDocument.Kind.LICENSE, today.plusDays(10), 30);
+        assertThat(deadlines.run(now)).as("no device yet: nothing is sent or recorded").isZero();
+
+        Map<String, TestPushDevice> devices = new HashMap<>();
+        for (String name : List.of("driver", "owner", "dispatcher", "accountant")) {
+            devices.put(name, new TestPushDevice());
+        }
+        assertThat(signedIn(login, "DeadDriver-1").post("/app/push/subscriptions",
+                subscription(endpoint("driver"), devices.get("driver"))).getResponse().getStatus()).isEqualTo(204);
+        office.post("/app/push/subscriptions", subscription(endpoint("owner"), devices.get("owner")));
+        signedIn(dispatcher, "DeadDisp-1").post("/app/push/subscriptions",
+                subscription(endpoint("dispatcher"), devices.get("dispatcher")));
+        signedIn(accountant, "DeadAcc-1").post("/app/push/subscriptions",
+                subscription(endpoint("accountant"), devices.get("accountant")));
+
+        assertThat(deadlines.run(now.minus(8, ChronoUnit.HOURS))).as("02:30 in Warsaw: not at night").isZero();
+        assertThat(deadlines.run(now)).as("the license and the card").isEqualTo(2);
+        Received first = RECEIVED.poll(10, TimeUnit.SECONDS);
+        Received second = RECEIVED.poll(10, TimeUnit.SECONDS);
+        assertThat(first).isNotNull();
+        assertThat(second).isNotNull();
+        JsonNode document = json.readTree(devices.get("driver").decrypt(first.body()));
+        JsonNode card = json.readTree(devices.get("driver").decrypt(second.body()));
+        assertThat(document.get("type").asString()).isEqualTo("deadline.document");
+        assertThat(document.get("title").asString()).isEqualTo("Twój dokument wkrótce wygasa");
+        assertThat(document.get("body").asString()).startsWith("Prawo jazdy: ważność do ").contains("2031");
+        assertThat(document.get("url").asString()).isEqualTo("/driver/documents");
+        assertThat(document.get("tag").asString()).isEqualTo("deadline-document-" + license.getId());
+        assertThat(card.get("type").asString()).isEqualTo("deadline.card");
+        assertThat(card.get("title").asString()).isEqualTo("Twoja karta kierowcy wkrótce wygasa");
+        assertThat(card.get("body").asString()).startsWith("Karta kierowcy: ważność do ");
+        assertThat(card.get("url").asString()).isEqualTo("/driver/documents");
+        assertThat(card.get("tag").asString()).startsWith("deadline-card-");
+
+        assertThat(deadlines.run(now)).as("no repeat").isZero();
+        assertThat(deadlines.run(now.plus(1, ChronoUnit.HOURS))).as("no repeat in the same lead time").isZero();
+
+        // Four days on: 6 days left is the next lead time of the license; the card has expired.
+        Instant later = now.plus(4, ChronoUnit.DAYS);
+        LocalDate laterDay = today.plusDays(4);
+        assertThat(deadlines.run(later)).isEqualTo(1);
+        assertThat(arrived(devices, 1).get("driver").get("tag").asString())
+                .isEqualTo("deadline-document-" + license.getId());
+        assertThat(deadlines.run(later)).isZero();
+
+        // A renewed date starts again, though it stays near.
+        license.setValidTo(laterDay.plusDays(5));
+        RequestContext.runAsFirma(firmaId, null, () -> driverDocuments.save(license));
+        assertThat(deadlines.run(later)).isEqualTo(1);
+        arrived(devices, 1);
+
+        // A vehicle document goes to the owner and the dispatcher, in their language, not to the others.
+        VehicleDocument insurance = new VehicleDocument();
+        insurance.setFirmaId(firmaId);
+        insurance.setVehicleId(vehicleId);
+        insurance.setKind(VehicleDocument.Kind.INSURANCE_OC);
+        insurance.setValidTo(laterDay.plusDays(30));
+        long insuranceId = RequestContext.runAsFirma(firmaId, null, () -> vehicleDocuments.save(insurance)).getId();
+        assertThat(deadlines.run(later)).isEqualTo(1);
+        Map<String, JsonNode> officeGot = arrived(devices, 2);
+        assertThat(officeGot.keySet()).containsExactlyInAnyOrder("owner", "dispatcher");
+        JsonNode vehicle = officeGot.get("owner");
+        assertThat(vehicle.get("type").asString()).isEqualTo("deadline.vehicle_document");
+        assertThat(vehicle.get("title").asString()).isEqualTo("Vehicle document expiring: DL 0001");
+        assertThat(vehicle.get("body").asString()).contains(": valid until ");
+        assertThat(vehicle.get("url").asString()).isEqualTo("/fleet/" + vehicleId);
+        assertThat(vehicle.get("tag").asString()).isEqualTo("deadline-vehicle-" + insuranceId);
+
+        // The document's own remind_days: 0 is off, 5 waits for 5 days left.
+        driverDocument(firmaId, driverId, DriverDocument.Kind.MEDICAL, laterDay.plusDays(3), 0);
+        DriverDocument adr = driverDocument(firmaId, driverId, DriverDocument.Kind.ADR, laterDay.plusDays(6), 5);
+        assertThat(deadlines.run(later)).isZero();
+        Instant dayAfter = later.plus(1, ChronoUnit.DAYS);
+        assertThat(deadlines.run(dayAfter)).isEqualTo(1);
+        assertThat(arrived(devices, 1).get("driver").get("tag").asString())
+                .isEqualTo("deadline-document-" + adr.getId());
+
+        // A passport replaced by a newer record stays silent; documents of the kind OTHER do not replace each other.
+        driverDocument(firmaId, driverId, DriverDocument.Kind.PASSPORT, laterDay.plusDays(3), 30);
+        driverDocument(firmaId, driverId, DriverDocument.Kind.PASSPORT, laterDay.plusDays(400), 30);
+        assertThat(deadlines.run(dayAfter)).isZero();
+        driverDocument(firmaId, driverId, DriverDocument.Kind.OTHER, laterDay.plusDays(3), 30);
+        driverDocument(firmaId, driverId, DriverDocument.Kind.OTHER, laterDay.plusDays(400), 30);
+        assertThat(deadlines.run(dayAfter)).isEqualTo(1);
+        arrived(devices, 1);
+        assertThat(RECEIVED.poll(300, TimeUnit.MILLISECONDS)).as("nothing more").isNull();
     }
 }
