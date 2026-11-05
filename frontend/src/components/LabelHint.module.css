@@ -1,0 +1,16 @@
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.icon {
+  display: inline-flex;
+  color: var(--mantine-color-dimmed);
+  cursor: help;
+  border-radius: 50%;
+}
+
+.icon:hover {
+  color: var(--mantine-color-text);
+}

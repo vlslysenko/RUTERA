@@ -29,7 +29,7 @@ export function UserMenu() {
   return (
     <Menu width={200} position="bottom-end">
       <Menu.Target>
-        <UnstyledButton className={classes.user} aria-label={user.name}>
+        <UnstyledButton className={classes.user} aria-label={user.name} title={user.name}>
           <Avatar color="blue" variant="filled" radius="xl" size={28} fz="xs">
             {initials(user.name)}
           </Avatar>

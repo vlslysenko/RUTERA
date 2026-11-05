@@ -212,9 +212,11 @@ export function ReminderSettingsPage() {
                     )}
                   />
                   {canManage ? (
-                    <ActionIcon variant="subtle" color="red" onClick={() => steps.remove(i)} aria-label={t('common.delete')}>
-                      <IconTrash size={16} />
-                    </ActionIcon>
+                    <Tooltip label={t('common.delete')}>
+                      <ActionIcon variant="subtle" color="red" onClick={() => steps.remove(i)} aria-label={t('common.delete')}>
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </Tooltip>
                   ) : (
                     <span />
                   )}

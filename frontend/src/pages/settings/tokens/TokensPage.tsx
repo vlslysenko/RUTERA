@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Anchor, Button, CloseButton, CopyButton, Group, Paper, Stack, Text, TextInput } from '@mantine/core';
+import { Alert, Anchor, Button, CloseButton, CopyButton, Group, Paper, Stack, Text, TextInput, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconCopy, IconExternalLink, IconKey, IconLock } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -193,7 +193,9 @@ export function TokensPage() {
       {calls && (
         <Paper withBorder p="sm">
           <Group justify="flex-end" mb={-28}>
-            <CloseButton onClick={() => setCalls(null)} aria-label={t('common.close')} />
+            <Tooltip label={t('common.close')}>
+              <CloseButton onClick={() => setCalls(null)} aria-label={t('common.close')} />
+            </Tooltip>
           </Group>
           <TokenCalls key={calls.id} token={calls} />
         </Paper>

@@ -131,7 +131,8 @@ export const theme = createTheme({
       defaultProps: { verticalSpacing: 3, horizontalSpacing: 'md', highlightOnHover: true },
     }),
     Tooltip: Tooltip.extend({
-      defaultProps: { openDelay: 300, withArrow: false, fz: 'sm' },
+      // Also by tap on a phone and by keyboard focus; long explanations wrap instead of running off the screen.
+      defaultProps: { openDelay: 300, withArrow: false, fz: 'sm', multiline: true, maw: 300, events: { hover: true, focus: true, touch: true } },
     }),
     Menu: Menu.extend({
       defaultProps: { shadow: 'md', radius: 'sm', withinPortal: true },

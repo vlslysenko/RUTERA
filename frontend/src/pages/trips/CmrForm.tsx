@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, get, useFieldArray, useForm, type Control, type FieldErrors, type FieldPath, type UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ActionIcon, Alert, Button, Group, NumberInput, Paper, SegmentedControl, Select, Stack, Textarea, TextInput } from '@mantine/core';
+import { ActionIcon, Alert, Button, Group, NumberInput, Paper, SegmentedControl, Select, Stack, Textarea, TextInput, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -495,9 +495,11 @@ export function CmrForm() {
                 <Stack gap={6}>
                   <Group align="flex-end" gap="xs" wrap="nowrap">
                     <TextInput size="xs" label={t('cmr.line.nature')} style={{ flex: 1 }} error={err(`lines.${i}.nature`)} {...register(`lines.${i}.nature`)} />
-                    <ActionIcon variant="subtle" color="red" mb={2} onClick={() => lines.remove(i)} aria-label={t('common.delete')}>
-                      <IconTrash size={16} />
-                    </ActionIcon>
+                    <Tooltip label={t('common.delete')}>
+                      <ActionIcon variant="subtle" color="red" mb={2} onClick={() => lines.remove(i)} aria-label={t('common.delete')}>
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </Tooltip>
                   </Group>
                   <Group grow align="flex-start">
                     <TextInput size="xs" label={t('cmr.line.marks')} error={err(`lines.${i}.marks`)} {...register(`lines.${i}.marks`)} />
@@ -629,9 +631,11 @@ export function CmrForm() {
                   <div style={{ flex: 1 }}>
                     <PartyFields path={`successiveCarriers.${i}`} control={control} register={register} errors={errors} />
                   </div>
-                  <ActionIcon variant="subtle" color="red" mt={22} onClick={() => successive.remove(i)} aria-label={t('common.delete')}>
-                    <IconTrash size={16} />
-                  </ActionIcon>
+                  <Tooltip label={t('common.delete')}>
+                    <ActionIcon variant="subtle" color="red" mt={22} onClick={() => successive.remove(i)} aria-label={t('common.delete')}>
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  </Tooltip>
                 </Group>
               </Paper>
             ))}

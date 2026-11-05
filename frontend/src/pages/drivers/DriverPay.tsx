@@ -294,15 +294,19 @@ function Payments({ driverId, canManage }: { driverId: string; canManage: boolea
           <Text size="xs" fw={600} tt="uppercase" c="dimmed" mr={6}>
             {t('payments.title')}
           </Text>
-          <ActionIcon variant="subtle" size="sm" onClick={() => setYear((y) => y - 1)} aria-label={t('payments.prev_year')}>
-            <IconChevronLeft size={14} />
-          </ActionIcon>
+          <Tooltip label={t('payments.prev_year')}>
+            <ActionIcon variant="subtle" size="sm" onClick={() => setYear((y) => y - 1)} aria-label={t('payments.prev_year')}>
+              <IconChevronLeft size={14} />
+            </ActionIcon>
+          </Tooltip>
           <Text size="sm" fw={600} className={classes.mono}>
             {year}
           </Text>
-          <ActionIcon variant="subtle" size="sm" onClick={() => setYear((y) => y + 1)} aria-label={t('payments.next_year')}>
-            <IconChevronRight size={14} />
-          </ActionIcon>
+          <Tooltip label={t('payments.next_year')}>
+            <ActionIcon variant="subtle" size="sm" onClick={() => setYear((y) => y + 1)} aria-label={t('payments.next_year')}>
+              <IconChevronRight size={14} />
+            </ActionIcon>
+          </Tooltip>
         </Group>
         {canManage && editing === null && (
           <Button size="xs" variant="light" leftSection={<IconPlus size={14} />} onClick={() => setEditing('new')}>

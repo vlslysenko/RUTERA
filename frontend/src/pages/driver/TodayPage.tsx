@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ActionIcon, Alert, Anchor, Button, Group, Stack, Text } from '@mantine/core';
+import { ActionIcon, Alert, Anchor, Button, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconArrowRight, IconCheck, IconMapPin } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -84,20 +84,24 @@ function TripCard({ trip, title }: { trip: Trip; title: string }) {
               </div>
               <Group gap={4} wrap="nowrap">
                 {s.status === 'PLANNED' && (
-                  <ActionIcon component="a" href={mapsUrl(s)} target="_blank" rel="noopener noreferrer" variant="light" size={44} aria-label={t('driver_app.navigate')}>
-                    <IconMapPin size={20} />
-                  </ActionIcon>
+                  <Tooltip label={t('driver_app.navigate')}>
+                    <ActionIcon component="a" href={mapsUrl(s)} target="_blank" rel="noopener noreferrer" variant="light" size={44} aria-label={t('driver_app.navigate')}>
+                      <IconMapPin size={20} />
+                    </ActionIcon>
+                  </Tooltip>
                 )}
                 {s === next && (
-                  <Button
-                    size="md"
-                    onClick={() => mark.mutate({ stop: s, at: new Date().toISOString() })}
-                    loading={mark.isPending && !mark.isPaused}
-                    disabled={mark.isPaused}
-                    aria-label={t('driver_app.stop_done')}
-                  >
-                    <IconCheck size={18} />
-                  </Button>
+                  <Tooltip label={t('driver_app.stop_done')}>
+                    <Button
+                      size="md"
+                      onClick={() => mark.mutate({ stop: s, at: new Date().toISOString() })}
+                      loading={mark.isPending && !mark.isPaused}
+                      disabled={mark.isPaused}
+                      aria-label={t('driver_app.stop_done')}
+                    >
+                      <IconCheck size={18} />
+                    </Button>
+                  </Tooltip>
                 )}
               </Group>
             </li>

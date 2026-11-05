@@ -338,9 +338,11 @@ export function CalculatorPage() {
               <TextInput size="xs" placeholder={t('calc.cost_label')} value={o.label} onChange={(e) => setOthers((os) => os.map((x) => (x.key === o.key ? { ...x, label: e.currentTarget.value } : x)))} style={{ flex: 2 }} />
               <NumberInput size="xs" value={o.amount} onChange={(v) => setOthers((os) => os.map((x) => (x.key === o.key ? { ...x, amount: v } : x)))} decimalScale={2} decimalSeparator={dec} hideControls style={{ flex: 1 }} error={err(`options.otherCosts[${i}].amount`)} />
               <Select size="xs" data={CURRENCIES} value={o.currency} onChange={(v) => setOthers((os) => os.map((x) => (x.key === o.key ? { ...x, currency: v } : x)))} w={90} />
-              <ActionIcon variant="subtle" color="red" onClick={() => setOthers((os) => os.filter((x) => x.key !== o.key))} aria-label={t('common.delete')}>
-                <IconTrash size={16} />
-              </ActionIcon>
+              <Tooltip label={t('common.delete')}>
+                <ActionIcon variant="subtle" color="red" onClick={() => setOthers((os) => os.filter((x) => x.key !== o.key))} aria-label={t('common.delete')}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Tooltip>
             </Group>
           ))}
           <Button leftSection={<IconCalculator size={16} />} onClick={() => void calculate()} loading={busy} mt="xs">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type * as Leaflet from 'leaflet';
-import { ActionIcon, Alert, Button, Checkbox, Group, Paper, Stack, Text, TextInput } from '@mantine/core';
+import { ActionIcon, Alert, Button, Checkbox, Group, Paper, Stack, Text, TextInput, Tooltip } from '@mantine/core';
 import { IconInfoCircle, IconPlus, IconRoute, IconX } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
@@ -166,18 +166,20 @@ export function RoutePanel({ vehicleId, onRoute }: { vehicleId: number | null; o
               classNames={p.lat != null ? { input: classes.mono } : undefined}
               error={errors[p.key] && t(errors[p.key])}
             />
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              mt={2}
-              onClick={() => {
-                setRoute(null);
-                setPoints((ps) => (ps.length > 2 ? ps.filter((x) => x.key !== p.key) : ps.map((x) => (x.key === p.key ? { ...x, text: '', lat: null, lng: null } : x))));
-              }}
-              aria-label={t('common.delete')}
-            >
-              <IconX size={14} />
-            </ActionIcon>
+            <Tooltip label={t('common.delete')}>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                mt={2}
+                onClick={() => {
+                  setRoute(null);
+                  setPoints((ps) => (ps.length > 2 ? ps.filter((x) => x.key !== p.key) : ps.map((x) => (x.key === p.key ? { ...x, text: '', lat: null, lng: null } : x))));
+                }}
+                aria-label={t('common.delete')}
+              >
+                <IconX size={14} />
+              </ActionIcon>
+            </Tooltip>
           </Group>
         ))}
         <Group justify="space-between" wrap="wrap">

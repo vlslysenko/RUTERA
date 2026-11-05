@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Tooltip } from '@mantine/core';
 import { cx } from '@/utils/cx';
 import classes from './StatusChip.module.css';
 
@@ -10,13 +11,16 @@ interface Props {
   icon?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** What the status means, shown as a tooltip (hover, tap). */
+  hint?: string;
 }
 
-export function StatusChip({ tone, icon, children, className }: Props) {
-  return (
+export function StatusChip({ tone, icon, children, className, hint }: Props) {
+  const chip = (
     <span className={cx(classes.chip, classes[tone], className)}>
       {icon}
       <span>{children}</span>
     </span>
   );
+  return hint ? <Tooltip label={hint}>{chip}</Tooltip> : chip;
 }
