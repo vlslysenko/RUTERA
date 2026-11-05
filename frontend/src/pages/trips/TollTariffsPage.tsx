@@ -17,6 +17,7 @@ import { decimalSeparator } from '@/forms/number';
 import { countryName, countryOptions } from '@/utils/countries';
 import { formatDate } from '@/utils/deadline';
 import { DateField } from '@/forms/DateField';
+import { LabelHint } from '@/components/LabelHint';
 import { CURRENCIES, formatMoney } from './tripFormat';
 import classes from './Trips.module.css';
 
@@ -85,16 +86,16 @@ function TariffForm({ tariff, onDone }: { tariff: TollTariff | null; onDone: () 
       <Stack gap="sm">
         <Group grow align="flex-start">
           <Select label={t('trips.country')} data={countryOptions(lang, row.country)} value={row.country} onChange={(v) => set({ country: v })} searchable error={err('country')} />
-          <NumberInput label={t('tolls.rate_per_km')} value={row.ratePerKm} onChange={(v) => set({ ratePerKm: v })} decimalScale={4} decimalSeparator={decimalSeparator(lang)} allowNegative={false} hideControls error={err('ratePerKm')} />
+          <NumberInput label={<LabelHint label={t('tolls.rate_per_km')} hint={t('hint.field.toll_rate')} />} value={row.ratePerKm} onChange={(v) => set({ ratePerKm: v })} decimalScale={4} decimalSeparator={decimalSeparator(lang)} allowNegative={false} hideControls error={err('ratePerKm')} />
           <Select label={t('orders.currency')} data={CURRENCIES} value={row.currency} onChange={(v) => set({ currency: v })} searchable error={err('currency')} />
         </Group>
         <Group grow align="flex-start">
-          <Select label={t('tolls.euro_class')} placeholder={t('tolls.any')} data={EURO_CLASSES.map((e) => ({ value: e, label: t(`vehicle.euro.${e}`) }))} value={row.euroClass} onChange={(v) => set({ euroClass: v })} clearable error={err('euroClass')} />
-          <NumberInput label={t('tolls.axles_min')} placeholder={t('tolls.any')} value={row.axlesMin} onChange={(v) => set({ axlesMin: v })} min={2} max={9} allowDecimal={false} error={err('axlesMin')} />
-          <NumberInput label={t('tolls.weight_min')} placeholder={t('tolls.any')} value={row.weightMinKg} onChange={(v) => set({ weightMinKg: v })} min={0} allowDecimal={false} thousandSeparator=" " hideControls error={err('weightMinKg')} />
+          <Select label={<LabelHint label={t('tolls.euro_class')} hint={t('hint.field.toll_limits')} />} placeholder={t('tolls.any')} data={EURO_CLASSES.map((e) => ({ value: e, label: t(`vehicle.euro.${e}`) }))} value={row.euroClass} onChange={(v) => set({ euroClass: v })} clearable error={err('euroClass')} />
+          <NumberInput label={<LabelHint label={t('tolls.axles_min')} hint={t('hint.field.toll_limits')} />} placeholder={t('tolls.any')} value={row.axlesMin} onChange={(v) => set({ axlesMin: v })} min={2} max={9} allowDecimal={false} error={err('axlesMin')} />
+          <NumberInput label={<LabelHint label={t('tolls.weight_min')} hint={t('hint.field.toll_limits')} />} placeholder={t('tolls.any')} value={row.weightMinKg} onChange={(v) => set({ weightMinKg: v })} min={0} allowDecimal={false} thousandSeparator=" " hideControls error={err('weightMinKg')} />
         </Group>
         <Group grow align="flex-start">
-          <DateField label={t('tolls.valid_from')} value={row.validFrom} onChange={(v) => set({ validFrom: v })} error={err('validFrom')} />
+          <DateField label={<LabelHint label={t('tolls.valid_from')} hint={t('hint.field.toll_valid_from')} />} value={row.validFrom} onChange={(v) => set({ validFrom: v })} error={err('validFrom')} />
           <TextInput label={t('drivers.notes')} value={row.notes} onChange={(e) => set({ notes: e.currentTarget.value })} maxLength={500} error={err('notes')} />
         </Group>
         <Text size="xs" c="dimmed">

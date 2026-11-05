@@ -26,6 +26,7 @@ import { numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { countryOptions } from '@/utils/countries';
 import { FormDateField } from '@/forms/DateField';
+import { LabelHint } from '@/components/LabelHint';
 import { idOrNull, useCrewOptions } from './crew';
 import { fromLocalInput, toLocalInput } from './tripFormat';
 import classes from './Trips.module.css';
@@ -383,8 +384,8 @@ export function TripForm() {
               <FormDateField withTime label={t('trips.planned_end')} error={err('plannedEnd')} control={control} name="plannedEnd" />
             </Group>
             <Group grow align="flex-start">
-              <FormDateField withTime label={t('trips.actual_start')} error={err('actualStart')} control={control} name="actualStart" />
-              <FormDateField withTime label={t('trips.actual_end')} error={err('actualEnd')} control={control} name="actualEnd" />
+              <FormDateField withTime label={<LabelHint label={t('trips.actual_start')} hint={t('hint.field.actual_times')} />} error={err('actualStart')} control={control} name="actualStart" />
+              <FormDateField withTime label={<LabelHint label={t('trips.actual_end')} hint={t('hint.field.actual_times')} />} error={err('actualEnd')} control={control} name="actualEnd" />
             </Group>
             <Group grow align="flex-start">
               {km('kmPlanned', t('trips.km_planned'))}

@@ -1,5 +1,6 @@
 import { useRef, type Ref } from 'react';
 import { useController, type Control, type FieldValues, type Path } from 'react-hook-form';
+import { Tooltip } from '@mantine/core';
 import { DateInput, useDatesContext, type DateInputProps } from '@mantine/dates';
 import { IconCalendar } from '@tabler/icons-react';
 import dayjs from 'dayjs';
@@ -46,9 +47,11 @@ export type DateFieldProps = Omit<
   /** Earliest / latest selectable date, "YYYY-MM-DD". */
   min?: string;
   max?: string;
+  /** Tooltip, e.g. which date a list filter looks at. */
+  hint?: string;
 };
 
-export function DateField({ value, onChange, withTime = false, min, max, clearable = true, ...rest }: DateFieldProps) {
+export function DateField({ value, onChange, withTime = false, min, max, clearable = true, hint, ...rest }: DateFieldProps) {
   const { t } = useTranslation();
   const ctx = useDatesContext();
   const locale = ctx.getLocale();
@@ -69,7 +72,7 @@ export function DateField({ value, onChange, withTime = false, min, max, clearab
     onChange(fromPicker(v, withTime));
   };
 
-  return (
+  const input = (
     <DateInput
       // A filter without a label shows its aria-label ("From", "To") while empty.
       placeholder={rest.label ? undefined : rest['aria-label']}
@@ -86,6 +89,7 @@ export function DateField({ value, onChange, withTime = false, min, max, clearab
       leftSection={<IconCalendar size={16} stroke={1.5} />}
     />
   );
+  return hint ? <Tooltip label={hint}>{input}</Tooltip> : input;
 }
 
 /** DateField bound to a react-hook-form field (in place of {...register(name)}). */

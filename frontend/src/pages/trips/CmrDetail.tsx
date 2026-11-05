@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Anchor, Button, Group, List, SegmentedControl, Stack, Table, Text } from '@mantine/core';
+import { Alert, Anchor, Button, Group, List, SegmentedControl, Stack, Table, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconBan, IconDownload, IconFileTypePdf, IconPencil, IconRubberStamp, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -294,9 +294,11 @@ export function CmrDetail({ mode }: { mode: 'drawer' | 'page' }) {
   const actions = c ? (
     <>
       {canManage && draft && (
-        <Button size="xs" leftSection={<IconRubberStamp size={14} />} onClick={() => void issue()} disabled={busy}>
-          {t('cmr.issue')}
-        </Button>
+        <Tooltip label={t('hint.action.cmr_issue')}>
+          <Button size="xs" leftSection={<IconRubberStamp size={14} />} onClick={() => void issue()} disabled={busy}>
+            {t('cmr.issue')}
+          </Button>
+        </Tooltip>
       )}
       <Button variant="default" size="xs" leftSection={<IconFileTypePdf size={14} />} onClick={() => void pdf(false)} disabled={busy}>
         {t('cmr.pdf')}
@@ -323,9 +325,11 @@ export function CmrDetail({ mode }: { mode: 'drawer' | 'page' }) {
         </>
       )}
       {canManage && c.status === 'ISSUED' && (
-        <Button variant="default" size="xs" color="red" leftSection={<IconBan size={14} />} onClick={() => setConfirm('cancel')} disabled={busy}>
-          {t('cmr.cancel')}
-        </Button>
+        <Tooltip label={t('hint.action.cmr_cancel')}>
+          <Button variant="default" size="xs" color="red" leftSection={<IconBan size={14} />} onClick={() => setConfirm('cancel')} disabled={busy}>
+            {t('cmr.cancel')}
+          </Button>
+        </Tooltip>
       )}
     </>
   ) : undefined;

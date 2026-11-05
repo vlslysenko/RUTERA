@@ -7,6 +7,7 @@ import { formatMinutes, shiftDays, ymdIn } from '@/pages/tacho/hosFormat';
 import { SeverityChip } from '@/pages/tacho/ViolationChips';
 import { formatInstantShort } from '@/pages/trips/tripFormat';
 import { cx } from '@/utils/cx';
+import { LabelHint } from '@/components/LabelHint';
 import { Card, PartError, Stat, Waiting } from './DriverParts';
 import classes from './DriverApp.module.css';
 
@@ -40,20 +41,20 @@ export function HoursPage() {
           <Stack gap="sm">
             <div className={classes.stats}>
               <div className={classes.stat}>
-                <span className={classes.statLabel}>{t('hos.summary.left_today')}</span>
+                <span className={classes.statLabel}><LabelHint label={t('hos.summary.left_today')} hint={t('hint.hos.left_today')} /></span>
                 <span className={classes.big}>{formatMinutes(t, day.remainingDailyMin)}</span>
               </div>
               <div className={classes.stat}>
-                <span className={classes.statLabel}>{t('hos.summary.left_week')}</span>
+                <span className={classes.statLabel}><LabelHint label={t('hos.summary.left_week')} hint={t('hint.hos.left_week')} /></span>
                 <span className={classes.big}>{formatMinutes(t, day.remainingWeeklyMin)}</span>
               </div>
             </div>
             <div className={classes.stats}>
-              <Stat label={t('hos.summary.weekly')} value={formatMinutes(t, day.weeklyDrivingMin)} />
-              <Stat label={t('hos.summary.two_weeks')} value={`${formatMinutes(t, day.biweeklyDrivingMin)} / 90 h`} />
-              <Stat label={t('hos.summary.extended')} value={`${day.extDrivingInWeek} / ${HOS.EXTENSIONS_PER_WEEK}`} />
-              <Stat label={t('hos.summary.reduced')} value={`${day.reducedRestInWeek} / ${HOS.REDUCED_RESTS_BETWEEN_WEEKLY}`} />
-              <Stat label={t('hos.summary.weekly_rest_by')} value={day.nextWeeklyRestBy ? formatInstantShort(day.nextWeeklyRestBy, lang, tz) : '—'} />
+              <Stat label={t('hos.summary.weekly')} hint={t('hos.rule_hint.WEEKLY_DRIVING_56H')} value={formatMinutes(t, day.weeklyDrivingMin)} />
+              <Stat label={t('hos.summary.two_weeks')} hint={t('hos.rule_hint.TWO_WEEK_DRIVING_90H')} value={`${formatMinutes(t, day.biweeklyDrivingMin)} / 90 h`} />
+              <Stat label={t('hos.summary.extended')} hint={t('hos.rule_hint.DAILY_DRIVING_9H')} value={`${day.extDrivingInWeek} / ${HOS.EXTENSIONS_PER_WEEK}`} />
+              <Stat label={t('hos.summary.reduced')} hint={t('hos.rule_hint.DAILY_REST_9H')} value={`${day.reducedRestInWeek} / ${HOS.REDUCED_RESTS_BETWEEN_WEEKLY}`} />
+              <Stat label={t('hos.summary.weekly_rest_by')} hint={t('hint.hos.weekly_rest_by')} value={day.nextWeeklyRestBy ? formatInstantShort(day.nextWeeklyRestBy, lang, tz) : '—'} />
             </div>
           </Stack>
         )}

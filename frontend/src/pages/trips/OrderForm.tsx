@@ -14,6 +14,7 @@ import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/numbe
 import { applyServerErrors } from '@/forms/serverErrors';
 import { countryOptions } from '@/utils/countries';
 import { FormDateField } from '@/forms/DateField';
+import { LabelHint } from '@/components/LabelHint';
 import { CURRENCIES } from './tripFormat';
 import classes from './Trips.module.css';
 
@@ -238,7 +239,7 @@ export function OrderForm() {
                   />
                 )}
               />
-              <TextInput label={t('orders.customer_ref')} classNames={{ input: classes.mono }} error={err('customerRef')} {...register('customerRef')} />
+              <TextInput label={<LabelHint label={t('orders.customer_ref')} hint={t('hint.field.customer_ref')} />} classNames={{ input: classes.mono }} error={err('customerRef')} {...register('customerRef')} />
             </Group>
 
             <h3 className={classes.sectionTitle}>{t('orders.section.route')}</h3>

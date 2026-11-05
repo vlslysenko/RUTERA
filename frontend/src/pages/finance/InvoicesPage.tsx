@@ -107,8 +107,8 @@ export function InvoicesPage() {
               searchable
               w={200}
             />
-            <DateField aria-label={t('orders.date_from')} title={t('orders.date_from')} value={params.get('from') ?? ''} onChange={(v) => set('from', v || null)} w={150} />
-            <DateField aria-label={t('orders.date_to')} title={t('orders.date_to')} value={params.get('to') ?? ''} onChange={(v) => set('to', v || null)} w={150} />
+            <DateField aria-label={t('orders.date_from')} hint={t('hint.filter.invoices')} value={params.get('from') ?? ''} onChange={(v) => set('from', v || null)} w={150} />
+            <DateField aria-label={t('orders.date_to')} hint={t('hint.filter.invoices')} value={params.get('to') ?? ''} onChange={(v) => set('to', v || null)} w={150} />
             <Switch label={t('invoices.only_overdue')} checked={params.get('overdue') === 'true'} onChange={(e) => set('overdue', e.currentTarget.checked ? 'true' : null)} mb={8} />
           </div>
           {canManage && (

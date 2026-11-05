@@ -96,14 +96,14 @@ export function ViolationsPage() {
             />
             <DateField
               aria-label={t('tacho.filter.from')}
-              title={t('tacho.filter.from')}
+              hint={t('hint.filter.violations')}
               value={params.get('from') ?? ''}
               onChange={(v) => set('from', v || null)}
               w={150}
             />
             <DateField
               aria-label={t('tacho.filter.to')}
-              title={t('tacho.filter.to')}
+              hint={t('hint.filter.violations')}
               value={params.get('to') ?? ''}
               onChange={(v) => set('to', v || null)}
               w={150}

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm, useWatch, type Control, type FieldPath } from 'react-hook-form';
@@ -28,6 +28,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { Plate } from '@/components/Plate';
 import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
+import { LabelHint } from '@/components/LabelHint';
 import classes from './VehicleDetail.module.css';
 
 /* Same rules as VehicleService on the backend. Plate: letters, digits, spaces and hyphens. VIN: up to 17 letters
@@ -161,7 +162,7 @@ function NumberField({
 }: {
   control: Control<FormInput, unknown, FormValues>;
   name: NumberField;
-  label: string;
+  label: ReactNode;
   decimals?: number;
   separator: string;
 }) {
@@ -314,7 +315,7 @@ export function VehicleForm() {
                   {...register('plate')}
                 />
                 <TextInput
-                  label={t('fleet.vin')}
+                  label={<LabelHint label={t('fleet.vin')} hint={t('hint.field.vin')} />}
                   autoComplete="off"
                   maxLength={25}
                   classNames={{ input: classes.mono }}
@@ -341,9 +342,9 @@ export function VehicleForm() {
             <section className={classes.section}>
               <h3 className={classes.sectionTitle}>{t('fleet.section.route')}</h3>
               <Group grow align="flex-start">
-                <NumberField control={control} name="axles" label={t('fleet.axles')} separator={separator} />
-                <NumberField control={control} name="grossWeightKg" label={t('fleet.gross_weight_kg')} separator={separator} />
-                <NumberField control={control} name="heightM" label={t('fleet.height_m')} decimals={2} separator={separator} />
+                <NumberField control={control} name="axles" label={<LabelHint label={t('fleet.axles')} hint={t('hint.field.axles')} />} separator={separator} />
+                <NumberField control={control} name="grossWeightKg" label={<LabelHint label={t('fleet.gross_weight_kg')} hint={t('hint.field.gross_weight')} />} separator={separator} />
+                <NumberField control={control} name="heightM" label={<LabelHint label={t('fleet.height_m')} hint={t('hint.field.height')} />} decimals={2} separator={separator} />
               </Group>
               {!trailer && (
                 <Group grow align="flex-start">
@@ -352,7 +353,7 @@ export function VehicleForm() {
                     control={control}
                     render={({ field }) => (
                       <Select
-                        label={t('fleet.euro_class')}
+                        label={<LabelHint label={t('fleet.euro_class')} hint={t('hint.field.euro_class')} />}
                         data={options(EURO_CLASSES, 'vehicle.euro')}
                         value={field.value}
                         onChange={(v) => field.onChange(v)}
@@ -376,7 +377,7 @@ export function VehicleForm() {
                   <NumberField
                     control={control}
                     name="avgL100km"
-                    label={t('fleet.consumption_l100')}
+                    label={<LabelHint label={t('fleet.consumption_l100')} hint={t('hint.field.consumption')} />}
                     decimals={2}
                     separator={separator}
                   />
@@ -393,7 +394,7 @@ export function VehicleForm() {
                     control={control}
                     render={({ field }) => (
                       <Select
-                        label={t('fleet.tacho')}
+                        label={<LabelHint label={t('fleet.tacho')} hint={t('hint.field.tacho')} />}
                         data={options(TACHO_GENS, 'vehicle.tacho')}
                         value={field.value}
                         onChange={(v) => v && field.onChange(v)}
@@ -409,7 +410,7 @@ export function VehicleForm() {
                     control={control}
                     render={({ field, fieldState }) => (
                       <Select
-                        label={t('fleet.default_driver')}
+                        label={<LabelHint label={t('fleet.default_driver')} hint={t('hint.field.default_driver')} />}
                         placeholder={driverOptions.length === 0 ? t('drivers.empty') : t('fleet.no_driver')}
                         data={driverOptions}
                         value={field.value}
@@ -426,7 +427,7 @@ export function VehicleForm() {
                     control={control}
                     render={({ field, fieldState }) => (
                       <Select
-                        label={t('fleet.default_trailer')}
+                        label={<LabelHint label={t('fleet.default_trailer')} hint={t('hint.field.default_trailer')} />}
                         placeholder={trailerOptions.length === 0 ? t('fleet.no_trailers') : undefined}
                         data={trailerOptions}
                         value={field.value}

@@ -16,6 +16,7 @@ import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { StatusChip } from '@/components/StatusChip';
 import { formatDate } from '@/utils/deadline';
 import { cx } from '@/utils/cx';
+import { LabelHint } from '@/components/LabelHint';
 import { dayStart, formatMinutes, mondayOf, shiftDays, toYmd, zonedDayStart } from './hosFormat';
 import classes from './Hos.module.css';
 
@@ -51,11 +52,11 @@ function DayBar({ day, intervals, timeZone }: { day: string; intervals: Activity
   );
 }
 
-function Stat({ label, value, ratio }: { label: string; value: string; ratio?: number }) {
+function Stat({ label, value, ratio, hint }: { label: string; value: string; ratio?: number; hint?: string }) {
   const color = ratio == null ? undefined : ratio >= 1 ? 'red' : ratio >= 0.9 ? 'yellow' : 'blue';
   return (
     <div className={classes.stat}>
-      <span className={classes.statLabel}>{label}</span>
+      <span className={classes.statLabel}>{hint ? <LabelHint label={label} hint={hint} /> : label}</span>
       <span className={classes.statValue}>{value}</span>
       {ratio != null && <Progress value={Math.min(100, ratio * 100)} color={color} size="sm" aria-hidden />}
     </div>
@@ -74,27 +75,27 @@ function Summary({ days, timeZone }: { days: HosDay[]; timeZone: string }) {
   const of = (v: number, limit: number) => t('hos.of', { value: formatMinutes(t, v), limit: formatMinutes(t, limit) });
   return (
     <div className={classes.summary}>
-      <Stat label={t('hos.summary.weekly')} value={of(ref.weeklyDrivingMin, HOS.WEEKLY_DRIVING)} ratio={ref.weeklyDrivingMin / HOS.WEEKLY_DRIVING} />
+      <Stat label={t('hos.summary.weekly')} hint={t('hos.rule_hint.WEEKLY_DRIVING_56H')} value={of(ref.weeklyDrivingMin, HOS.WEEKLY_DRIVING)} ratio={ref.weeklyDrivingMin / HOS.WEEKLY_DRIVING} />
       <Stat
-        label={t('hos.summary.two_weeks')}
+        label={t('hos.summary.two_weeks')} hint={t('hos.rule_hint.TWO_WEEK_DRIVING_90H')}
         value={of(ref.biweeklyDrivingMin, HOS.TWO_WEEK_DRIVING)}
         ratio={ref.biweeklyDrivingMin / HOS.TWO_WEEK_DRIVING}
       />
       <Stat
-        label={t('hos.summary.extended')}
+        label={t('hos.summary.extended')} hint={t('hos.rule_hint.DAILY_DRIVING_9H')}
         value={t('hos.of', { value: ref.extDrivingInWeek, limit: HOS.EXTENSIONS_PER_WEEK })}
         ratio={ref.extDrivingInWeek / HOS.EXTENSIONS_PER_WEEK}
       />
       <Stat
-        label={t('hos.summary.reduced')}
+        label={t('hos.summary.reduced')} hint={t('hos.rule_hint.DAILY_REST_9H')}
         value={t('hos.of', { value: ref.reducedRestInWeek, limit: HOS.REDUCED_RESTS_BETWEEN_WEEKLY })}
         ratio={ref.reducedRestInWeek / HOS.REDUCED_RESTS_BETWEEN_WEEKLY}
       />
-      {isCurrentWeek && <Stat label={t('hos.summary.left_today')} value={formatMinutes(t, ref.remainingDailyMin)} />}
-      {isCurrentWeek && <Stat label={t('hos.summary.left_week')} value={formatMinutes(t, ref.remainingWeeklyMin)} />}
+      {isCurrentWeek && <Stat label={t('hos.summary.left_today')} hint={t('hint.hos.left_today')} value={formatMinutes(t, ref.remainingDailyMin)} />}
+      {isCurrentWeek && <Stat label={t('hos.summary.left_week')} hint={t('hint.hos.left_week')} value={formatMinutes(t, ref.remainingWeeklyMin)} />}
       {ref.nextWeeklyRestBy && (
         <Stat
-          label={t('hos.summary.weekly_rest_by')}
+          label={t('hos.summary.weekly_rest_by')} hint={t('hint.hos.weekly_rest_by')}
           value={new Intl.DateTimeFormat(lang, { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone }).format(
             new Date(ref.nextWeeklyRestBy),
           )}

@@ -82,8 +82,8 @@ export function TransactionsPage() {
                 set('page', null);
               }}
             />
-            <DateField aria-label={t('orders.date_from')} title={t('orders.date_from')} value={params.get('from') ?? ''} onChange={(v) => set('from', v || null)} w={150} />
-            <DateField aria-label={t('orders.date_to')} title={t('orders.date_to')} value={params.get('to') ?? ''} onChange={(v) => set('to', v || null)} w={150} />
+            <DateField aria-label={t('orders.date_from')} hint={t('hint.filter.fuel')} value={params.get('from') ?? ''} onChange={(v) => set('from', v || null)} w={150} />
+            <DateField aria-label={t('orders.date_to')} hint={t('hint.filter.fuel')} value={params.get('to') ?? ''} onChange={(v) => set('to', v || null)} w={150} />
             {!crew.error && (
               <>
                 <Select placeholder={t('trips.vehicle')} aria-label={t('trips.vehicle')} data={crew.vehicles} value={params.get('vehicle')} onChange={(v) => set('vehicle', v)} clearable searchable w={170} />

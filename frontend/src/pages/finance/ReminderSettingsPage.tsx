@@ -14,6 +14,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
+import { LabelHint } from '@/components/LabelHint';
 import { reminderStepLabel } from './financeFormat';
 import classes from './Finance.module.css';
 
@@ -111,7 +112,7 @@ export function ReminderSettingsPage() {
               control={control}
               render={({ field }) => (
                 <Select
-                  label={t('reminders.send_hour')}
+                  label={<LabelHint label={t('reminders.send_hour')} hint={t('hint.field.send_hour')} />}
                   data={Array.from({ length: 24 }, (_, h) => ({ value: String(h), label: `${String(h).padStart(2, '0')}:00` }))}
                   value={field.value}
                   onChange={(v) => v && field.onChange(v)}
@@ -127,7 +128,7 @@ export function ReminderSettingsPage() {
               render={({ field }) => (
                 <Checkbox
                   mt={30}
-                  label={t('reminders.stop_when_paid')}
+                  label={<LabelHint label={t('reminders.stop_when_paid')} hint={t('hint.field.stop_when_paid')} />}
                   checked={field.value}
                   onChange={(e) => field.onChange(e.currentTarget.checked)}
                   disabled={!canManage}

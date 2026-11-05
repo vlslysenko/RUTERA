@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Anchor, Button, Group, Paper, Stack, Text, Textarea } from '@mantine/core';
+import { Anchor, Button, Group, Paper, Stack, Text, Textarea, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconArrowBackUp, IconCheck } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -133,15 +133,17 @@ export function ViolationDetail({ mode }: { mode: 'drawer' | 'page' }) {
                 )}
                 {canAck && (
                   <Group>
-                    <Button
-                      variant="default"
-                      size="xs"
-                      leftSection={<IconArrowBackUp size={14} />}
-                      onClick={() => void review(true)}
-                      loading={busy}
-                    >
-                      {t('hos.v.unack')}
-                    </Button>
+                    <Tooltip label={t('hint.action.violation_unack')}>
+                      <Button
+                        variant="default"
+                        size="xs"
+                        leftSection={<IconArrowBackUp size={14} />}
+                        onClick={() => void review(true)}
+                        loading={busy}
+                      >
+                        {t('hos.v.unack')}
+                      </Button>
+                    </Tooltip>
                   </Group>
                 )}
               </Stack>
@@ -157,9 +159,11 @@ export function ViolationDetail({ mode }: { mode: 'drawer' | 'page' }) {
                   onChange={(e) => setNote(e.currentTarget.value)}
                 />
                 <Group justify="flex-end">
-                  <Button size="xs" leftSection={<IconCheck size={14} />} onClick={() => void review(false)} loading={busy}>
-                    {t('hos.v.ack')}
-                  </Button>
+                  <Tooltip label={t('hint.action.violation_ack')}>
+                    <Button size="xs" leftSection={<IconCheck size={14} />} onClick={() => void review(false)} loading={busy}>
+                      {t('hos.v.ack')}
+                    </Button>
+                  </Tooltip>
                 </Group>
               </Stack>
             ) : (

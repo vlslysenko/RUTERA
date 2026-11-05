@@ -18,6 +18,7 @@ import { numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { LANGUAGES } from '@/i18n/languages';
 import { countryOptions } from '@/utils/countries';
+import { LabelHint } from '@/components/LabelHint';
 import classes from './Trips.module.css';
 
 const LIST = '/trips/contractors';
@@ -229,7 +230,7 @@ export function ContractorDetail({ mode }: { mode: 'drawer' | 'page' }) {
                   control={control}
                   render={({ field }) => (
                     <NumberInput
-                      label={t('contractors.payment_days')}
+                      label={<LabelHint label={t('contractors.payment_days')} hint={t('hint.field.payment_days')} />}
                       value={field.value ?? ''}
                       onChange={(v) => field.onChange(toNumberInputValue(v))}
                       allowNegative={false}
@@ -263,7 +264,7 @@ export function ContractorDetail({ mode }: { mode: 'drawer' | 'page' }) {
                   control={control}
                   render={({ field }) => (
                     <Select
-                      label={t('contractors.lang')}
+                      label={<LabelHint label={t('contractors.lang')} hint={t('hint.field.contractor_lang')} />}
                       data={LANGUAGES.map((l) => ({ value: l.code, label: l.name }))}
                       value={field.value}
                       onChange={field.onChange}

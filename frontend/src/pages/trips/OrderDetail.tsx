@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Anchor, Button, Group, Stack, Text } from '@mantine/core';
+import { Alert, Anchor, Button, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconPencil, IconRoute, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -127,9 +127,11 @@ export function OrderDetail({ mode }: { mode: 'drawer' | 'page' }) {
     o && canManage ? (
       <>
         {plannable && canPlan && (
-          <Button size="xs" leftSection={<IconRoute size={14} />} onClick={() => setPlanning(true)} disabled={busy || planning}>
-            {t('orders.create_trip')}
-          </Button>
+          <Tooltip label={t('hint.action.create_trip')}>
+            <Button size="xs" leftSection={<IconRoute size={14} />} onClick={() => setPlanning(true)} disabled={busy || planning}>
+              {t('orders.create_trip')}
+            </Button>
+          </Tooltip>
         )}
         <Button variant="default" size="xs" leftSection={<IconPencil size={14} />} onClick={() => void navigate(`${LIST}/${id}/edit`)} disabled={busy}>
           {t('common.edit')}

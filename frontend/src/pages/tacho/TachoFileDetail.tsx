@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Anchor, Button, Group, Paper, Select, Stack, Table, Text } from '@mantine/core';
+import { Alert, Anchor, Button, Group, Paper, Select, Stack, Table, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconDownload, IconLink, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -195,9 +195,11 @@ export function TachoFileDetail({ mode }: { mode: 'drawer' | 'page' }) {
   const actions =
     f && canUpload ? (
       <>
-        <Button variant="default" size="xs" leftSection={<IconDownload size={14} />} onClick={() => void download()} disabled={busy}>
-          {t('tacho.download')}
-        </Button>
+        <Tooltip label={t('hint.action.tacho_download')}>
+          <Button variant="default" size="xs" leftSection={<IconDownload size={14} />} onClick={() => void download()} disabled={busy}>
+            {t('tacho.download')}
+          </Button>
+        </Tooltip>
         <Button
           variant="default"
           size="xs"

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
 import { OfflineNote } from '@/components/Offline';
+import { LabelHint } from '@/components/LabelHint';
 import classes from './DriverApp.module.css';
 
 /** A white block of the driver cabinet with an optional caption. */
@@ -22,10 +23,10 @@ export function Card({ title, children, right }: { title?: string; children: Rea
   );
 }
 
-export function Stat({ label, value }: { label: string; value: ReactNode }) {
+export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
     <div className={classes.stat}>
-      <span className={classes.statLabel}>{label}</span>
+      <span className={classes.statLabel}>{hint ? <LabelHint label={label} hint={hint} /> : label}</span>
       <span className={classes.statValue}>{value}</span>
     </div>
   );

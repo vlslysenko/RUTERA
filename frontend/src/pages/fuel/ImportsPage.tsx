@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Group, Paper, Stack, Table, Text } from '@mantine/core';
+import { Alert, Button, Group, Paper, Stack, Table, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconArrowBackUp, IconUpload } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -110,9 +110,11 @@ export function ImportsPage() {
                   <Table.Td>{imp.importedBy.name}</Table.Td>
                   {canManage && (
                     <Table.Td>
-                      <Button size="xs" variant="subtle" color="red" leftSection={<IconArrowBackUp size={14} />} onClick={() => setUndoing(imp)} disabled={busy}>
-                        {t('fuel.imports.undo')}
-                      </Button>
+                      <Tooltip label={t('hint.action.fuel_undo')}>
+                        <Button size="xs" variant="subtle" color="red" leftSection={<IconArrowBackUp size={14} />} onClick={() => setUndoing(imp)} disabled={busy}>
+                          {t('fuel.imports.undo')}
+                        </Button>
+                      </Tooltip>
                     </Table.Td>
                   )}
                 </Table.Tr>

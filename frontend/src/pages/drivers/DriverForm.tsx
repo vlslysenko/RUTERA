@@ -16,6 +16,7 @@ import { useUser } from '@/auth/useAuth';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { countryOptions } from '@/utils/countries';
 import { FormDateField } from '@/forms/DateField';
+import { LabelHint } from '@/components/LabelHint';
 import classes from './DriversPage.module.css';
 
 /* Same rules as the backend. Card number: spaces and hyphens removed, letters uppercased, letters and digits only. */
@@ -245,7 +246,7 @@ export function DriverForm() {
                   control={control}
                   name="employmentFrom"
                 />
-                <FormDateField label={t('drivers.employment_to')} error={err('employmentTo')} control={control} name="employmentTo" />
+                <FormDateField label={<LabelHint label={t('drivers.employment_to')} hint={t('hint.field.employment_to')} />} error={err('employmentTo')} control={control} name="employmentTo" />
                 <Controller
                   name="status"
                   control={control}
@@ -267,7 +268,7 @@ export function DriverForm() {
               <h3 className={classes.sectionTitle}>{t('drivers.section.card')}</h3>
               <Group grow align="flex-start">
                 <TextInput
-                  label={t('drivers.card_number')}
+                  label={<LabelHint label={t('drivers.card_number')} hint={t('hint.field.card_number')} />}
                   autoComplete="off"
                   maxLength={40}
                   classNames={{ input: classes.mono }}
@@ -277,7 +278,7 @@ export function DriverForm() {
                 {countrySelect('cardIssuingCountry', t('drivers.card_country'))}
               </Group>
               <Group grow align="flex-start">
-                <FormDateField label={t('drivers.card_valid_to')} error={err('cardValidTo')} control={control} name="cardValidTo" />
+                <FormDateField label={<LabelHint label={t('drivers.card_valid_to')} hint={t('hint.field.card_valid_to')} />} error={err('cardValidTo')} control={control} name="cardValidTo" />
                 <div />
               </Group>
               <div className={classes.hint}>{t('drivers.card_hint')}</div>

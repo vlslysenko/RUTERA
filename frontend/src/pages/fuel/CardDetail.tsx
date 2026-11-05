@@ -18,6 +18,7 @@ import { applyServerErrors } from '@/forms/serverErrors';
 import { idOrNull, useCrewOptions } from '@/pages/trips/crew';
 import classes from '@/pages/trips/Trips.module.css';
 import { FormDateField } from '@/forms/DateField';
+import { LabelHint } from '@/components/LabelHint';
 
 const LIST = '/fuel/cards';
 const CARD_RE = /^[0-9 -]{6,30}$/;
@@ -178,7 +179,7 @@ export function CardDetail({ mode }: { mode: 'drawer' | 'page' }) {
                   )}
                 />
                 <TextInput
-                  label={t('fuel.cards.number')}
+                  label={<LabelHint label={t('fuel.cards.number')} hint={t('hint.field.fuel_card_number')} />}
                   description={isNew ? undefined : t(providerChanged ? 'fuel.cards.number_again' : 'fuel.cards.number_keep')}
                   placeholder={card?.cardNumberMasked}
                   classNames={{ input: classes.mono }}

@@ -220,14 +220,18 @@ export function InvoiceDetail({ mode }: { mode: 'drawer' | 'page' }) {
   const actions = inv ? (
     <>
       {canPay && open && (
-        <Button size="xs" leftSection={<IconCash size={14} />} onClick={() => setPaying(true)} disabled={paying || busy !== null}>
-          {t('invoices.add_payment')}
-        </Button>
+        <Tooltip label={t('hint.action.add_payment')}>
+          <Button size="xs" leftSection={<IconCash size={14} />} onClick={() => setPaying(true)} disabled={paying || busy !== null}>
+            {t('invoices.add_payment')}
+          </Button>
+        </Tooltip>
       )}
       {canRemind && open && inv.direction === 'SALES' && (
-        <Button size="xs" variant="default" leftSection={<IconBell size={14} />} onClick={() => void remind()} loading={busy === 'remind'} disabled={busy !== null && busy !== 'remind'}>
-          {t('invoices.remind_now')}
-        </Button>
+        <Tooltip label={t('hint.action.remind_now')}>
+          <Button size="xs" variant="default" leftSection={<IconBell size={14} />} onClick={() => void remind()} loading={busy === 'remind'} disabled={busy !== null && busy !== 'remind'}>
+            {t('invoices.remind_now')}
+          </Button>
+        </Tooltip>
       )}
       {canManage && (
         <Button size="xs" variant="default" leftSection={<IconPencil size={14} />} onClick={() => void navigate(`${LIST}/${id}/edit`)} disabled={busy !== null}>

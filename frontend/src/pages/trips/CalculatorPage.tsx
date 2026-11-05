@@ -11,6 +11,7 @@ import { decimalSeparator } from '@/forms/number';
 import { countryOptions } from '@/utils/countries';
 import { fromZonedInput, toZonedInput } from '@/utils/zone';
 import { DateField } from '@/forms/DateField';
+import { LabelHint } from '@/components/LabelHint';
 import { CalcResult } from './CalcResult';
 import { RoutePanel } from './RoutePanel';
 import { idOrNull, useCrewOptions } from './crew';
@@ -235,20 +236,20 @@ export function CalculatorPage() {
             <Paper withBorder p="xs">
               <Stack gap={6}>
                 <Group grow align="flex-start">
-                  <NumberInput size="xs" label={t('calc.m.since_break')} value={manual.sinceBreakH} onChange={(v) => setManual((m) => ({ ...m, sinceBreakH: v }))} decimalScale={2} decimalSeparator={dec} min={0} hideControls />
+                  <NumberInput size="xs" label={<LabelHint label={t('calc.m.since_break')} hint={t('hos.rule_hint.BREAK_45_AFTER_4H30')} />} value={manual.sinceBreakH} onChange={(v) => setManual((m) => ({ ...m, sinceBreakH: v }))} decimalScale={2} decimalSeparator={dec} min={0} hideControls />
                   <NumberInput size="xs" label={t('calc.m.in_shift')} value={manual.inShiftH} onChange={(v) => setManual((m) => ({ ...m, inShiftH: v }))} decimalScale={2} decimalSeparator={dec} min={0} hideControls />
                 </Group>
                 <Group grow align="flex-start">
-                  <NumberInput size="xs" label={t('calc.m.week')} value={manual.weekH} onChange={(v) => setManual((m) => ({ ...m, weekH: v }))} decimalScale={2} decimalSeparator={dec} min={0} hideControls />
-                  <NumberInput size="xs" label={t('calc.m.fortnight')} value={manual.fortnightH} onChange={(v) => setManual((m) => ({ ...m, fortnightH: v }))} decimalScale={2} decimalSeparator={dec} min={0} hideControls />
+                  <NumberInput size="xs" label={<LabelHint label={t('calc.m.week')} hint={t('hos.rule_hint.WEEKLY_DRIVING_56H')} />} value={manual.weekH} onChange={(v) => setManual((m) => ({ ...m, weekH: v }))} decimalScale={2} decimalSeparator={dec} min={0} hideControls />
+                  <NumberInput size="xs" label={<LabelHint label={t('calc.m.fortnight')} hint={t('hos.rule_hint.TWO_WEEK_DRIVING_90H')} />} value={manual.fortnightH} onChange={(v) => setManual((m) => ({ ...m, fortnightH: v }))} decimalScale={2} decimalSeparator={dec} min={0} hideControls />
                 </Group>
                 <Group grow align="flex-start">
-                  <NumberInput size="xs" label={t('calc.extensions_left')} value={manual.extensionsLeft} onChange={(v) => setManual((m) => ({ ...m, extensionsLeft: v }))} min={0} max={2} allowDecimal={false} />
-                  <NumberInput size="xs" label={t('calc.reduced_left')} value={manual.reducedLeft} onChange={(v) => setManual((m) => ({ ...m, reducedLeft: v }))} min={0} max={3} allowDecimal={false} />
+                  <NumberInput size="xs" label={<LabelHint label={t('calc.extensions_left')} hint={t('hos.rule_hint.DAILY_DRIVING_9H')} />} value={manual.extensionsLeft} onChange={(v) => setManual((m) => ({ ...m, extensionsLeft: v }))} min={0} max={2} allowDecimal={false} />
+                  <NumberInput size="xs" label={<LabelHint label={t('calc.reduced_left')} hint={t('hos.rule_hint.DAILY_REST_9H')} />} value={manual.reducedLeft} onChange={(v) => setManual((m) => ({ ...m, reducedLeft: v }))} min={0} max={3} allowDecimal={false} />
                 </Group>
                 <Group grow align="flex-start">
                   <DateField withTime size="xs" label={t('calc.m.shift_start')} value={manual.shiftStart} onChange={(v) => setManual((m) => ({ ...m, shiftStart: v }))} />
-                  <DateField withTime size="xs" label={t('calc.m.last_weekly_rest')} value={manual.lastWeeklyRestEnd} onChange={(v) => setManual((m) => ({ ...m, lastWeeklyRestEnd: v }))} />
+                  <DateField withTime size="xs" label={<LabelHint label={t('calc.m.last_weekly_rest')} hint={t('hos.rule_hint.WEEKLY_REST_45H')} />} value={manual.lastWeeklyRestEnd} onChange={(v) => setManual((m) => ({ ...m, lastWeeklyRestEnd: v }))} />
                 </Group>
                 {err('manualState') && (
                   <Text size="xs" c="red">
@@ -286,7 +287,7 @@ export function CalculatorPage() {
                 <Group grow gap={6} align="flex-start">
                   <NumberInput size="xs" label={t('calc.distance_km')} value={l.distanceKm} onChange={(v) => setLeg(l.key, { distanceKm: v, countries: null })} min={0} max={20000} allowNegative={false} hideControls error={err(`legs[${i}].distanceKm`)} />
                   <NumberInput size="xs" label={t('calc.duration_h')} placeholder={t('calc.auto')} value={l.durationH} onChange={(v) => setLeg(l.key, { durationH: v })} decimalScale={2} decimalSeparator={dec} allowNegative={false} hideControls error={err(`legs[${i}].durationMin`)} />
-                  <NumberInput size="xs" label={t('calc.service_h')} value={l.serviceH} onChange={(v) => setLeg(l.key, { serviceH: v })} decimalScale={2} decimalSeparator={dec} allowNegative={false} hideControls error={err(`legs[${i}].serviceMin`)} />
+                  <NumberInput size="xs" label={<LabelHint label={t('calc.service_h')} hint={t('hint.field.service_h')} />} value={l.serviceH} onChange={(v) => setLeg(l.key, { serviceH: v })} decimalScale={2} decimalSeparator={dec} allowNegative={false} hideControls error={err(`legs[${i}].serviceMin`)} />
                 </Group>
                 {l.countries ? (
                   <Group gap={6} wrap="nowrap">
@@ -313,7 +314,7 @@ export function CalculatorPage() {
             {t('calc.options')}
           </Text>
           <Group grow align="flex-start">
-            <NumberInput size="xs" label={t('calc.avg_speed')} value={avgSpeed} onChange={setAvgSpeed} min={20} max={120} allowDecimal={false} error={err('options.avgSpeedKmh')} />
+            <NumberInput size="xs" label={<LabelHint label={t('calc.avg_speed')} hint={t('hint.field.avg_speed')} />} value={avgSpeed} onChange={setAvgSpeed} min={20} max={120} allowDecimal={false} error={err('options.avgSpeedKmh')} />
             <NumberInput size="xs" label={t('calc.consumption')} placeholder={t('calc.from_vehicle')} value={consumption} onChange={setConsumption} decimalScale={1} decimalSeparator={dec} allowNegative={false} hideControls />
           </Group>
           <Group grow align="flex-start">
@@ -321,9 +322,9 @@ export function CalculatorPage() {
             <Select size="xs" label={t('orders.currency')} data={CURRENCIES} value={fuelCurrency} onChange={setFuelCurrency} searchable error={err('options.fuelCurrency')} />
           </Group>
           <Stack gap={4}>
-            <Checkbox size="xs" label={t('calc.opt_extended')} checked={extended} onChange={(e) => setExtended(e.currentTarget.checked)} />
-            <Checkbox size="xs" label={t('calc.opt_reduced_rests')} checked={reducedRests} onChange={(e) => setReducedRests(e.currentTarget.checked)} />
-            <Checkbox size="xs" label={t('calc.opt_reduced_weekly')} checked={reducedWeekly} onChange={(e) => setReducedWeekly(e.currentTarget.checked)} />
+            <Checkbox size="xs" label={<LabelHint label={t('calc.opt_extended')} hint={t('hos.rule_hint.DAILY_DRIVING_9H')} />} checked={extended} onChange={(e) => setExtended(e.currentTarget.checked)} />
+            <Checkbox size="xs" label={<LabelHint label={t('calc.opt_reduced_rests')} hint={t('hos.rule_hint.DAILY_REST_9H')} />} checked={reducedRests} onChange={(e) => setReducedRests(e.currentTarget.checked)} />
+            <Checkbox size="xs" label={<LabelHint label={t('calc.opt_reduced_weekly')} hint={t('hos.rule_hint.WEEKLY_REST_24H')} />} checked={reducedWeekly} onChange={(e) => setReducedWeekly(e.currentTarget.checked)} />
           </Stack>
           <Group justify="space-between">
             <Text size="sm" fw={500}>

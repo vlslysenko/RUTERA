@@ -18,6 +18,7 @@ import { DetailDrawer } from '@/components/DetailDrawer';
 import { ErrorState } from '@/components/ErrorState';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { isLanguageCode, LANGUAGES, type LanguageCode } from '@/i18n/languages';
+import { LabelHint } from '@/components/LabelHint';
 import { PASSWORD_MAX, PASSWORD_MIN } from '../PasswordTab';
 import { UserStatusChips } from './UsersPage';
 
@@ -329,7 +330,7 @@ export function UserDetail({ mode }: { mode: 'drawer' | 'page' }) {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Select
-                    label={t('users.role')}
+                    label={<LabelHint label={t('users.role')} hint={t('hint.field.user_role')} />}
                     data={roleOptions}
                     value={field.value}
                     onChange={(v) => v && field.onChange(v)}
@@ -372,7 +373,7 @@ export function UserDetail({ mode }: { mode: 'drawer' | 'page' }) {
                   control={control}
                   render={({ field }) => (
                     <Switch
-                      label={t('users.active')}
+                      label={<LabelHint label={t('users.active')} hint={t('hint.field.user_active')} />}
                       checked={field.value}
                       onChange={(e) => field.onChange(e.currentTarget.checked)}
                       disabled={readOnly || isSelf}

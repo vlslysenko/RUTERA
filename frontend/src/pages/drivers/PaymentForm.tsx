@@ -12,6 +12,7 @@ import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/numbe
 import { applyServerErrors } from '@/forms/serverErrors';
 import { CURRENCIES } from '@/pages/trips/tripFormat';
 import { FormDateField } from '@/forms/DateField';
+import { LabelHint } from '@/components/LabelHint';
 import { monthOf } from './hrFormat';
 
 /* Same rules as DriverHrService: period YYYY-MM, amount above zero with 2 decimals, ISO currency, note up to 500. */
@@ -129,7 +130,7 @@ export function PaymentForm({
             />
           )}
           <Group grow align="flex-start">
-            <TextInput type="month" label={t('payments.period')} error={err('period')} {...register('period')} />
+            <TextInput type="month" label={<LabelHint label={t('payments.period')} hint={t('hint.field.payment_period')} />} error={err('period')} {...register('period')} />
             <Controller
               name="kind"
               control={control}

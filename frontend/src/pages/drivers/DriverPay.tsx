@@ -18,6 +18,7 @@ import { CURRENCIES } from '@/pages/trips/tripFormat';
 import { formatDate } from '@/utils/deadline';
 import { cx } from '@/utils/cx';
 import { FormDateField } from '@/forms/DateField';
+import { LabelHint } from '@/components/LabelHint';
 import { PaymentKindChip } from './HrChips';
 import { formatAmount, formatMonth, formatPayment } from './hrFormat';
 import { PaymentForm } from './PaymentForm';
@@ -102,7 +103,7 @@ function RateForm({ driverId, rate, onDone }: { driverId: string; rate: PayRate 
       <form onSubmit={(e) => void onSubmit(e)} noValidate>
         <Stack gap="sm">
           <Group grow align="flex-start">
-            <FormDateField label={t('pay_rates.valid_from')} error={err('validFrom')} control={control} name="validFrom" />
+            <FormDateField label={<LabelHint label={t('pay_rates.valid_from')} hint={t('hint.field.pay_valid_from')} />} error={err('validFrom')} control={control} name="validFrom" />
             <Controller
               name="currency"
               control={control}

@@ -16,6 +16,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
 import { cx } from '@/utils/cx';
 import { DateField } from '@/forms/DateField';
+import { LabelHint } from '@/components/LabelHint';
 import { formatInstant, formatPeriod } from './format';
 import { TachoKindLabel, TachoOwner, WarningsChip } from './TachoChips';
 import { TachoUpload } from './TachoUpload';
@@ -136,20 +137,20 @@ export function TachoFilesPage() {
               )}
               <DateField
                 aria-label={t('tacho.filter.from')}
-                title={t('tacho.filter.from')}
+                hint={t('hint.filter.tacho')}
                 value={from}
                 onChange={(v) => change(setFrom)(v)}
                 w={150}
               />
               <DateField
                 aria-label={t('tacho.filter.to')}
-                title={t('tacho.filter.to')}
+                hint={t('hint.filter.tacho')}
                 value={to}
                 onChange={(v) => change(setTo)(v)}
                 w={150}
               />
               <Switch
-                label={t('tacho.filter.unassigned')}
+                label={<LabelHint label={t('tacho.filter.unassigned')} hint={t('hint.filter.unassigned')} />}
                 checked={unassigned}
                 onChange={(e) => change(setUnassigned)(e.currentTarget.checked)}
                 mb={6}

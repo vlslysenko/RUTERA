@@ -161,9 +161,9 @@ export function TodayPage() {
           <PartError error={hos.error} />
         ) : (
           <div className={classes.stats}>
-            <Stat label={t('hos.summary.left_today')} value={formatMinutes(t, day.remainingDailyMin)} />
-            <Stat label={t('hos.summary.left_week')} value={formatMinutes(t, day.remainingWeeklyMin)} />
-            <Stat label={t('hos.summary.weekly_rest_by')} value={day.nextWeeklyRestBy ? formatInstantShort(day.nextWeeklyRestBy, lang, tz) : '—'} />
+            <Stat label={t('hos.summary.left_today')} hint={t('hint.hos.left_today')} value={formatMinutes(t, day.remainingDailyMin)} />
+            <Stat label={t('hos.summary.left_week')} hint={t('hint.hos.left_week')} value={formatMinutes(t, day.remainingWeeklyMin)} />
+            <Stat label={t('hos.summary.weekly_rest_by')} hint={t('hint.hos.weekly_rest_by')} value={day.nextWeeklyRestBy ? formatInstantShort(day.nextWeeklyRestBy, lang, tz) : '—'} />
             <Stat label={t('driver_app.violations_week')} value={String(hos.data.days.reduce((n, d) => n + d.violations, 0))} />
           </div>
         )}

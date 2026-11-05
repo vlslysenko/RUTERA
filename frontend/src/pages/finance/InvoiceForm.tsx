@@ -27,6 +27,7 @@ import { applyServerErrors } from '@/forms/serverErrors';
 import { CURRENCIES, formatMoney } from '@/pages/trips/tripFormat';
 import classes from '@/pages/trips/Trips.module.css';
 import { FormDateField } from '@/forms/DateField';
+import { LabelHint } from '@/components/LabelHint';
 
 const LIST = '/finance';
 const MONEY = 999_999_999_999.99;
@@ -389,7 +390,7 @@ export function InvoiceForm() {
                         render={({ field }) => (
                           <Select
                             size="xs"
-                            label={t('invoices.vat')}
+                            label={<LabelHint label={t('invoices.vat')} hint={t('hint.field.invoice_vat')} />}
                             data={VAT_CODES.map((c) => ({ value: c, label: t(`vat.code.${c}`) }))}
                             value={field.value}
                             onChange={(v) => {
@@ -483,7 +484,7 @@ export function InvoiceForm() {
                 name="remindersOn"
                 control={control}
                 render={({ field }) => (
-                  <Checkbox label={t('invoices.reminders_on')} checked={field.value} onChange={(e) => field.onChange(e.currentTarget.checked)} />
+                  <Checkbox label={<LabelHint label={t('invoices.reminders_on')} hint={t('hint.field.reminders_on')} />} checked={field.value} onChange={(e) => field.onChange(e.currentTarget.checked)} />
                 )}
               />
             )}

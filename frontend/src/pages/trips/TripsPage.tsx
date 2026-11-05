@@ -120,8 +120,8 @@ export function TripsPage() {
                 />
               </>
             )}
-            <DateField aria-label={t('orders.date_from')} title={t('orders.date_from')} value={params.get('from') ?? ''} onChange={(v) => set('from', v || null)} w={150} />
-            <DateField aria-label={t('orders.date_to')} title={t('orders.date_to')} value={params.get('to') ?? ''} onChange={(v) => set('to', v || null)} w={150} />
+            <DateField aria-label={t('orders.date_from')} hint={t('hint.filter.trips')} value={params.get('from') ?? ''} onChange={(v) => set('from', v || null)} w={150} />
+            <DateField aria-label={t('orders.date_to')} hint={t('hint.filter.trips')} value={params.get('to') ?? ''} onChange={(v) => set('to', v || null)} w={150} />
             {list.data && (
               <Text c="dimmed" mb={6}>
                 {list.data.total}
