@@ -387,7 +387,7 @@ the user who made the change: a trip created with the driver on the crew (`trip.
 `trip.assigned`, removed: `trip.unassigned`, staying: `trip.changed`, status CANCELLED: `trip.cancelled` for the
 whole crew), the office's decision on an absence request (`absence.approved`, `absence.rejected`). The payload,
 encrypted per device (RFC 8291, aes128gcm), is `{type, title, body, url, tag}`: title and body in the user's
-language (`notify.*` keys), times in the firma's zone, `url` relative (`/driver`, `/driver/me`), `tag` `trip-<id>` or
+language (`notify.*` keys), times in the firma's zone, `url` relative (`/driver`, `/driver/me`; the test notification `/`, the start screen of the role), `tag` `trip-<id>` or
 `absence-<id>` (also the push `Topic`, so an undelivered older one is replaced). They are sent after the commit by
 one background thread; a failing push service never fails the request. 404 / 410 from the push service remove the
 device, so do 10 failures in a row. Table `push_subscription`.

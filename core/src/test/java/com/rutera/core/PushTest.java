@@ -167,7 +167,9 @@ class PushTest extends AbstractIntegrationTest {
 
         JsonNode test = body(phone.post("/app/push/test", null));
         assertThat(test.get("sent").asInt()).isEqualTo(1);
-        assertThat(next(device, "/push/phone").get("type").asString()).isEqualTo("test");
+        JsonNode testPayload = next(device, "/push/phone");
+        assertThat(testPayload.get("type").asString()).isEqualTo("test");
+        assertThat(testPayload.get("url").asString()).as("the start screen of the role").isEqualTo("/");
 
         TestPushDevice old = new TestPushDevice();
         phone.post("/app/push/subscriptions", subscription(endpoint("gone/tablet"), old));

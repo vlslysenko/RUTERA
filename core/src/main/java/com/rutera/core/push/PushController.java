@@ -53,9 +53,10 @@ public class PushController {
         return ResponseEntity.noContent().build();
     }
 
+    /** Opens the start screen of the user's role: the switch is also in the office app, not only in the cabinet. */
     @PostMapping("/app/push/test")
     public PushService.TestResult test() {
         return push.test(code -> new PushService.Payload("test", lang.get("notify.test.title", code),
-                lang.get("notify.test.body", code), PushNotices.DRIVER_URL, "test"));
+                lang.get("notify.test.body", code), "/", "test"));
     }
 }
