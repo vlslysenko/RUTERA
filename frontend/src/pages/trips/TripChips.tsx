@@ -36,7 +36,7 @@ export function OrderStatusChip({ status }: { status: OrderStatus }) {
   const { t } = useTranslation();
   const [tone, Icon] = ORDER[status];
   return (
-    <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
+    <StatusChip tone={tone} icon={<Icon stroke={2.2} />} hint={t(`hint.order.${status}`)}>
       {t(`order.status.${status}`)}
     </StatusChip>
   );
@@ -46,7 +46,7 @@ export function TripStatusChip({ status }: { status: TripStatus }) {
   const { t } = useTranslation();
   const [tone, Icon] = TRIP[status];
   return (
-    <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
+    <StatusChip tone={tone} icon={<Icon stroke={2.2} />} hint={t(`hint.trip.${status}`)}>
       {t(`trip.status.${status}`)}
     </StatusChip>
   );
@@ -56,7 +56,7 @@ export function StopStatusChip({ status }: { status: StopStatus }) {
   const { t } = useTranslation();
   const [tone, Icon] = STOP[status];
   return (
-    <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
+    <StatusChip tone={tone} icon={<Icon stroke={2.2} />} hint={t(`hint.stop.${status}`)}>
       {t(`trip.stop.status.${status}`)}
     </StatusChip>
   );
@@ -66,7 +66,7 @@ export function CmrStatusChip({ status }: { status: CmrStatus }) {
   const { t } = useTranslation();
   const [tone, Icon] = CMR[status];
   return (
-    <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
+    <StatusChip tone={tone} icon={<Icon stroke={2.2} />} hint={t(`hint.cmr.${status}`)}>
       {t(`cmr.status.${status}`)}
     </StatusChip>
   );

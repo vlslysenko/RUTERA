@@ -6,11 +6,11 @@ import { StatusChip } from '@/components/StatusChip';
 export function DriverStatusChip({ status }: { status: DriverStatus }) {
   const { t } = useTranslation();
   return status === 'ACTIVE' ? (
-    <StatusChip tone="good" icon={<IconCheck stroke={2.2} />}>
+    <StatusChip tone="good" icon={<IconCheck stroke={2.2} />} hint={t('hint.driver.ACTIVE')}>
       {t('driver.status.ACTIVE')}
     </StatusChip>
   ) : (
-    <StatusChip tone="neutral" icon={<IconBan stroke={2.2} />}>
+    <StatusChip tone="neutral" icon={<IconBan stroke={2.2} />} hint={t('hint.driver.INACTIVE')}>
       {t('driver.status.INACTIVE')}
     </StatusChip>
   );

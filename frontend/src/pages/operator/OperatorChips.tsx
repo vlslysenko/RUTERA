@@ -11,20 +11,20 @@ export function FirmaStateChips({ firma }: { firma: Pick<OperatorFirma, 'active'
   return (
     <Group gap={6} wrap="nowrap">
       {state === 'ACTIVE' ? (
-        <StatusChip tone="good" icon={<IconCircleCheck stroke={2.2} />}>
+        <StatusChip tone="good" icon={<IconCircleCheck stroke={2.2} />} hint={t('hint.operator.ACTIVE')}>
           {t('operator.state.ACTIVE')}
         </StatusChip>
       ) : state === 'BLOCKED' ? (
-        <StatusChip tone="crit" icon={<IconBan stroke={2.2} />}>
+        <StatusChip tone="crit" icon={<IconBan stroke={2.2} />} hint={t('hint.operator.BLOCKED')}>
           {t('operator.state.BLOCKED')}
         </StatusChip>
       ) : (
-        <StatusChip tone="warn" icon={<IconClockX stroke={2.2} />}>
+        <StatusChip tone="warn" icon={<IconClockX stroke={2.2} />} hint={t('hint.operator.EXPIRED')}>
           {t('operator.state.EXPIRED')}
         </StatusChip>
       )}
       {firma.test && (
-        <StatusChip tone="info" icon={<IconFlask stroke={2.2} />}>
+        <StatusChip tone="info" icon={<IconFlask stroke={2.2} />} hint={t('hint.operator.test')}>
           {t('operator.test')}
         </StatusChip>
       )}

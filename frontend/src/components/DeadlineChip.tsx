@@ -10,17 +10,17 @@ export function DeadlineChip({ validTo, remindDays = DEFAULT_REMIND_DAYS }: { va
   const tone = deadlineTone(days, remindDays);
   if (tone === 'good') {
     return (
-      <StatusChip tone="good" icon={<IconCheck stroke={2.2} />}>
+      <StatusChip tone="good" icon={<IconCheck stroke={2.2} />} hint={t('hint.deadline.ok')}>
         {t('deadline.until', { date: formatDate(validTo, i18n.resolvedLanguage ?? 'en') })}
       </StatusChip>
     );
   }
   return days < 0 ? (
-    <StatusChip tone="crit" icon={<IconAlertTriangle stroke={2.2} />}>
+    <StatusChip tone="crit" icon={<IconAlertTriangle stroke={2.2} />} hint={t('hint.deadline.overdue')}>
       {t('deadline.overdue', { days: -days })}
     </StatusChip>
   ) : (
-    <StatusChip tone="warn" icon={<IconClock stroke={2.2} />}>
+    <StatusChip tone="warn" icon={<IconClock stroke={2.2} />} hint={t('hint.deadline.soon')}>
       {t('deadline.days_left', { days })}
     </StatusChip>
   );
@@ -42,7 +42,7 @@ export function NextDownloadChip({
   const { t } = useTranslation();
   if (!lastDownloadAt) {
     return (
-      <StatusChip tone="warn" icon={<IconClock stroke={2.2} />}>
+      <StatusChip tone="warn" icon={<IconClock stroke={2.2} />} hint={t('hint.deadline.never')}>
         {t('tacho.never_downloaded')}
       </StatusChip>
     );

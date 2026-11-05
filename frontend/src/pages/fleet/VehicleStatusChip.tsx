@@ -19,7 +19,7 @@ export function VehicleStatusChip({ status }: { status: VehicleStatus }) {
   const { t } = useTranslation();
   const Icon = ICONS[status];
   return (
-    <StatusChip tone={TONES[status]} icon={<Icon stroke={2.2} />}>
+    <StatusChip tone={TONES[status]} icon={<Icon stroke={2.2} />} hint={t(`hint.vehicle.${status}`)}>
       {t(`vehicle.status.${status}`)}
     </StatusChip>
   );

@@ -18,17 +18,17 @@ function TokenStatus({ token }: { token: ApiToken }) {
   const { t } = useTranslation();
   if (token.active) {
     return (
-      <StatusChip tone="good" icon={<IconCircleCheck stroke={2.2} />}>
+      <StatusChip tone="good" icon={<IconCircleCheck stroke={2.2} />} hint={t('hint.token.ACTIVE')}>
         {t('tokens.status.ACTIVE')}
       </StatusChip>
     );
   }
   return token.revokedAt ? (
-    <StatusChip tone="neutral" icon={<IconBan stroke={2.2} />}>
+    <StatusChip tone="neutral" icon={<IconBan stroke={2.2} />} hint={t('hint.token.REVOKED')}>
       {t('tokens.status.REVOKED')}
     </StatusChip>
   ) : (
-    <StatusChip tone="warn" icon={<IconClockX stroke={2.2} />}>
+    <StatusChip tone="warn" icon={<IconClockX stroke={2.2} />} hint={t('hint.token.EXPIRED')}>
       {t('tokens.status.EXPIRED')}
     </StatusChip>
   );

@@ -25,21 +25,21 @@ export function UserStatusChips({ user }: { user: AdminUser }) {
   return (
     <Group gap={6} wrap="wrap">
       {user.active ? (
-        <StatusChip tone="good" icon={<IconCheck stroke={2.2} />}>
+        <StatusChip tone="good" icon={<IconCheck stroke={2.2} />} hint={t('hint.user.active')}>
           {t('users.active')}
         </StatusChip>
       ) : (
-        <StatusChip tone="neutral" icon={<IconBan stroke={2.2} />}>
+        <StatusChip tone="neutral" icon={<IconBan stroke={2.2} />} hint={t('hint.user.inactive')}>
           {t('users.inactive')}
         </StatusChip>
       )}
       {user.locked ? (
-        <StatusChip tone="warn" icon={<IconLock stroke={2.2} />}>
+        <StatusChip tone="warn" icon={<IconLock stroke={2.2} />} hint={t('hint.user.locked')}>
           {t('users.locked')}
         </StatusChip>
       ) : (
         user.failedLogins > 0 && (
-          <StatusChip tone="neutral" icon={<IconAlertTriangle stroke={2.2} />}>
+          <StatusChip tone="neutral" icon={<IconAlertTriangle stroke={2.2} />} hint={t('hint.user.failed')}>
             {t('users.failed_logins')}: {user.failedLogins}
           </StatusChip>
         )

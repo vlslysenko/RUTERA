@@ -15,7 +15,7 @@ export function MatchChip({ match }: { match: FuelMatch }) {
   const { t } = useTranslation();
   const [tone, Icon] = MATCH[match];
   return (
-    <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
+    <StatusChip tone={tone} icon={<Icon stroke={2.2} />} hint={t(`hint.fuel_match.${match}`)}>
       {t(`fuel.match.${match}`)}
     </StatusChip>
   );

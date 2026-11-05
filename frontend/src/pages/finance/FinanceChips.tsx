@@ -22,7 +22,7 @@ export function InvoiceStatusChip({ status, daysOverdue = 0 }: { status: Invoice
   const { t } = useTranslation();
   const [tone, Icon] = INVOICE[status];
   return (
-    <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
+    <StatusChip tone={tone} icon={<Icon stroke={2.2} />} hint={t(`hint.invoice.${status}`)}>
       {status === 'OVERDUE' && daysOverdue > 0 ? t('invoices.overdue_days', { days: daysOverdue }) : t(`invoice.status.${status}`)}
     </StatusChip>
   );
@@ -32,7 +32,7 @@ export function ReminderStatusChip({ status }: { status: ReminderStatus }) {
   const { t } = useTranslation();
   const [tone, Icon] = REMINDER[status];
   return (
-    <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
+    <StatusChip tone={tone} icon={<Icon stroke={2.2} />} hint={t(`hint.reminder.${status}`)}>
       {t(`reminder.status.${status}`)}
     </StatusChip>
   );

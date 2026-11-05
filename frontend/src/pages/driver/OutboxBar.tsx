@@ -27,13 +27,13 @@ export function OutboxStateChip({ item }: { item: OutboxItem }) {
   const state = shownState(item);
   if (state === 'failed') {
     return (
-      <StatusChip tone="crit" icon={<IconAlertTriangle stroke={2.2} />}>
+      <StatusChip tone="crit" icon={<IconAlertTriangle stroke={2.2} />} hint={t('hint.outbox.failed')}>
         {t('outbox.state.failed')}
       </StatusChip>
     );
   }
   return (
-    <StatusChip tone={state === 'sending' ? 'info' : 'warn'} icon={<IconClockHour4 stroke={2.2} />}>
+    <StatusChip tone={state === 'sending' ? 'info' : 'warn'} icon={<IconClockHour4 stroke={2.2} />} hint={t(state === 'sending' ? 'hint.outbox.sending' : 'hint.outbox.queued')}>
       {t(state === 'sending' ? 'outbox.state.sending' : 'outbox.state.queued')}
     </StatusChip>
   );

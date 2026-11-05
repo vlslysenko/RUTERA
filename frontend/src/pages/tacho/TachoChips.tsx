@@ -23,25 +23,25 @@ export function ImportStatusChip({ status }: { status: TachoImportStatus | 'UPLO
   switch (status) {
     case 'IMPORTED':
       return (
-        <StatusChip tone="good" icon={<IconCheck stroke={2.2} />}>
+        <StatusChip tone="good" icon={<IconCheck stroke={2.2} />} hint={t('hint.tacho.IMPORTED')}>
           {t('tacho.status.IMPORTED')}
         </StatusChip>
       );
     case 'DUPLICATE':
       return (
-        <StatusChip tone="neutral" icon={<IconCopy stroke={2.2} />}>
+        <StatusChip tone="neutral" icon={<IconCopy stroke={2.2} />} hint={t('hint.tacho.DUPLICATE')}>
           {t('tacho.status.DUPLICATE')}
         </StatusChip>
       );
     case 'REJECTED':
       return (
-        <StatusChip tone="crit" icon={<IconX stroke={2.2} />}>
+        <StatusChip tone="crit" icon={<IconX stroke={2.2} />} hint={t('hint.tacho.REJECTED')}>
           {t('tacho.status.REJECTED')}
         </StatusChip>
       );
     default:
       return (
-        <StatusChip tone="info" icon={<IconLoader2 stroke={2.2} />}>
+        <StatusChip tone="info" icon={<IconLoader2 stroke={2.2} />} hint={t('hint.tacho.UPLOADING')}>
           {t('tacho.status.UPLOADING')}
         </StatusChip>
       );
@@ -53,7 +53,7 @@ export function WarningsChip({ count }: { count: number }) {
   const { t } = useTranslation();
   if (count <= 0) return null;
   return (
-    <StatusChip tone="warn" icon={<IconAlertTriangle stroke={2.2} />}>
+    <StatusChip tone="warn" icon={<IconAlertTriangle stroke={2.2} />} hint={t('hint.tacho.warnings')}>
       {t('tacho.warnings')}
     </StatusChip>
   );
@@ -62,7 +62,7 @@ export function WarningsChip({ count }: { count: number }) {
 export function NotAssignedChip() {
   const { t } = useTranslation();
   return (
-    <StatusChip tone="warn" icon={<IconLink stroke={2.2} />}>
+    <StatusChip tone="warn" icon={<IconLink stroke={2.2} />} hint={t('hint.tacho.not_assigned')}>
       {t('tacho.match.NONE')}
     </StatusChip>
   );

@@ -22,7 +22,7 @@ export function SeverityChip({ severity }: { severity: Severity }) {
   const { t } = useTranslation();
   const Icon = ICON[severity];
   return (
-    <StatusChip tone={TONE[severity]} icon={<Icon stroke={2.2} />}>
+    <StatusChip tone={TONE[severity]} icon={<Icon stroke={2.2} />} hint={t(`hint.severity.${severity}`)}>
       {t(`hos.severity.${severity}`)}
     </StatusChip>
   );
@@ -32,10 +32,10 @@ export function SeverityChip({ severity }: { severity: Severity }) {
 export function ReviewChip({ v }: { v: Pick<Violation, 'ack'> }) {
   const { t } = useTranslation();
   return v.ack ? (
-    <StatusChip tone="good" icon={<IconCheck stroke={2.2} />}>
+    <StatusChip tone="good" icon={<IconCheck stroke={2.2} />} hint={t('hint.review.done')}>
       {t('hos.v.reviewed')}
     </StatusChip>
   ) : (
-    <StatusChip tone="neutral">{t('hos.v.new')}</StatusChip>
+    <StatusChip tone="neutral" hint={t('hint.review.new')}>{t('hos.v.new')}</StatusChip>
   );
 }

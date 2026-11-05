@@ -50,7 +50,7 @@ export function AbsenceStatusChip({ status }: { status: AbsenceStatus }) {
   const { t } = useTranslation();
   const [tone, Icon] = ABSENCE_STATUS[status] ?? (['neutral', IconCircleDot] as const);
   return (
-    <StatusChip tone={tone} icon={<Icon stroke={2.2} />}>
+    <StatusChip tone={tone} icon={<Icon stroke={2.2} />} hint={t(`hint.absence.${status}`)}>
       {t(`absence.status.${status}`)}
     </StatusChip>
   );

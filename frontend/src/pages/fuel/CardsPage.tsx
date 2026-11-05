@@ -109,7 +109,7 @@ export function CardsPage() {
                     <Table.Td>{c.driver?.name ?? '—'}</Table.Td>
                     <Table.Td>{c.validTo ? <DeadlineChip validTo={c.validTo} /> : '—'}</Table.Td>
                     <Table.Td>
-                      <StatusChip tone={c.active ? 'good' : 'neutral'}>{t(c.active ? 'fuel.cards.active' : 'fuel.cards.inactive')}</StatusChip>
+                      <StatusChip tone={c.active ? 'good' : 'neutral'} hint={t(c.active ? 'hint.fuel_card.active' : 'hint.fuel_card.inactive')}>{t(c.active ? 'fuel.cards.active' : 'fuel.cards.inactive')}</StatusChip>
                     </Table.Td>
                   </Table.Tr>
                 );

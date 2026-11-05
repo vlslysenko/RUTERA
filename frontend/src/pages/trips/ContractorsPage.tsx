@@ -116,8 +116,8 @@ export function ContractorsPage() {
                     <Table.Td>{countryName(c.country, lang)}</Table.Td>
                     <Table.Td>
                       <Group gap={4} wrap="nowrap">
-                        {c.isCustomer && <StatusChip tone="info">{t('contractors.customer')}</StatusChip>}
-                        {c.isCarrier && <StatusChip tone="neutral">{t('contractors.carrier')}</StatusChip>}
+                        {c.isCustomer && <StatusChip tone="info" hint={t('hint.contractor.customer')}>{t('contractors.customer')}</StatusChip>}
+                        {c.isCarrier && <StatusChip tone="neutral" hint={t('hint.contractor.carrier')}>{t('contractors.carrier')}</StatusChip>}
                       </Group>
                     </Table.Td>
                     <Table.Td className={classes.num}>{c.paymentDays ?? '—'}</Table.Td>
