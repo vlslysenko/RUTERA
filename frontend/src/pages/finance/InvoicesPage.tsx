@@ -20,6 +20,7 @@ import { cx } from '@/utils/cx';
 import { DateField } from '@/forms/DateField';
 import { InvoiceStatusChip } from './FinanceChips';
 import classes from '@/pages/trips/Trips.module.css';
+import { LabelHint } from '@/components/LabelHint';
 
 const PAGE_SIZE = 50;
 
@@ -69,14 +70,16 @@ export function InvoicesPage() {
       <Stack gap="sm">
         <Group justify="space-between" wrap="wrap" align="flex-end">
           <div className={classes.filters}>
-            <SegmentedControl
-              value={direction}
-              onChange={(v) => set('direction', v === 'SALES' ? null : v)}
-              data={[
-                { value: 'SALES', label: t('invoice.direction.SALES') },
-                { value: 'PURCHASE', label: t('invoice.direction.PURCHASE') },
-              ]}
-            />
+            <Tooltip label={t('hint.invoice.direction')}>
+              <SegmentedControl
+                value={direction}
+                onChange={(v) => set('direction', v === 'SALES' ? null : v)}
+                data={[
+                  { value: 'SALES', label: t('invoice.direction.SALES') },
+                  { value: 'PURCHASE', label: t('invoice.direction.PURCHASE') },
+                ]}
+              />
+            </Tooltip>
             <TextInput
               className={classes.search}
               leftSection={<IconSearch size={16} />}
@@ -109,7 +112,7 @@ export function InvoicesPage() {
             />
             <DateField aria-label={t('orders.date_from')} hint={t('hint.filter.invoices')} value={params.get('from') ?? ''} onChange={(v) => set('from', v || null)} w={150} />
             <DateField aria-label={t('orders.date_to')} hint={t('hint.filter.invoices')} value={params.get('to') ?? ''} onChange={(v) => set('to', v || null)} w={150} />
-            <Switch label={t('invoices.only_overdue')} checked={params.get('overdue') === 'true'} onChange={(e) => set('overdue', e.currentTarget.checked ? 'true' : null)} mb={8} />
+            <Switch label={<LabelHint label={t('invoices.only_overdue')} hint={t('hint.filter.only_overdue')} />} checked={params.get('overdue') === 'true'} onChange={(e) => set('overdue', e.currentTarget.checked ? 'true' : null)} mb={8} />
           </div>
           {canManage && (
             <Button leftSection={<IconPlus size={16} />} onClick={() => void navigate(`/finance/new?direction=${direction}`)}>

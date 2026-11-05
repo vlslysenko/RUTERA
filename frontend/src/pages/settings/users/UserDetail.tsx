@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Alert, Button, Group, PasswordInput, Select, Stack, Switch, Text, TextInput } from '@mantine/core';
+import { Alert, Button, Group, PasswordInput, Select, Stack, Switch, Text, TextInput, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconLockOpen, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -217,9 +217,11 @@ export function UserDetail({ mode }: { mode: 'drawer' | 'page' }) {
           {t('users.reset_password')}
         </Button>
         {user.locked && (
-          <Button variant="default" size="xs" leftSection={<IconLockOpen size={14} />} onClick={() => void unlock()} loading={busy}>
-            {t('users.unlock')}
-          </Button>
+          <Tooltip label={t('hint.action.user_unlock')}>
+            <Button variant="default" size="xs" leftSection={<IconLockOpen size={14} />} onClick={() => void unlock()} loading={busy}>
+              {t('users.unlock')}
+            </Button>
+          </Tooltip>
         )}
         <Button variant="default" size="xs" color="red" leftSection={<IconTrash size={14} />} onClick={() => setConfirmDelete(true)} disabled={busy}>
           {t('users.delete')}

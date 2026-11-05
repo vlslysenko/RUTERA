@@ -3,6 +3,7 @@ import { Avatar, Menu, Text, UnstyledButton } from '@mantine/core';
 import { IconLogout, IconSettings, IconSteeringWheel } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { DRIVER_APP_PATH } from '@/app/navigation';
+import { disablePush } from '@/app/push';
 import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useLogout, useUser } from '@/auth/useAuth';
 import classes from './UserMenu.module.css';
@@ -22,7 +23,9 @@ export function UserMenu() {
   const logout = useLogout();
   const navigate = useNavigate();
 
-  const onLogout = () => {
+  const onLogout = async () => {
+    // A shared computer must not keep receiving this user's notifications.
+    await disablePush();
     logout.mutate(undefined, { onSettled: () => void navigate('/login', { replace: true }) });
   };
 
@@ -54,7 +57,7 @@ export function UserMenu() {
           </Menu.Item>
         )}
         <Menu.Divider />
-        <Menu.Item color="red" leftSection={<IconLogout size={16} />} onClick={onLogout}>
+        <Menu.Item color="red" leftSection={<IconLogout size={16} />} onClick={() => void onLogout()}>
           {t('user.logout')}
         </Menu.Item>
       </Menu.Dropdown>

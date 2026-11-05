@@ -214,7 +214,7 @@ export function CardDetail({ mode }: { mode: 'drawer' | 'page' }) {
                   name="active"
                   control={control}
                   render={({ field }) => (
-                    <Checkbox mt={30} label={t('fuel.cards.active')} checked={field.value} onChange={(e) => field.onChange(e.currentTarget.checked)} disabled={!canManage} />
+                    <Checkbox mt={30} label={<LabelHint label={t('fuel.cards.active')} hint={t('hint.fuel_card.active')} />} checked={field.value} onChange={(e) => field.onChange(e.currentTarget.checked)} disabled={!canManage} />
                   )}
                 />
               </Group>

@@ -21,6 +21,7 @@ import { DateField } from '@/forms/DateField';
 import { MatchChip } from './FuelChips';
 import { formatQty } from './fuelFormat';
 import classes from '@/pages/trips/Trips.module.css';
+import { LabelHint } from '@/components/LabelHint';
 
 const PAGE_SIZE = 50;
 
@@ -99,7 +100,7 @@ export function TransactionsPage() {
               clearable
               w={150}
             />
-            <Switch label={t('fuel.only_unmatched')} checked={params.get('unmatched') === 'true'} onChange={(e) => set('unmatched', e.currentTarget.checked ? 'true' : null)} mb={8} />
+            <Switch label={<LabelHint label={t('fuel.only_unmatched')} hint={t('hint.filter.only_unmatched')} />} checked={params.get('unmatched') === 'true'} onChange={(e) => set('unmatched', e.currentTarget.checked ? 'true' : null)} mb={8} />
           </div>
           {canManage && (
             <Button leftSection={<IconPlus size={16} />} onClick={() => void navigate('/fuel/new')}>

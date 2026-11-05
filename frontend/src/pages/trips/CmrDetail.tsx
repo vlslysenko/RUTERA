@@ -20,6 +20,7 @@ import { boxLabel, numberInText, showCmrPdf } from './cmrFormat';
 import { CmrStatusChip } from './TripChips';
 import { formatInstantShort, formatMoney, placeLine } from './tripFormat';
 import classes from './Trips.module.css';
+import { LabelHint } from '@/components/LabelHint';
 
 const LIST = '/trips/cmr';
 const DASH = '—';
@@ -300,16 +301,18 @@ export function CmrDetail({ mode }: { mode: 'drawer' | 'page' }) {
           </Button>
         </Tooltip>
       )}
-      <Button variant="default" size="xs" leftSection={<IconFileTypePdf size={14} />} onClick={() => void pdf(false)} disabled={busy}>
-        {t('cmr.pdf')}
-      </Button>
+      <Tooltip label={t('hint.action.cmr_pdf')}>
+        <Button variant="default" size="xs" leftSection={<IconFileTypePdf size={14} />} onClick={() => void pdf(false)} disabled={busy}>
+          {t('cmr.pdf')}
+        </Button>
+      </Tooltip>
       <Button variant="default" size="xs" leftSection={<IconDownload size={14} />} onClick={() => void pdf(true)} disabled={busy} aria-label={t('cmr.download')}>
         {t('cmr.download')}
       </Button>
       {draft && (
         <Group gap={6} wrap="nowrap">
           <Text size="xs" c="dimmed">
-            {t('cmr.copies')}
+            <LabelHint label={t('cmr.copies')} hint={t('hint.cmr.copies')} />
           </Text>
           <SegmentedControl size="xs" data={['1', '2', '3', '4']} value={copies} onChange={setCopies} aria-label={t('cmr.copies')} />
         </Group>

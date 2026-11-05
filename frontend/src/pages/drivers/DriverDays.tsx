@@ -54,9 +54,11 @@ function DayEditor({ driverId, day, month, onDone }: { driverId: string; day: Dr
         <Textarea label={t('drivers.notes')} autosize minRows={1} maxRows={3} maxLength={500} value={note} onChange={(e) => setNote(e.currentTarget.value)} />
         <Group justify="space-between" gap="xs">
           {day.source === 'MANUAL' ? (
-            <Button variant="subtle" size="xs" onClick={() => void run('reset')} loading={busy === 'reset'} disabled={busy === 'save'}>
-              {t('days.reset')}
-            </Button>
+            <Tooltip label={t('hint.action.day_reset')}>
+              <Button variant="subtle" size="xs" onClick={() => void run('reset')} loading={busy === 'reset'} disabled={busy === 'save'}>
+                {t('days.reset')}
+              </Button>
+            </Tooltip>
           ) : (
             <span />
           )}

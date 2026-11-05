@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Anchor, Button, Group, Paper, Select, Stack, Text, TextInput } from '@mantine/core';
+import { Alert, Anchor, Button, Group, Paper, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconLink, IconPencil, IconTrash } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -175,9 +175,11 @@ export function TransactionDetail({ mode }: { mode: 'drawer' | 'page' }) {
       actions={
         tx && canManage ? (
           <>
-            <Button size="xs" variant="default" leftSection={<IconLink size={14} />} onClick={() => setLinking(true)} disabled={linking || busy}>
-              {t('fuel.set_links')}
-            </Button>
+            <Tooltip label={t('hint.action.fuel_set_links')}>
+              <Button size="xs" variant="default" leftSection={<IconLink size={14} />} onClick={() => setLinking(true)} disabled={linking || busy}>
+                {t('fuel.set_links')}
+              </Button>
+            </Tooltip>
             {tx.source === 'MANUAL' && (
               <>
                 <Button size="xs" variant="default" leftSection={<IconPencil size={14} />} onClick={() => void navigate(`${LIST}/${id}/edit`)} disabled={busy}>

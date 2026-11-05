@@ -126,9 +126,11 @@ export function OutboxBar() {
           </Group>
         </UnstyledButton>
         {waiting > 0 && (
-          <Button size="xs" variant="light" leftSection={<IconSend size={14} />} onClick={() => void send()} loading={busy}>
-            {t('outbox.send_now')}
-          </Button>
+          <Tooltip label={t('hint.action.outbox_send')}>
+            <Button size="xs" variant="light" leftSection={<IconSend size={14} />} onClick={() => void send()} loading={busy}>
+              {t('outbox.send_now')}
+            </Button>
+          </Tooltip>
         )}
       </Group>
       {open && (

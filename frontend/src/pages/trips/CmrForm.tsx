@@ -571,16 +571,18 @@ export function CmrForm() {
               name="paymentTerms"
               control={control}
               render={({ field }) => (
-                <SegmentedControl
-                  size="xs"
-                  data={[
-                    { value: '', label: t('cmr.payment_terms.none') },
-                    { value: 'PAID', label: t('cmr.payment_terms.PAID') },
-                    { value: 'FORWARD', label: t('cmr.payment_terms.FORWARD') },
-                  ]}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
+                <Tooltip label={t('hint.cmr.payment_terms')}>
+                  <SegmentedControl
+                    size="xs"
+                    data={[
+                      { value: '', label: t('cmr.payment_terms.none') },
+                      { value: 'PAID', label: t('cmr.payment_terms.PAID') },
+                      { value: 'FORWARD', label: t('cmr.payment_terms.FORWARD') },
+                    ]}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </Tooltip>
               )}
             />
             {area('paymentInstructions', t('cmr.payment_instructions'))}

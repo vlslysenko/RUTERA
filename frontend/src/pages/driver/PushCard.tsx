@@ -1,22 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Stack, Switch, Text } from '@mantine/core';
+import { Button, Paper, Stack, Switch, Text, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconBellRinging } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
 import { useInstall } from '@/app/install';
 import { currentSubscription, disablePush, enablePush, PUSH_KEY, pushApi, pushRegistration, pushSupported } from '@/app/push';
+import { LabelHint } from '@/components/LabelHint';
 import { Card } from './DriverParts';
 
 type View = 'loading' | 'hidden' | 'install' | 'denied' | 'off' | 'on';
 
+/** The driver cabinet's card, or a panel of the office settings. */
+function Frame({ office, title, children }: { office: boolean; title: string; children: ReactNode }) {
+  if (!office) return <Card title={title}>{children}</Card>;
+  return (
+    <Paper p="lg" maw={520}>
+      <Stack gap="md">
+        <Title order={3}>{title}</Title>
+        {children}
+      </Stack>
+    </Paper>
+  );
+}
+
 /**
- * "Notifications on this phone": push about a new or changed trip and the decision on an absence request, also with
- * RUTERA closed. Hidden where push cannot work (no service worker, push off on the server); on iPhone it first asks
- * to install the app.
+ * "Notifications on this phone": push about a new or changed trip, the decision on an absence request and an expiring
+ * document or driver card, also with RUTERA closed. With `office`, the same switch in the settings of owners and
+ * dispatchers, who get the reminders of vehicle documents, on any device. Hidden where push cannot work (no service
+ * worker, push off on the server); on iPhone it first asks to install the app.
  */
-export function PushCard() {
+export function PushCard({ office = false }: { office?: boolean }) {
   const { t } = useTranslation();
   const { standalone, ios } = useInstall();
   // 404 push.disabled: the server has no VAPID keys, the card stays hidden.
@@ -71,27 +86,27 @@ export function PushCard() {
   if (view === 'hidden' || view === 'loading') return null;
   if (view === 'install') {
     return (
-      <Card title={t('push.title')}>
+      <Frame office={office} title={t(office ? 'push.title_device' : 'push.title')}>
         <Text size="sm" c="dimmed">
           {t('push.ios_install')}
         </Text>
-      </Card>
+      </Frame>
     );
   }
   if (!key.data) return null;
 
   return (
-    <Card title={t('push.title')}>
+    <Frame office={office} title={t(office ? 'push.title_device' : 'push.title')}>
       <Stack gap="sm">
-        <Text size="sm">{t('push.text')}</Text>
+        <Text size="sm">{t(office ? 'push.text_office' : 'push.text')}</Text>
         {view === 'denied' ? (
           <Text size="sm" c="orange">
-            {t('push.denied')}
+            {t(office ? 'push.denied_device' : 'push.denied')}
           </Text>
         ) : (
           <Switch
-            size="md"
-            label={t('push.switch')}
+            size={office ? 'sm' : 'md'}
+            label={<LabelHint label={t('push.switch')} hint={t('hint.field.push_device')} />}
             checked={view === 'on'}
             disabled={busy}
             onChange={(e) => void toggle(e.currentTarget.checked)}
@@ -99,11 +114,11 @@ export function PushCard() {
           />
         )}
         {view === 'on' && (
-          <Button size="md" variant="default" onClick={() => void test()} loading={busy}>
+          <Button size={office ? 'sm' : 'md'} w={office ? 'fit-content' : undefined} variant="default" onClick={() => void test()} loading={busy}>
             {t('push.test')}
           </Button>
         )}
       </Stack>
-    </Card>
+    </Frame>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, Group, Stack, Text } from '@mantine/core';
+import { Button, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -107,9 +107,11 @@ export function MyAbsences({ driverId, today }: { driverId: number; today: strin
                   <AbsenceKindChip kind={a.kind} />
                   {a.status !== 'APPROVED' && <AbsenceStatusChip status={a.status} />}
                   {a.status === 'REQUESTED' && (
-                    <Button size="xs" variant="subtle" color="red" onClick={() => void withdraw(a)} loading={busy === a.id}>
-                      {t('driver_app.request_withdraw')}
-                    </Button>
+                    <Tooltip label={t('hint.action.absence_withdraw')}>
+                      <Button size="xs" variant="subtle" color="red" onClick={() => void withdraw(a)} loading={busy === a.id}>
+                        {t('driver_app.request_withdraw')}
+                      </Button>
+                    </Tooltip>
                   )}
                 </Group>
               </div>

@@ -281,7 +281,7 @@ export function ContractorDetail({ mode }: { mode: 'drawer' | 'page' }) {
                     control={control}
                     render={({ field }) => (
                       <Checkbox
-                        label={t('contractors.customer')}
+                        label={<LabelHint label={t('contractors.customer')} hint={t('hint.contractor.customer')} />}
                         checked={field.value}
                         onChange={(e) => field.onChange(e.currentTarget.checked)}
                         disabled={readOnly}
@@ -293,7 +293,7 @@ export function ContractorDetail({ mode }: { mode: 'drawer' | 'page' }) {
                     control={control}
                     render={({ field }) => (
                       <Checkbox
-                        label={t('contractors.carrier')}
+                        label={<LabelHint label={t('contractors.carrier')} hint={t('hint.contractor.carrier')} />}
                         checked={field.value}
                         onChange={(e) => field.onChange(e.currentTarget.checked)}
                         disabled={readOnly}

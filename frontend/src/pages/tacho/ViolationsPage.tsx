@@ -19,6 +19,7 @@ import { formatInstant } from './format';
 import { formatMinutes } from './hosFormat';
 import { ReviewChip, SeverityChip } from './ViolationChips';
 import classes from './Hos.module.css';
+import { LabelHint } from '@/components/LabelHint';
 
 const PAGE_SIZE = 50;
 
@@ -109,7 +110,7 @@ export function ViolationsPage() {
               w={150}
             />
             <Switch
-              label={t('hos.v.only_new')}
+              label={<LabelHint label={t('hos.v.only_new')} hint={t('hint.filter.only_new')} />}
               checked={params.get('all') !== '1'}
               onChange={(e) => set('all', e.currentTarget.checked ? null : '1')}
               mb={6}

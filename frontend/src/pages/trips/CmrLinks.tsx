@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Anchor, Button, Group, Stack, Text } from '@mantine/core';
+import { Anchor, Button, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconFileText } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -50,9 +50,11 @@ export function CmrLinks({ orderId, tripId, canCreate = true }: { orderId?: numb
       <Group justify="space-between">
         <h3 className={classes.sectionTitle}>CMR</h3>
         {canManage && canCreate && (
-          <Button size="xs" variant="light" leftSection={<IconFileText size={14} />} onClick={() => void create()} loading={busy}>
-            {t('cmr.create')}
-          </Button>
+          <Tooltip label={t('hint.action.cmr_create')}>
+            <Button size="xs" variant="light" leftSection={<IconFileText size={14} />} onClick={() => void create()} loading={busy}>
+              {t('cmr.create')}
+            </Button>
+          </Tooltip>
         )}
       </Group>
       {q.isError ? (

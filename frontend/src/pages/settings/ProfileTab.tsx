@@ -6,6 +6,7 @@ import { errorCode } from '@/api/errors';
 import { defaultStartScreen, SCREENS, visibleScreens } from '@/app/navigation';
 import type { ScreenKey } from '@/app/types';
 import { useUpdateSettings, useUser } from '@/auth/useAuth';
+import { PushCard } from '@/pages/driver/PushCard';
 import { setLanguage } from '@/i18n';
 import { isLanguageCode, LANGUAGES, type LanguageCode } from '@/i18n/languages';
 
@@ -35,40 +36,43 @@ export function ProfileTab() {
   };
 
   return (
-    <Paper p="lg" maw={520}>
-      <Stack gap="md">
-        <Title order={3}>{t('settings.profile')}</Title>
-        <Select
-          label={t('settings.language')}
-          data={LANGUAGES.map((l) => ({ value: l.code, label: l.name }))}
-          value={language}
-          onChange={(v) => {
-            if (isLanguageCode(v)) setLanguageValue(v);
-          }}
-          allowDeselect={false}
-          searchable
-          maxDropdownHeight={300}
-        />
-        <Select
-          label={t('settings.start_screen')}
-          description={t('settings.start_screen.hint')}
-          data={[
-            // "Default (Trips)": the role's start screen, so the choice is not a guess.
-            { value: DEFAULT_SCREEN, label: `${t('common.default')} (${t(SCREENS[defaultStartScreen(user)].labelKey)})` },
-            ...screens.map((s) => ({ value: s.key, label: t(s.labelKey) })),
-          ]}
-          value={startScreen}
-          onChange={(v) => {
-            if (v) setStartScreen(v);
-          }}
-          allowDeselect={false}
-        />
-        <Group justify="flex-end">
-          <Button onClick={() => void save()} loading={update.isPending} disabled={!dirty}>
-            {t('common.save')}
-          </Button>
-        </Group>
-      </Stack>
-    </Paper>
+    <Stack gap="md">
+      <Paper p="lg" maw={520}>
+        <Stack gap="md">
+          <Title order={3}>{t('settings.profile')}</Title>
+          <Select
+            label={t('settings.language')}
+            data={LANGUAGES.map((l) => ({ value: l.code, label: l.name }))}
+            value={language}
+            onChange={(v) => {
+              if (isLanguageCode(v)) setLanguageValue(v);
+            }}
+            allowDeselect={false}
+            searchable
+            maxDropdownHeight={300}
+          />
+          <Select
+            label={t('settings.start_screen')}
+            description={t('settings.start_screen.hint')}
+            data={[
+              // "Default (Trips)": the role's start screen, so the choice is not a guess.
+              { value: DEFAULT_SCREEN, label: `${t('common.default')} (${t(SCREENS[defaultStartScreen(user)].labelKey)})` },
+              ...screens.map((s) => ({ value: s.key, label: t(s.labelKey) })),
+            ]}
+            value={startScreen}
+            onChange={(v) => {
+              if (v) setStartScreen(v);
+            }}
+            allowDeselect={false}
+          />
+          <Group justify="flex-end">
+            <Button onClick={() => void save()} loading={update.isPending} disabled={!dirty}>
+              {t('common.save')}
+            </Button>
+          </Group>
+        </Stack>
+      </Paper>
+      {(user.role === 'OWNER' || user.role === 'DISPATCHER') && <PushCard office />}
+    </Stack>
   );
 }

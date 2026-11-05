@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router';
 import { AppShell, useMantineTheme } from '@mantine/core';
 import { useDisclosure, useLocalStorage } from '@mantine/hooks';
 import { DRIVER_APP_PATH, usesDriverApp } from '@/app/navigation';
+import { syncPush } from '@/app/push';
 import { useUser } from '@/auth/useAuth';
 import { OfflineBanner } from '@/components/Offline';
 import { TopBar } from './TopBar';
@@ -28,6 +29,11 @@ export function AppLayout() {
   const [asideOpen, setAsideOpen] = useState(false);
   const { pathname } = useLocation();
   const user = useUser();
+
+  // A device that already receives notifications now receives them for the user signed in now.
+  useEffect(() => {
+    void syncPush();
+  }, [user.id]);
 
   const closeMobile = mobile.close;
   useEffect(() => {

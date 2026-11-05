@@ -205,7 +205,7 @@ export function CalculatorPage() {
           <Group gap="md" wrap="wrap">
             <div>
               <Text size="sm" fw={500} mb={4}>
-                {t('calc.crew')}
+                <LabelHint label={t('calc.crew')} hint={t('hint.calc.crew')} />
               </Text>
               <SegmentedControl
                 value={effectiveCrew}
@@ -219,7 +219,7 @@ export function CalculatorPage() {
             </div>
             <div>
               <Text size="sm" fw={500} mb={4}>
-                {t('calc.driver_state')}
+                <LabelHint label={t('calc.driver_state')} hint={t('hint.calc.driver_state')} />
               </Text>
               <SegmentedControl
                 value={driverState}

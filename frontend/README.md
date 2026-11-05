@@ -189,12 +189,24 @@ server's VAPID key (a subscription made with an older key is replaced) and posts
 in the browser; "Send a test notification" calls `POST /app/push/test`. On cabinet start an existing subscription is
 posted again, so it follows the driver signed in now; signing out turns push off for the phone. The service worker
 shows `{type, title, body, url, tag}` and opens or focuses RUTERA at `url` on a click. The dev server has no service
-worker, so the card stays hidden there (the mock answers `push.disabled`). A replay that hits the first try still
+worker, so the card stays hidden there (the mock answers `push.disabled`). Deadline reminders (`deadline.document`,
+`deadline.card`, `deadline.vehicle_document`) use the same payload, so nothing in the service worker depends on the
+type. Owners and dispatchers get the reminders of vehicle documents, so the same switch is in Settings -> Profile
+(`<PushCard office />`, any device); the office app also binds an existing subscription to the user at start and turns
+push off on sign-out. A replay that hits the first try still
 running (409 `request.in_progress`) waits and is tried again.
 
 Installation: `src/app/install.ts` catches `beforeinstallprompt` at start (imported in `main.tsx`); the cabinet's
 "Me" tab shows "Install RUTERA on this phone" with a button where the browser offers it, the Share -> Add to Home
 Screen hint on iPhone/iPad, and nothing when the app already runs installed.
+
+### Tooltips
+
+Theme defaults in `src/app/theme.ts` (`events` hover, focus and touch; multiline, `maw` 300). Three shapes, all texts in
+`hint.*` keys: `StatusChip` has a `hint` prop for status chips; `LabelHint` (`src/components/LabelHint.tsx`) puts an (i)
+beside a field or switch label, and a tap on it does not reach the `<label>`, so a phone neither opens the keyboard nor
+flips the switch; a plain `Tooltip` wraps an action button with a lasting effect. `DateField` has a `hint` prop for
+date filters. An icon-only button needs `aria-label` as well as its `Tooltip`.
 
 ### Session end, sign-in throttle, CSP
 

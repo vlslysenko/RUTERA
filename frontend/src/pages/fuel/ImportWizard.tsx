@@ -27,6 +27,7 @@ import { useUser } from '@/auth/useAuth';
 import { CURRENCIES, formatInstantShort, formatMoney } from '@/pages/trips/tripFormat';
 import { cx } from '@/utils/cx';
 import classes from './Fuel.module.css';
+import { LabelHint } from '@/components/LabelHint';
 
 const MAX_BYTES = 20 * 1024 * 1024;
 const AUTO: FuelReadOptions = { dateFormat: null, decimalComma: null, currency: null };
@@ -176,9 +177,11 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
             <Button variant="default" onClick={onClose}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={() => void runPreview(provider)} disabled={!file} loading={busy}>
-              {t('fuel.import.check')}
-            </Button>
+            <Tooltip label={t('hint.action.fuel_check')}>
+              <Button onClick={() => void runPreview(provider)} disabled={!file} loading={busy}>
+                {t('fuel.import.check')}
+              </Button>
+            </Tooltip>
           </Group>
         </Stack>
       )}
@@ -303,7 +306,7 @@ export function ImportWizard({ onClose }: { onClose: () => void }) {
               {t('fuel.import.changed_hint')}
             </Text>
           )}
-          <Checkbox label={t('fuel.import.save_mapping', { provider: t(`fuel.provider.${provider ?? 'OTHER'}`) })} checked={saveMapping} onChange={(e) => setSaveMapping(e.currentTarget.checked)} />
+          <Checkbox label={<LabelHint label={t('fuel.import.save_mapping', { provider: t(`fuel.provider.${provider ?? 'OTHER'}`) })} hint={t('hint.field.save_mapping')} />} checked={saveMapping} onChange={(e) => setSaveMapping(e.currentTarget.checked)} />
           <Group justify="space-between">
             <Button variant="subtle" onClick={() => setStep(0)} disabled={busy}>
               {t('fuel.import.back')}

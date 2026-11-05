@@ -1,8 +1,9 @@
 import { api } from '@/api/client';
 
 /*
- * Web Push of the driver cabinet (backend contract of item 7, /app/push; VAPID, no paid service). The service worker
- * shows the notifications (public/sw-extra.js); this module subscribes the device and binds it to the signed-in user.
+ * Web Push (backend contract of item 7, /app/push; VAPID, no paid service): the driver cabinet, and the settings of
+ * owners and dispatchers for reminders of vehicle documents. The service worker shows the notifications
+ * (public/sw-extra.js); this module subscribes the device and binds it to the signed-in user.
  * GET /app/push/key -> {publicKey} | 404 push.disabled; POST/DELETE /app/push/subscriptions {endpoint, keys};
  * POST /app/push/test -> {sent, failed}. A subscription follows the user who sent it last (upsert by endpoint).
  */
@@ -91,8 +92,8 @@ export async function disablePush(): Promise<void> {
 }
 
 /**
- * On cabinet start: a device that already has a subscription is bound to the user signed in now (another driver may
- * have used this phone before). Never throws.
+ * On start of the cabinet or the office app: a device that already has a subscription is bound to the user signed in
+ * now (someone else may have used it before). Never throws.
  */
 export async function syncPush(): Promise<void> {
   try {
