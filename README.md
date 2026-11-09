@@ -711,6 +711,9 @@ Privileges: `trip.trip/view` calculates and reads tariffs, `trip.trip/manage` ed
 | GET | `/app/calc/toll-tariffs` | `TollTariff[]` by country, newest `validFrom` first |
 | POST / PUT / DELETE | `/app/calc/toll-tariffs[/{id}]` | `{country, euroClass?, axlesMin?, weightMinKg?, ratePerKm, currency, validFrom?, notes?}` -> `TollTariff` / 204 |
 
+Sample tariffs of 11 countries for 2026 (204 rows, with the official source of every class and how to import them
+through the API) are in `docs/samples` (`toll-tariffs-2026.json`, see its README).
+
 `TripInput = {start (instant), vehicleId?, driverIds?: [id, id?], crewSize?: 1 | 2 (default: number of drivers or
 1), driverState?: TACHO | FRESH | MANUAL (default TACHO with drivers, else FRESH), manualState?: {drivingSinceBreakMin,
 drivingInShiftMin, shiftStart, weekDrivingMin, fortnightDrivingMin, extensionsLeft, reducedRestsLeft,

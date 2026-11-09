@@ -1,0 +1,562 @@
+country,system,road_type,weight_min_kg,weight_max_kg,axles_min,axles_max,euro_class,co2_class,rate_per_km,currency,vat,valid_from,confidence,source_url
+PL,e-TOLL,A/S motorway+expressway,3501,11999,,,EURO_0_2,,0.8,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,A/S motorway+expressway,3501,11999,,,EURO_3,,0.7,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,A/S motorway+expressway,3501,11999,,,EURO_4,,0.58,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,A/S motorway+expressway,3501,11999,,,EURO_5_PLUS,,0.41,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,GP/G national road,3501,11999,,,EURO_0_2,,0.66,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,GP/G national road,3501,11999,,,EURO_3,,0.58,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,GP/G national road,3501,11999,,,EURO_4,,0.47,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,GP/G national road,3501,11999,,,EURO_5_PLUS,,0.34,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,A/S motorway+expressway,12000,,,,EURO_0_2,,1.07,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,A/S motorway+expressway,12000,,,,EURO_3,,0.93,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,A/S motorway+expressway,12000,,,,EURO_4,,0.75,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,A/S motorway+expressway,12000,,,,EURO_5_PLUS,,0.56,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,GP/G national road,12000,,,,EURO_0_2,,0.83,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,GP/G national road,12000,,,,EURO_3,,0.75,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,GP/G national road,12000,,,,EURO_4,,0.6,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+PL,e-TOLL,GP/G national road,12000,,,,EURO_5_PLUS,,0.42,PLN,none (public levy),2026-02-01,official,https://www.gov.pl/web/finanse/zmiany-w-systemie-e-toll-od-1-lutego-2026-r
+DE,Lkw-Maut,Autobahn + Bundesstrasse,3501,7499,,,EURO_6,1,0.151,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,7500,11999,,,EURO_6,1,0.177,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,12000,18000,,,EURO_6,1,0.238,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,,3,EURO_6,1,0.303,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,4,4,EURO_6,1,0.324,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,5,,EURO_6,1,0.348,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,3501,7499,,,EURO_5,1,0.189,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,7500,11999,,,EURO_5,1,0.205,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,12000,18000,,,EURO_5,1,0.275,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,,3,EURO_5,1,0.353,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,4,4,EURO_5,1,0.363,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,5,,EURO_5,1,0.389,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,3501,7499,,,EURO_4,1,0.201,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,7500,11999,,,EURO_4,1,0.221,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,12000,18000,,,EURO_4,1,0.286,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,,3,EURO_4,1,0.371,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,4,4,EURO_4,1,0.388,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,5,,EURO_4,1,0.414,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,3501,7499,,,EURO_3,1,0.225,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,7500,11999,,,EURO_3,1,0.25,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,12000,18000,,,EURO_3,1,0.328,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,,3,EURO_3,1,0.429,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,4,4,EURO_3,1,0.454,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,5,,EURO_3,1,0.478,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,3501,7499,,,EURO_2,1,0.244,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,7500,11999,,,EURO_2,1,0.275,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,12000,18000,,,EURO_2,1,0.348,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,,3,EURO_2,1,0.459,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,4,4,EURO_2,1,0.487,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,5,,EURO_2,1,0.511,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,3501,7499,,,EURO_0_1,1,0.248,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,7500,11999,,,EURO_0_1,1,0.276,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,12000,18000,,,EURO_0_1,1,0.35,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,,3,EURO_0_1,1,0.484,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,4,4,EURO_0_1,1,0.512,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,5,,EURO_0_1,1,0.516,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,3501,7499,,,EURO_6,2,0.147,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,7500,11999,,,EURO_6,2,0.173,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,12000,18000,,,EURO_6,2,0.234,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,,3,EURO_6,2,0.297,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,4,4,EURO_6,2,0.318,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,5,,EURO_6,2,0.34,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,3501,7499,,,EURO_6,3,0.144,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,7500,11999,,,EURO_6,3,0.169,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,12000,18000,,,EURO_6,3,0.228,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,,3,EURO_6,3,0.29,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,4,4,EURO_6,3,0.31,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,5,,EURO_6,3,0.332,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,3501,7499,,,EURO_6,4,0.114,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,7500,11999,,,EURO_6,4,0.137,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,12000,18000,,,EURO_6,4,0.188,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,,3,EURO_6,4,0.242,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,4,4,EURO_6,4,0.258,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,5,,EURO_6,4,0.269,EUR,none,2024-07-01,official,https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,3501,7499,,,ZEV,5,0,EUR,none,2024-07-01,official (zero-emission trucks exempt until 2031-06-30),https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,7500,11999,,,ZEV,5,0,EUR,none,2024-07-01,official (zero-emission trucks exempt until 2031-06-30),https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,12000,18000,,,ZEV,5,0,EUR,none,2024-07-01,official (zero-emission trucks exempt until 2031-06-30),https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,,3,ZEV,5,0,EUR,none,2024-07-01,official (zero-emission trucks exempt until 2031-06-30),https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,4,4,ZEV,5,0,EUR,none,2024-07-01,official (zero-emission trucks exempt until 2031-06-30),https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+DE,Lkw-Maut,Autobahn + Bundesstrasse,18001,,5,,ZEV,5,0,EUR,none,2024-07-01,official (zero-emission trucks exempt until 2031-06-30),https://www.toll-collect.de/static/media/tc/informationen_tc/tarife_vergleichstabelle_2023_2024/mautsaetze_07_2024_vergleich_gb.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,2,2,EURO_6,1,0.2774,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,2,2,EURO_5,1,0.2924,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,2,2,EURO_4,1,0.3114,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,2,2,EURO_0_3,1,0.3274,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,2,2,EURO_6,2,0.274,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,2,2,EURO_6,3,0.2724,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,2,2,EURO_6,4,0.2486,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,2,2,ZEV,5,0.0587,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,3,3,EURO_6,1,0.3856,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,3,3,EURO_5,1,0.4086,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,3,3,EURO_4,1,0.4296,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,3,3,EURO_0_3,1,0.4536,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,3,3,EURO_6,2,0.381,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,3,3,EURO_6,3,0.3788,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,3,3,EURO_6,4,0.344,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,3,3,ZEV,5,0.0806,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,4,,EURO_6,1,0.5724,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,4,,EURO_5,1,0.6024,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,4,,EURO_4,1,0.6324,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,4,,EURO_0_3,1,0.6654,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,4,,EURO_6,2,0.5657,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,4,,EURO_6,3,0.5625,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,4,,EURO_6,4,0.5091,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+AT,GO-Maut,Autobahn + Schnellstrasse,3501,,4,,ZEV,5,0.1189,EUR,excl. 20% VAT,2026-01-01,official,https://go-maut.at/media/k3tcntn3/go-maut-tarife-2026_en.pdf
+CZ,Myto CZ,dalnice (motorway),3501,7499,2,2,EURO_0_4,1,0.8338,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,3,3,EURO_0_4,1,1.0304,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,4,4,EURO_0_4,1,1.5667,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,5,,EURO_0_4,1,1.8228,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,2,2,EURO_5,1,0.8252,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,3,3,EURO_5,1,1.0189,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,4,4,EURO_5,1,1.5521,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,5,,EURO_5,1,1.805,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,2,2,EURO_6,1,0.822,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,3,3,EURO_6,1,1.0145,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,4,4,EURO_6,1,1.5465,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,5,,EURO_6,1,1.7983,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,2,2,EURO_6,2,0.8051,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,3,3,EURO_6,2,0.9933,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,4,4,EURO_6,2,1.5094,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,5,,EURO_6,2,1.754,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,2,2,EURO_6,3,0.7881,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,3,3,EURO_6,3,0.9721,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,4,4,EURO_6,3,1.4724,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,5,,EURO_6,3,1.7098,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,2,2,EURO_6,4,0.6524,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,3,3,EURO_6,4,0.8025,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,4,4,EURO_6,4,1.1756,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,5,,EURO_6,4,1.3555,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,2,2,ZEV,5,0.4574,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,3,3,ZEV,5,0.5591,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,4,4,ZEV,5,0.7623,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),3501,7499,5,,ZEV,5,0.864,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,2,2,EURO_0_4,1,1.56,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,3,3,EURO_0_4,1,2.0652,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,4,4,EURO_0_4,1,2.8218,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,5,,EURO_0_4,1,3.4139,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,2,2,EURO_5,1,1.3824,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,3,3,EURO_5,1,1.8265,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,4,4,EURO_5,1,2.519,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,5,,EURO_5,1,3.0461,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,2,2,EURO_6,1,1.3153,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,3,3,EURO_6,1,1.7363,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,4,4,EURO_6,1,2.3885,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,5,,EURO_6,1,2.8853,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,2,2,EURO_6,2,1.2984,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,3,3,EURO_6,2,1.7151,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,4,4,EURO_6,2,2.3514,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,5,,EURO_6,2,2.841,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,2,2,EURO_6,3,1.2814,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,3,3,EURO_6,3,1.6938,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,4,4,EURO_6,3,2.3144,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,5,,EURO_6,3,2.7968,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,2,2,EURO_6,4,1.1458,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,3,3,EURO_6,4,1.5243,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,4,4,EURO_6,4,2.0176,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,5,,EURO_6,4,2.4426,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,2,2,ZEV,5,0.8728,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,3,3,ZEV,5,1.1734,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,4,4,ZEV,5,1.4874,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),7500,11999,5,,ZEV,5,1.8085,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,2,2,EURO_0_4,1,3.5346,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,3,3,EURO_0_4,1,4.6346,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,4,4,EURO_0_4,1,5.8656,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,5,,EURO_0_4,1,6.8939,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,2,2,EURO_5,1,3.0697,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,3,3,EURO_5,1,4.0906,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,4,4,EURO_5,1,5.3935,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,5,,EURO_5,1,6.4536,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,2,2,EURO_6,1,2.834,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,3,3,EURO_6,1,3.7433,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,4,4,EURO_6,1,4.9285,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,5,,EURO_6,1,5.9644,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,2,2,EURO_6,2,2.8171,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,3,3,EURO_6,2,3.7221,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,4,4,EURO_6,2,4.8914,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,5,,EURO_6,2,5.9201,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,2,2,EURO_6,3,2.8001,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,3,3,EURO_6,3,3.7009,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,4,4,EURO_6,3,4.8544,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,5,,EURO_6,3,5.8759,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,2,2,EURO_6,4,2.6644,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,3,3,EURO_6,4,3.5313,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,4,4,EURO_6,4,4.5576,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,5,,EURO_6,4,5.5217,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,2,2,ZEV,5,2.2871,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,3,3,ZEV,5,3.0725,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,4,4,ZEV,5,3.899,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,dalnice (motorway),12000,,5,,ZEV,5,4.7262,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,2,2,EURO_0_4,1,0.5902,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,3,3,EURO_0_4,1,0.7563,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,4,4,EURO_0_4,1,1.1607,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,5,,EURO_0_4,1,1.3965,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,2,2,EURO_5,1,0.5816,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,3,3,EURO_5,1,0.7448,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,4,4,EURO_5,1,1.1461,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,5,,EURO_5,1,1.3787,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,2,2,EURO_6,1,0.5784,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,3,3,EURO_6,1,0.7404,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,4,4,EURO_6,1,1.1405,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,5,,EURO_6,1,1.372,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,2,2,EURO_6,2,0.5615,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,3,3,EURO_6,2,0.7192,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,4,4,EURO_6,2,1.1034,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,5,,EURO_6,2,1.3277,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,2,2,EURO_6,3,0.5445,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,3,3,EURO_6,3,0.698,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,4,4,EURO_6,3,1.0664,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,5,,EURO_6,3,1.2835,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,2,2,EURO_6,4,0.4088,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,3,3,EURO_6,4,0.5284,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,4,4,EURO_6,4,0.7696,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,5,,EURO_6,4,0.9292,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,2,2,ZEV,5,0.2138,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,3,3,ZEV,5,0.285,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,4,4,ZEV,5,0.3563,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),3501,7499,5,,ZEV,5,0.4377,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,2,2,EURO_0_4,1,1.1339,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,3,3,EURO_0_4,1,1.492,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,4,4,EURO_0_4,1,2.0961,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,5,,EURO_0_4,1,2.5303,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,2,2,EURO_5,1,0.9563,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,3,3,EURO_5,1,1.2533,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,4,4,EURO_5,1,1.7933,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,5,,EURO_5,1,2.1625,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,2,2,EURO_6,1,0.8892,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,3,3,EURO_6,1,1.1631,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,4,4,EURO_6,1,1.6628,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,5,,EURO_6,1,2.0017,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,2,2,EURO_6,2,0.8723,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,3,3,EURO_6,2,1.1419,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,4,4,EURO_6,2,1.6257,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,5,,EURO_6,2,1.9574,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,2,2,EURO_6,3,0.8553,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,3,3,EURO_6,3,1.1206,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,4,4,EURO_6,3,1.5887,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,5,,EURO_6,3,1.9132,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,2,2,EURO_6,4,0.7197,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,3,3,EURO_6,4,0.9511,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,4,4,EURO_6,4,1.2919,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,5,,EURO_6,4,1.559,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,2,2,ZEV,5,0.4467,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,3,3,ZEV,5,0.6002,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,4,4,ZEV,5,0.7617,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),7500,11999,5,,ZEV,5,0.9249,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,2,2,EURO_0_4,1,2.4169,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,3,3,EURO_0_4,1,3.1333,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,4,4,EURO_0_4,1,3.9604,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,5,,EURO_0_4,1,4.5804,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,2,2,EURO_5,1,1.952,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,3,3,EURO_5,1,2.5893,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,4,4,EURO_5,1,3.4883,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,5,,EURO_5,1,4.1401,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,2,2,EURO_6,1,1.7163,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,3,3,EURO_6,1,2.242,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,4,4,EURO_6,1,3.0233,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,5,,EURO_6,1,3.6509,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,2,2,EURO_6,2,1.6994,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,3,3,EURO_6,2,2.2208,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,4,4,EURO_6,2,2.9862,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,5,,EURO_6,2,3.6066,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,2,2,EURO_6,3,1.6824,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,3,3,EURO_6,3,2.1996,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,4,4,EURO_6,3,2.9492,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,5,,EURO_6,3,3.5624,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,2,2,EURO_6,4,1.5467,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,3,3,EURO_6,4,2.03,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,4,4,EURO_6,4,2.6524,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,5,,EURO_6,4,3.2082,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,2,2,ZEV,5,1.1694,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,3,3,ZEV,5,1.5712,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,4,4,ZEV,5,1.9938,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+CZ,Myto CZ,silnice I. tridy (class I road),12000,,5,,ZEV,5,2.4127,CZK,none (public levy),2026-01-01,official,https://www.epravo.cz/top/zakony/sbirka-zakonu/sb/2025/327
+SK,eMyto,motorway (and class I parallel to motorway),3501,12000,,,EURO_0,1,0.2344,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),3501,12000,,,EURO_1,1,0.188,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),3501,12000,,,EURO_2,1,0.1808,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),3501,12000,,,EURO_3,1,0.152,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),3501,12000,,,EURO_4,1,0.1388,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),3501,12000,,,EURO_5,1,0.1194,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),3501,12000,,,EURO_6,1,0.1039,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),3501,12000,,,EURO_6,2-3,0.0979,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),3501,12000,,,EURO_6,4,0.0927,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),3501,12000,,,ZEV,5,0.0907,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,2,2,EURO_0,1,0.3598,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,2,2,EURO_1,1,0.2934,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,2,2,EURO_2,1,0.285,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,2,2,EURO_3,1,0.252,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,2,2,EURO_4,1,0.2328,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,2,2,EURO_5,1,0.2113,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,2,2,EURO_6,1,0.1919,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,2,2,EURO_6,2-3,0.1853,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,2,2,EURO_6,4,0.1801,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,2,2,ZEV,5,0.1781,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,3,3,EURO_0,1,0.4499,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,3,3,EURO_1,1,0.3805,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,3,3,EURO_2,1,0.3721,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,3,3,EURO_3,1,0.3341,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,3,3,EURO_4,1,0.3149,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,3,3,EURO_5,1,0.2914,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,3,3,EURO_6,1,0.27,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,3,3,EURO_6,2-3,0.2622,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,3,3,EURO_6,4,0.2557,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,3,3,ZEV,5,0.2532,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,4,4,EURO_0,1,0.494,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,4,4,EURO_1,1,0.4226,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,4,4,EURO_2,1,0.4142,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,4,4,EURO_3,1,0.3711,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,4,4,EURO_4,1,0.3519,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,4,4,EURO_5,1,0.325,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,4,4,EURO_6,1,0.3002,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,4,4,EURO_6,2-3,0.2903,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,4,4,EURO_6,4,0.2817,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,4,4,ZEV,5,0.2783,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,5,,EURO_0,1,0.4696,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,5,,EURO_1,1,0.3982,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,5,,EURO_2,1,0.3898,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,5,,EURO_3,1,0.3438,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,5,,EURO_4,1,0.3246,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,5,,EURO_5,1,0.2951,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,5,,EURO_6,1,0.2677,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,5,,EURO_6,2-3,0.2563,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,5,,EURO_6,4,0.2459,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,motorway (and class I parallel to motorway),12001,,5,,ZEV,5,0.2419,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704381-2.pdf
+SK,eMyto,class I road not parallel to motorway,3501,12000,,,EURO_0,1,0.2226,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,3501,12000,,,EURO_1,1,0.1762,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,3501,12000,,,EURO_2,1,0.169,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,3501,12000,,,EURO_3,1,0.1402,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,3501,12000,,,EURO_4,1,0.127,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,3501,12000,,,EURO_5,1,0.1076,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,3501,12000,,,EURO_6,1,0.0921,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,3501,12000,,,EURO_6,2-3,0.0861,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,3501,12000,,,EURO_6,4,0.0809,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,3501,12000,,,ZEV,5,0.0789,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,2,2,EURO_0,1,0.3125,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,2,2,EURO_1,1,0.2461,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,2,2,EURO_2,1,0.2377,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,2,2,EURO_3,1,0.2047,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,2,2,EURO_4,1,0.1855,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,2,2,EURO_5,1,0.164,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,2,2,EURO_6,1,0.1446,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,2,2,EURO_6,2-3,0.138,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,2,2,EURO_6,4,0.1328,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,2,2,ZEV,5,0.1308,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,3,3,EURO_0,1,0.3726,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,3,3,EURO_1,1,0.3032,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,3,3,EURO_2,1,0.2948,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,3,3,EURO_3,1,0.2568,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,3,3,EURO_4,1,0.2376,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,3,3,EURO_5,1,0.2141,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,3,3,EURO_6,1,0.1927,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,3,3,EURO_6,2-3,0.1849,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,3,3,EURO_6,4,0.1784,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,3,3,ZEV,5,0.1759,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,4,4,EURO_0,1,0.4176,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,4,4,EURO_1,1,0.3462,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,4,4,EURO_2,1,0.3378,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,4,4,EURO_3,1,0.2947,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,4,4,EURO_4,1,0.2755,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,4,4,EURO_5,1,0.2486,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,4,4,EURO_6,1,0.2238,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,4,4,EURO_6,2-3,0.2139,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,4,4,EURO_6,4,0.2053,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,4,4,ZEV,5,0.2019,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,5,,EURO_0,1,0.3961,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,5,,EURO_1,1,0.3247,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,5,,EURO_2,1,0.3163,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,5,,EURO_3,1,0.2703,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,5,,EURO_4,1,0.2511,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,5,,EURO_5,1,0.2216,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,5,,EURO_6,1,0.1942,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,5,,EURO_6,2-3,0.1828,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,5,,EURO_6,4,0.1724,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,class I road not parallel to motorway,12001,,5,,ZEV,5,0.1684,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+SK,eMyto,other class I roads,3501,,,,ANY,,0,EUR,excl. VAT,2025-07-01,official,https://static.slov-lex.sk/pdf/prilohy/SK/ZZ/2024/418/20250701_5704385-2.pdf
+HU,HU-GO infrastructure charge only,motorway (gyorsforgalmi ut),3501,,2,2,ANY,,65.89,HUF,incl. 27% VAT,2026-01-01,official,https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,motorway (gyorsforgalmi ut),3501,,2,2,ANY,,51.8819,HUF,net (gross / 1.27),2026-01-01,"official, net computed",https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,main road (fout),3501,,2,2,ANY,,36.03,HUF,incl. 27% VAT,2026-01-01,official,https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,main road (fout),3501,,2,2,ANY,,28.3701,HUF,net (gross / 1.27),2026-01-01,"official, net computed",https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO total (infra + air/noise + CO2),motorway (gyorsforgalmi ut),3501,,2,2,EURO_6,1,90.57,HUF,incl. 27% VAT,2026-01-01,estimate,https://hu-go.hu/articles/article/e-tolls-the-table-of-toll-rates-applicable-from-january-is-now-available
+HU,HU-GO total (infra + air/noise + CO2),motorway (gyorsforgalmi ut),3501,,2,2,EURO_6,1,71.315,HUF,net (gross / 1.27),2026-01-01,estimate,https://hu-go.hu/articles/article/e-tolls-the-table-of-toll-rates-applicable-from-january-is-now-available
+HU,HU-GO infrastructure charge only,motorway (gyorsforgalmi ut),3501,,3,3,ANY,,105.32,HUF,incl. 27% VAT,2026-01-01,official,https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,motorway (gyorsforgalmi ut),3501,,3,3,ANY,,82.9291,HUF,net (gross / 1.27),2026-01-01,"official, net computed",https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,main road (fout),3501,,3,3,ANY,,59.59,HUF,incl. 27% VAT,2026-01-01,official,https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,main road (fout),3501,,3,3,ANY,,46.9213,HUF,net (gross / 1.27),2026-01-01,"official, net computed",https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO total (infra + air/noise + CO2),motorway (gyorsforgalmi ut),3501,,3,3,EURO_6,1,138.38,HUF,incl. 27% VAT,2026-01-01,estimate,https://hu-go.hu/articles/article/e-tolls-the-table-of-toll-rates-applicable-from-january-is-now-available
+HU,HU-GO total (infra + air/noise + CO2),motorway (gyorsforgalmi ut),3501,,3,3,EURO_6,1,108.9606,HUF,net (gross / 1.27),2026-01-01,estimate,https://hu-go.hu/articles/article/e-tolls-the-table-of-toll-rates-applicable-from-january-is-now-available
+HU,HU-GO infrastructure charge only,motorway (gyorsforgalmi ut),3501,,4,4,ANY,,163.26,HUF,incl. 27% VAT,2026-01-01,official,https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,motorway (gyorsforgalmi ut),3501,,4,4,ANY,,128.5512,HUF,net (gross / 1.27),2026-01-01,"official, net computed",https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,main road (fout),3501,,4,4,ANY,,102.05,HUF,incl. 27% VAT,2026-01-01,official,https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,main road (fout),3501,,4,4,ANY,,80.3543,HUF,net (gross / 1.27),2026-01-01,"official, net computed",https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO total (infra + air/noise + CO2),motorway (gyorsforgalmi ut),3501,,4,4,EURO_6,1,206.2,HUF,incl. 27% VAT,2026-01-01,estimate,https://hu-go.hu/articles/article/e-tolls-the-table-of-toll-rates-applicable-from-january-is-now-available
+HU,HU-GO total (infra + air/noise + CO2),motorway (gyorsforgalmi ut),3501,,4,4,EURO_6,1,162.3622,HUF,net (gross / 1.27),2026-01-01,estimate,https://hu-go.hu/articles/article/e-tolls-the-table-of-toll-rates-applicable-from-january-is-now-available
+HU,HU-GO infrastructure charge only,motorway (gyorsforgalmi ut),3501,,5,,ANY,,170.94,HUF,incl. 27% VAT,2026-01-01,official,https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,motorway (gyorsforgalmi ut),3501,,5,,ANY,,134.5984,HUF,net (gross / 1.27),2026-01-01,"official, net computed",https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,main road (fout),3501,,5,,ANY,,106.16,HUF,incl. 27% VAT,2026-01-01,official,https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO infrastructure charge only,main road (fout),3501,,5,,ANY,,83.5906,HUF,net (gross / 1.27),2026-01-01,"official, net computed",https://njt.jog.gov.hu/jogszabaly/2025-46-20-8X.0
+HU,HU-GO total (infra + air/noise + CO2),motorway (gyorsforgalmi ut),3501,,5,,EURO_6,1,219.8,HUF,incl. 27% VAT,2026-01-01,estimate,https://hu-go.hu/articles/article/e-tolls-the-table-of-toll-rates-applicable-from-january-is-now-available
+HU,HU-GO total (infra + air/noise + CO2),motorway (gyorsforgalmi ut),3501,,5,,EURO_6,1,173.0709,HUF,net (gross / 1.27),2026-01-01,estimate,https://hu-go.hu/articles/article/e-tolls-the-table-of-toll-rates-applicable-from-january-is-now-available
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_0,1,0.272,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_1,1,0.221,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_2,1,0.211,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_3,1,0.184,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_4,1,0.162,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_5,1,0.131,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_6,1,0.113,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_6_PLUS,1,0.112,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_6,2,0.103,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_6,3,0.092,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,EURO_6,4,0.063,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,3501,11999,,,ZEV,5,0.025,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_0,1,0.392,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_1,1,0.315,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_2,1,0.3,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_3,1,0.266,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_4,1,0.229,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_5,1,0.186,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_6,1,0.16,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_6_PLUS,1,0.157,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_6,2,0.145,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_6,3,0.129,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,EURO_6,4,0.088,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,12000,17999,,,ZEV,5,0.035,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_0,1,0.432,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_1,1,0.364,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_2,1,0.347,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_3,1,0.308,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_4,1,0.264,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_5,1,0.212,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_6,1,0.182,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_6_PLUS,1,0.179,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_6,2,0.165,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_6,3,0.148,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,EURO_6,4,0.1,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,18000,32000,,,ZEV,5,0.037,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_0,1,0.487,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_1,1,0.409,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_2,1,0.392,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_3,1,0.349,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_4,1,0.298,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_5,1,0.236,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_6,1,0.201,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_6_PLUS,1,0.197,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_6,2,0.183,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_6,3,0.165,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,EURO_6,4,0.111,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+NL,vrachtwagenheffing,motorways + some other roads,32001,,,,ZEV,5,0.038,EUR,"tax, VAT not stated",2026-07-01,official,https://www.vrachtwagenheffing.nl/dit-gaat-u-betalen/-/media/trucktol/website/documenten/rdw---tabellen-bedragen-vrachtwagenheffing-prijspeil-2026.pdf
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,EURO_0,,0.205,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,EURO_0,,0.342,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,EURO_0,,0.395,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,EURO_1,,0.199,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,EURO_1,,0.333,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,EURO_1,,0.384,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,EURO_2,,0.199,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,EURO_2,,0.333,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,EURO_2,,0.384,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,EURO_3,,0.172,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,EURO_3,,0.306,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,EURO_3,,0.358,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,EURO_4,,0.13,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,EURO_4,,0.262,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,EURO_4,,0.314,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,EURO_5,,0.114,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,EURO_5,,0.246,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,EURO_5,,0.299,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,EURO_6,1,0.101,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,EURO_6,1,0.233,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,EURO_6,1,0.285,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,EURO_6,2,0.099,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,EURO_6,2,0.23,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,EURO_6,2,0.281,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,EURO_6,3,0.097,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,EURO_6,3,0.226,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,EURO_6,3,0.277,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,EURO_6,4,0.082,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,EURO_6,4,0.203,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,EURO_6,4,0.245,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),3501,11999,,,ZEV,5,0.009,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),12000,32000,,,ZEV,5,0.031,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Flanders (toll roads),32001,,,,ZEV,5,0.038,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),3501,11999,,,EURO_0_3,,0.123,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),12000,32000,,,EURO_0_3,,0.234,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),32001,,,,EURO_0_3,,0.267,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),3501,11999,,,EURO_4,,0.092,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),12000,32000,,,EURO_4,,0.203,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),32001,,,,EURO_4,,0.236,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),3501,11999,,,EURO_5,,0.077,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),12000,32000,,,EURO_5,,0.188,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),32001,,,,EURO_5,,0.221,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),3501,11999,,,EURO_6,1-4,0.061,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),12000,32000,,,EURO_6,1-4,0.172,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),32001,,,,EURO_6,1-4,0.205,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),3501,11999,,,ZEV,5,0.061,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),12000,32000,,,ZEV,5,0.172,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Wallonia (toll roads),32001,,,,ZEV,5,0.205,EUR,excl. VAT,2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),3501,11999,,,EURO_0_2,,0.195,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),12000,32000,,,EURO_0_2,,0.262,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),32001,,,,EURO_0_2,,0.267,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),3501,11999,,,EURO_3,,0.168,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),12000,32000,,,EURO_3,,0.235,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),32001,,,,EURO_3,,0.241,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),3501,11999,,,EURO_4,,0.127,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),12000,32000,,,EURO_4,,0.194,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),32001,,,,EURO_4,,0.199,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),3501,11999,,,EURO_5,,0.112,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),12000,32000,,,EURO_5,,0.179,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),32001,,,,EURO_5,,0.184,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),3501,11999,,,EURO_6,1-4,0.099,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),12000,32000,,,EURO_6,1-4,0.166,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),32001,,,,EURO_6,1-4,0.171,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),3501,11999,,,ZEV,5,0.017,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),12000,32000,,,ZEV,5,0.03,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+BE,Viapass km charge,Brussels (highway),32001,,,,ZEV,5,0.031,EUR,"tax, no VAT",2026-07-01,official,https://www.viapass.be/en/rates/
+DK,vejafgift (km-based),"state roads (~7,300 km)",12000,17999,,,ANY,1,0.86,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,12000,17999,,,ANY,1,0.43,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",18000,32000,,,ANY,1,1.0,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,18000,32000,,,ANY,1,0.5,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",32001,,,,ANY,1,1.1,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,32001,,,,ANY,1,0.55,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",12000,17999,,,ANY,2,0.79,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,12000,17999,,,ANY,2,0.4,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",18000,32000,,,ANY,2,0.92,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,18000,32000,,,ANY,2,0.46,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",32001,,,,ANY,2,1.01,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,32001,,,,ANY,2,0.51,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",12000,17999,,,ANY,3,0.69,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,12000,17999,,,ANY,3,0.35,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",18000,32000,,,ANY,3,0.82,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,18000,32000,,,ANY,3,0.41,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",32001,,,,ANY,3,0.91,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,32001,,,,ANY,3,0.46,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",12000,17999,,,ANY,4,0.46,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,12000,17999,,,ANY,4,0.23,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",18000,32000,,,ANY,4,0.53,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,18000,32000,,,ANY,4,0.27,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",32001,,,,ANY,4,0.58,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,32001,,,,ANY,4,0.29,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",12000,17999,,,ANY,5,0.13,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,12000,17999,,,ANY,5,0.07,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",18000,32000,,,ANY,5,0.13,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,18000,32000,,,ANY,5,0.07,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),"state roads (~7,300 km)",32001,,,,ANY,5,0.13,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+DK,vejafgift (km-based),surcharge inside environmental zones,32001,,,,ANY,5,0.07,DKK,"tax, VAT not stated",2026-01-01,official,https://svmn.dk/tal-og-metode/satser/satser-og-beloebsgraenser-i-lovgivningen/vejafgiftsloven
+IT,"Autostrade per l'Italia, class B",plain sections,,,2,2,ANY,,0.07727,EUR,incl. 22% VAT,2024-01-01,official (2024 unit tariff),https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class B",plain sections,,,2,2,ANY,,0.0654,EUR,net,2026-01-01,"estimate (2024 x 1.018 x 1.015, net)",https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 3",plain sections,,,3,3,ANY,,0.10238,EUR,incl. 22% VAT,2024-01-01,official (2024 unit tariff),https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 3",plain sections,,,3,3,ANY,,0.0867,EUR,net,2026-01-01,"estimate (2024 x 1.018 x 1.015, net)",https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 4",plain sections,,,4,4,ANY,,0.15485,EUR,incl. 22% VAT,2024-01-01,official (2024 unit tariff),https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 4",plain sections,,,4,4,ANY,,0.1311,EUR,net,2026-01-01,"estimate (2024 x 1.018 x 1.015, net)",https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 5",plain sections,,,5,,ANY,,0.18282,EUR,incl. 22% VAT,2024-01-01,official (2024 unit tariff),https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 5",plain sections,,,5,,ANY,,0.1548,EUR,net,2026-01-01,"estimate (2024 x 1.018 x 1.015, net)",https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class B",mountain sections,,,2,2,ANY,,0.09141,EUR,incl. 22% VAT,2024-01-01,official (2024 unit tariff),https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class B",mountain sections,,,2,2,ANY,,0.0774,EUR,net,2026-01-01,"estimate (2024 x 1.018 x 1.015, net)",https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 3",mountain sections,,,3,3,ANY,,0.11866,EUR,incl. 22% VAT,2024-01-01,official (2024 unit tariff),https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 3",mountain sections,,,3,3,ANY,,0.1005,EUR,net,2026-01-01,"estimate (2024 x 1.018 x 1.015, net)",https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 4",mountain sections,,,4,4,ANY,,0.18173,EUR,incl. 22% VAT,2024-01-01,official (2024 unit tariff),https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 4",mountain sections,,,4,4,ANY,,0.1539,EUR,net,2026-01-01,"estimate (2024 x 1.018 x 1.015, net)",https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 5",mountain sections,,,5,,ANY,,0.21533,EUR,incl. 22% VAT,2024-01-01,official (2024 unit tariff),https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+IT,"Autostrade per l'Italia, class 5",mountain sections,,,5,,ANY,,0.1824,EUR,net,2026-01-01,"estimate (2024 x 1.018 x 1.015, net)",https://sitoaspi-cloudfront.autostrade.it/en/il-pedaggio/come-si-calcola-il-pedaggio
+FR,VINCI Autoroutes class 3 (2 axles),"A10 Paris (La Folie-Bessin) - Bordeaux (Virsac) (~520 km, estimated)",,,2,2,ANY,,0.2341,EUR,net (published price / 1.2),2026-02-01,estimate,https://www.vinci-autoroutes.com/static/b9b8279934080436ee3bba255c7835e2/vinci_autoroutes-tarifs-principales-liaisons-2026.pdf
+FR,VINCI Autoroutes class 4 (3+ axles),"A10 Paris (La Folie-Bessin) - Bordeaux (Virsac) (~520 km, estimated)",,,3,,ANY,,0.3006,EUR,net (published price / 1.2),2026-02-01,estimate,https://www.vinci-autoroutes.com/static/b9b8279934080436ee3bba255c7835e2/vinci_autoroutes-tarifs-principales-liaisons-2026.pdf
+FR,VINCI Autoroutes class 3 (2 axles),"A7/A9 Lyon - Espagne (Le Perthus) (~480 km, estimated)",,,2,2,ANY,,0.2135,EUR,net (published price / 1.2),2026-02-01,estimate,https://www.vinci-autoroutes.com/static/b9b8279934080436ee3bba255c7835e2/vinci_autoroutes-tarifs-principales-liaisons-2026.pdf
+FR,VINCI Autoroutes class 4 (3+ axles),"A7/A9 Lyon - Espagne (Le Perthus) (~480 km, estimated)",,,3,,ANY,,0.274,EUR,net (published price / 1.2),2026-02-01,estimate,https://www.vinci-autoroutes.com/static/b9b8279934080436ee3bba255c7835e2/vinci_autoroutes-tarifs-principales-liaisons-2026.pdf
+FR,VINCI Autoroutes class 3 (2 axles),"A11 Paris (La Folie-Bessin) - Nantes (~350 km, estimated)",,,2,2,ANY,,0.2462,EUR,net (published price / 1.2),2026-02-01,estimate,https://www.vinci-autoroutes.com/static/b9b8279934080436ee3bba255c7835e2/vinci_autoroutes-tarifs-principales-liaisons-2026.pdf
+FR,VINCI Autoroutes class 4 (3+ axles),"A11 Paris (La Folie-Bessin) - Nantes (~350 km, estimated)",,,3,,ANY,,0.3169,EUR,net (published price / 1.2),2026-02-01,estimate,https://www.vinci-autoroutes.com/static/b9b8279934080436ee3bba255c7835e2/vinci_autoroutes-tarifs-principales-liaisons-2026.pdf
+FR,VINCI Autoroutes class 3 (2 axles),"A7/A8 Lyon - Marseille/Aix (~280 km, estimated)",,,2,2,ANY,,0.1795,EUR,net (published price / 1.2),2026-02-01,estimate,https://www.vinci-autoroutes.com/static/b9b8279934080436ee3bba255c7835e2/vinci_autoroutes-tarifs-principales-liaisons-2026.pdf
+FR,VINCI Autoroutes class 4 (3+ axles),"A7/A8 Lyon - Marseille/Aix (~280 km, estimated)",,,3,,ANY,,0.2432,EUR,net (published price / 1.2),2026-02-01,estimate,https://www.vinci-autoroutes.com/static/b9b8279934080436ee3bba255c7835e2/vinci_autoroutes-tarifs-principales-liaisons-2026.pdf
