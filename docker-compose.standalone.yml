@@ -6,7 +6,7 @@
 #   Update: RUTERA_VERSION in .env, then "pull" and "up -d" (Flyway migrates the database at start).
 #   Backups: nightly into ./backups; "run --rm backup now | list | restore <stamp>", see README "Deploy (standalone)".
 #   Routing (optional): --profile routing, RUTERA_ROUTING_URL=http://valhalla:8002 (first start builds the tiles).
-# compose.yaml stays the development stack (built from source, MySQL published on 3307).
+# compose.yaml stays the development stack (built from source, MySQL published on 3308).
 # Images are pinned to exact releases older than 30 days (project rule for dependencies).
 name: rutera-standalone
 

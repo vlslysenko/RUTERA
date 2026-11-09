@@ -1,7 +1,7 @@
 # RUTERA with Docker Compose, built from source: a trial stack and the database for local development.
 # Installations use docker-compose.standalone.yml (released image, backups) instead.
 #   From source, one command:  docker compose up -d --build   -> http://localhost:18090 (RUTERA_PORT)
-#   Development database only: docker compose up -d mysql     -> localhost:3307 (RUTERA_DB_PORT)
+#   Development database only: docker compose up -d mysql     -> localhost:3308 (RUTERA_DB_PORT)
 #   First start: the owner's generated password: docker compose exec rutera grep "generated password" logs/rutera.log
 #   Routing (optional): docker compose --profile routing up -d valhalla  -> localhost:8002 (RUTERA_ROUTING_PORT);
 #     the first start downloads the OSM extract (RUTERA_OSM_EXTRACT_URL, Poland ~1.9 GB) and builds the tiles
@@ -26,7 +26,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${RUTERA_DB_ROOT_PASSWORD:-root}
     # Published for development (the jar started from the IDE); the rutera service uses the compose network.
     ports:
-      - "${RUTERA_DB_PORT:-3307}:3306"
+      - "${RUTERA_DB_PORT:-3308}:3306"
     volumes:
       - rutera-mysql-data:/var/lib/mysql
     healthcheck:

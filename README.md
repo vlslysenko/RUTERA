@@ -124,7 +124,7 @@ client). Base images and actions are pinned to releases older than 30 days; bump
 
 To try a working copy: `docker compose up -d --build` builds the image from the sources (`compose.yaml`, settings
 from `.env`, see `.env.example`) and starts MySQL and RUTERA on `http://localhost:18090` (`RUTERA_PORT`; MySQL is
-published on `RUTERA_DB_PORT`, default 3307, for development). The owner's generated password:
+published on `RUTERA_DB_PORT`, default 3308, for development). The owner's generated password:
 `docker compose exec rutera grep "generated password" logs/rutera.log`. `docker compose down -v` removes everything
 including the data.
 
@@ -133,7 +133,7 @@ including the data.
 Prerequisites: JDK 25, Maven 3.9+, Docker; Node 22+ for the client.
 
 ```bash
-docker compose up -d mysql    # MySQL 8.4 only, on localhost:3307 (3306 is often taken by another MySQL)
+docker compose up -d mysql    # MySQL 8.4 only, on localhost:3308 (3306 and 3307 are often taken by other MySQL servers)
 mvn verify                    # builds common, core and tacho (API only, no client in the jar)
 RUTERA_PORT=18082 java -jar core/target/rutera.jar   # default port 8080; any free port works
 ```
