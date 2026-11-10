@@ -2,6 +2,7 @@ package com.rutera.core.calc;
 
 import com.rutera.common.domain.Vehicle;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Size;
@@ -40,7 +41,10 @@ public final class CalcDto {
                           Boolean reducedWeeklyRest,
                           @DecimalMin("0.0") @Digits(integer = 3, fraction = 2) BigDecimal consumptionL100km,
                           @DecimalMin("0.0") @Digits(integer = 4, fraction = 4) BigDecimal fuelPrice,
-                          String fuelCurrency, String country, @Valid @Size(max = 20) List<OtherCost> otherCosts) {
+                          String fuelCurrency, String country, @Valid @Size(max = 20) List<OtherCost> otherCosts,
+                          @DecimalMin("0.0") @DecimalMax("20.0") BigDecimal adBluePct,
+                          @DecimalMin("0.0") @Digits(integer = 4, fraction = 4) BigDecimal adBluePrice,
+                          String adBlueCurrency) {
     }
 
     /**

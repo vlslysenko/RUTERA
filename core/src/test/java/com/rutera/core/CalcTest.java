@@ -88,6 +88,8 @@ class CalcTest extends AbstractIntegrationTest {
         Map<String, Object> diesel = new HashMap<>(Map.of("at", "2026-10-30T10:00:00Z", "product", "DIESEL",
                 "quantity", 100, "net", 500, "gross", 615, "currency", "PLN", "country", "PL"));
         id(c.post("/app/fuel/transactions", diesel));
+        id(c.post("/app/fuel/transactions", new HashMap<>(Map.of("at", "2026-10-30T11:00:00Z", "product", "ADBLUE",
+                "quantity", 50, "net", 100, "gross", 123, "currency", "PLN", "country", "PL"))));
         id(c.post("/app/calc/toll-tariffs", tariff("DE", null, null, 0.30, "EUR")));
         id(c.post("/app/calc/toll-tariffs", tariff("DE", "EURO_6", 5, 0.348, "EUR")));
         id(c.post("/app/calc/toll-tariffs", tariff("PL", null, null, 0.20, "PLN")));
@@ -121,6 +123,15 @@ class CalcTest extends AbstractIntegrationTest {
         assertThat(deFuel.get("currency").asString()).isEqualTo("EUR");
         assertThat(deFuel.get("priceDate").asString()).isEqualTo("2026-11-02");
         assertThat(deFuel.get("amount").asDouble()).isEqualTo(402.78);
+        // AdBlue: 5 % of the diesel litres for Euro 6, at the firma's own AdBlue price (PL there, average elsewhere).
+        JsonNode plAdBlue = line(plan, "ADBLUE", "PL");
+        assertThat(plAdBlue.get("quantity").asDouble()).isEqualTo(4.5);
+        assertThat(plAdBlue.get("rate").asDouble()).isEqualTo(2.0);
+        assertThat(plAdBlue.get("source").asString()).isEqualTo("OWN_TX");
+        JsonNode deAdBlue = line(plan, "ADBLUE", "DE");
+        assertThat(deAdBlue.get("quantity").asDouble()).isEqualTo(10.5);
+        assertThat(deAdBlue.get("amount").asDouble()).isEqualTo(21.0);
+        assertThat(deAdBlue.get("source").asString()).isEqualTo("OWN_TX_ALL");
         assertThat(line(plan, "DRIVER_KM", null).get("amount").asDouble()).isEqualTo(100.0);
         assertThat(line(plan, "DRIVER_PER_DIEM", null).get("amount").asDouble()).as("abroad, 2 days").isEqualTo(100.0);
         assertThat(line(plan, "DRIVER_BASE", null).get("amount").asDouble()).isEqualTo(200.0);
@@ -179,11 +190,11 @@ class CalcTest extends AbstractIntegrationTest {
         Map<String, Double> totalsByCurrency = new HashMap<>();
         plan.get("costs").get("totals").forEach(t -> totalsByCurrency.put(t.get("currency").asString(),
                 t.get("amount").asDouble()));
-        assertThat(totalsByCurrency).containsEntry("EUR", 1046.38).containsEntry("PLN", 510.0);
+        assertThat(totalsByCurrency).containsEntry("EUR", 1046.38).containsEntry("PLN", 540.0);
         // The total in the base currency (PLN): every EUR line at the ECB rate of the start day (V19: 4.4185).
         JsonNode costs = plan.get("costs");
         assertThat(costs.get("baseCurrency").asString()).isEqualTo("PLN");
-        assertThat(costs.get("totalBase").asDouble()).isEqualTo(5133.43);
+        assertThat(costs.get("totalBase").asDouble()).isEqualTo(5163.43);
         assertThat(costs.get("fxRates").get(0).get("currency").asString()).isEqualTo("EUR");
         assertThat(costs.get("fxRates").get(0).get("rate").asDouble()).isEqualTo(4.4185);
         assertThat(costs.get("fxRates").get(0).get("rateDate").asString()).isEqualTo("2026-11-02");

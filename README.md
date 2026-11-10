@@ -721,7 +721,7 @@ lastWeeklyRestEnd} (for every driver), legs: [{name?, distanceKm, durationMin? (
 countries?: [{country, km, tollKm?}] (must add up to the distance within 1 km; else all km in options.country or the
 firma's country; tollKm, at most km, are the km on toll roads, else all km count), serviceMin? (loading or unloading at the end of the leg)}], options?: {avgSpeedKmh? (70), extendedDriving?
 (true), reducedRests? (true), reducedWeeklyRest? (false), consumptionL100km?, fuelPrice?, fuelCurrency?, country?,
-otherCosts?: [{label, amount, currency?}]}}`.
+otherCosts?: [{label, amount, currency?}], adBluePct?, adBluePrice?, adBlueCurrency?}}`.
 
 `Plan = {start, eta, totals: {distanceKm, drivingMin, breakMin, restMin, workMin, durationMin, dailyRests,
 weeklyRests, days}, timeline: [{kind: DRIVE | BREAK | DAILY_REST | REDUCED_DAILY_REST | WEEKLY_REST |
@@ -801,7 +801,10 @@ it off. Every cost line has `amountBase` and the costs `baseCurrency`, `totalBas
 (base units per 1 unit), rateDate, source}]: the amounts in the firma's base currency at the ECB reference rate of the
 start day (the latest before it; `fx_rate`, units per 1 EUR, started with 2026-11-02, fetched on working days at
 16:30 Berlin time by `core.calc.EcbRates`, `RUTERA_FX_ECB_ENABLED=false` switches it off); without a rate for a
-currency `totalBase` is null and `missing` has `calc.missing.fx_rate`. Not yet: AdBlue, the tax calendar; per driver
+currency `totalBase` is null and `missing` has `calc.missing.fx_rate`. ADBLUE lines the same way for AdBlue: litres =
+the diesel litres x `options.adBluePct` (else an estimate by the vehicle's Euro class: Euro 6 or unknown 5 %, Euro 5
+4 %, Euro 4 3 %, Euro 3 none), priced by `options.adBluePrice` / `adBlueCurrency`, else the firma's own ADBLUE
+purchases (there is no public AdBlue price), else `calc.missing.adblue_price`. Not yet: the tax calendar; per driver
 with the pay rate valid on the start day: `perKm` x km, per diem (abroad when any km is outside the firma's
 country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = toll km per country x the
 matching tariff (rows whose axles and weight conditions hold for the truck as routed, so a tractor with its
@@ -812,7 +815,8 @@ chosen driver gets no pay lines and no missing code. Units of the cost lines: FU
 `days` = started 24 h periods from the start to the arrival (at least 1). Loading before the first drive: a first
 leg with `distanceKm: 0` and `serviceMin`. `timeline.driver` and `driverStates` follow the crew order (`driverIds[0]`
 = 1, `driverIds[1]` = 2; a crew slot without an id is planned FRESH). No currency conversion: totals per currency.
-`missing`: `calc.missing.consumption`, `calc.missing.fuel_price`, `calc.missing.pay_rate`,
+`missing`: `calc.missing.consumption`, `calc.missing.fuel_price`, `calc.missing.adblue_price`,
+`calc.missing.fx_rate`, `calc.missing.pay_rate`,
 `calc.missing.toll_tariff` (the TOLL line of that country has no rate), `calc.missing.tacho_data` (the driver is
 planned as FRESH); `warnings`: `calc.warning.tacho_old` (newest record older than 24 h),
 `calc.warning.weekly_rest_needed`. Routing is pluggable (`core.calc.RouteProvider`): `POST /app/calc/route` computes

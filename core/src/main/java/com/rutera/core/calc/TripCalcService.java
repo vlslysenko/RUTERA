@@ -233,7 +233,14 @@ public class TripCalcService {
         if (consumption == null) {
             missing.add("calc.missing.consumption");
         }
-        fuelLines(input, firma, base, km, consumption, lines, missing);
+        productLines("FUEL", FuelTransaction.Product.DIESEL, consumption, o.fuelPrice(), o.fuelCurrency(),
+                "calc.missing.fuel_price", input, firma, base, lines, missing);
+        BigDecimal adBluePct = o.adBluePct() != null ? o.adBluePct() : adBluePct(input.vehicle());
+        if (consumption != null && adBluePct.signum() > 0) {
+            productLines("ADBLUE", FuelTransaction.Product.ADBLUE, consumption.multiply(adBluePct).divide(HUNDRED, 4,
+                    RoundingMode.HALF_UP), o.adBluePrice(), o.adBlueCurrency(), "calc.missing.adblue_price", input,
+                    firma, base, lines, missing);
+        }
 
         if (!payHidden) {
             boolean abroad = input.kmByCountry().keySet().stream().anyMatch(c -> !c.equals(firma.getCountry()));
@@ -336,29 +343,28 @@ public class TripCalcService {
     }
 
     /**
-     * FUEL lines: litres = km x consumption / 100 at a net price per litre. The options' price for the whole trip
-     * (MANUAL); else per country of the route {@link FuelPrices#resolve} (own fuel cards there, the reference price),
-     * then the firma's average in its base currency (OWN_TX_ALL). One line without a country when every country got
-     * the same price, else one per country (litres as driven: in proportion to the km).
+     * FUEL and ADBLUE lines: litres = km x litres per 100 km / 100 at a net price per litre. The options' price for the
+     * whole trip (MANUAL); else per country of the route {@link FuelPrices#resolve} (own fuel cards there, the
+     * reference price), then the firma's average in its base currency (OWN_TX_ALL). One line without a country when
+     * every country got the same price, else one per country (litres as driven: in proportion to the km).
      */
-    private void fuelLines(Input input, Firma firma, String base, BigDecimal km, BigDecimal consumption,
-                           List<CalcDto.CostLine> lines, List<String> missing) {
-        CalcDto.Options o = input.options();
+    private void productLines(String kind, FuelTransaction.Product product, BigDecimal perHundredKm,
+                              BigDecimal optionPrice, String optionCurrency, String missingCode, Input input,
+                              Firma firma, String base, List<CalcDto.CostLine> lines, List<String> missing) {
+        BigDecimal km = input.distance();
         LocalDate day = LocalDate.ofInstant(input.start(), zone(firma));
-        if (o.fuelPrice() != null) {
-            String currency = o.fuelCurrency() != null ? FuelValues.currency(o.fuelCurrency()) : base;
-            lines.add(fuelLine(null, km, consumption, new FuelPriceProvider.PriceQuote(null,
-                    FuelTransaction.Product.DIESEL, o.fuelPrice(), null, null, null, currency, null, base, null, day, null,
+        if (optionPrice != null) {
+            String currency = optionCurrency != null ? FuelValues.currency(optionCurrency) : base;
+            lines.add(productLine(kind, null, km, perHundredKm, new FuelPriceProvider.PriceQuote(null, product,
+                    optionPrice, null, null, null, currency, null, base, null, day, null,
                     FuelPriceProvider.Quality.MANUAL, null, null), base));
             return;
         }
         Instant since = input.start().minus(Duration.ofDays(FUEL_PRICE_DAYS));
-        FuelPriceProvider.PriceQuote average = fuelPrices.firmAverage(FuelTransaction.Product.DIESEL, base, since, day)
-                .orElse(null);
+        FuelPriceProvider.PriceQuote average = fuelPrices.firmAverage(product, base, since, day).orElse(null);
         Map<String, FuelPriceProvider.PriceQuote> byCountry = new LinkedHashMap<>();
         for (String country : input.kmByCountry().keySet()) {
-            byCountry.put(country, fuelPrices.resolve(country, FuelTransaction.Product.DIESEL, since, day, base)
-                    .orElse(average));
+            byCountry.put(country, fuelPrices.resolve(country, product, since, day, base).orElse(average));
         }
         Set<String> distinct = new HashSet<>();
         byCountry.values().forEach(q -> distinct.add(q == null ? "-"
@@ -366,29 +372,46 @@ public class TripCalcService {
         if (byCountry.isEmpty() || (distinct.size() == 1 && !distinct.contains("-"))) {
             FuelPriceProvider.PriceQuote q = byCountry.isEmpty() ? average : byCountry.values().iterator().next();
             if (q == null) {
-                missing.add("calc.missing.fuel_price");
+                addOnce(missing, missingCode);
             }
-            lines.add(fuelLine(null, km, consumption, q, base));
+            lines.add(productLine(kind, null, km, perHundredKm, q, base));
             return;
         }
         for (Map.Entry<String, FuelPriceProvider.PriceQuote> e : byCountry.entrySet()) {
             if (e.getValue() == null) {
-                addOnce(missing, "calc.missing.fuel_price");
+                addOnce(missing, missingCode);
             }
-            lines.add(fuelLine(e.getKey(), input.kmByCountry().get(e.getKey()), consumption, e.getValue(), base));
+            lines.add(productLine(kind, e.getKey(), input.kmByCountry().get(e.getKey()), perHundredKm, e.getValue(),
+                    base));
         }
     }
 
-    private static CalcDto.CostLine fuelLine(String country, BigDecimal km, BigDecimal consumption,
-                                             FuelPriceProvider.PriceQuote price, String base) {
-        BigDecimal litres = consumption == null ? null
-                : km.multiply(consumption).divide(HUNDRED, 1, RoundingMode.HALF_UP);
+    private static CalcDto.CostLine productLine(String kind, String country, BigDecimal km, BigDecimal perHundredKm,
+                                                FuelPriceProvider.PriceQuote price, String base) {
+        BigDecimal litres = perHundredKm == null ? null
+                : km.multiply(perHundredKm).divide(HUNDRED, 1, RoundingMode.HALF_UP);
         BigDecimal rate = price == null ? null : price.net();
-        return new CalcDto.CostLine("FUEL", null, country, litres, "L", rate,
+        return new CalcDto.CostLine(kind, null, country, litres, "L", rate,
                 litres == null || rate == null ? null : money(litres.multiply(rate)),
                 price == null ? base : price.currency(),
                 price == null ? FuelPriceProvider.Quality.MISSING.name() : price.quality().name(),
                 price == null ? null : price.priceDate(), null);
+    }
+
+    /**
+     * AdBlue as a share of the diesel litres when the options give none: an estimate by Euro class (SCR engines):
+     * Euro 6 and an unknown class 5 %, Euro 5 4 %, Euro 4 3 %, Euro 3 none.
+     */
+    static BigDecimal adBluePct(Vehicle v) {
+        Vehicle.EuroClass euro = v == null ? null : v.getEuroClass();
+        if (euro == null || euro == Vehicle.EuroClass.EURO_6) {
+            return BigDecimal.valueOf(5);
+        }
+        return switch (euro) {
+            case EURO_5 -> BigDecimal.valueOf(4);
+            case EURO_4 -> BigDecimal.valueOf(3);
+            default -> BigDecimal.ZERO;
+        };
     }
 
     /**
@@ -419,7 +442,8 @@ public class TripCalcService {
         Map<String, String> errors = new LinkedHashMap<>();
         Long firmaId = firma.getId();
         CalcDto.Options o = in.options() == null
-                ? new CalcDto.Options(null, null, null, null, null, null, null, null, null) : in.options();
+                ? new CalcDto.Options(null, null, null, null, null, null, null, null, null, null, null, null)
+                : in.options();
         if (in.start() == null) {
             errors.put("start", ErrorCodes.FIELD_REQUIRED);
         }
@@ -465,6 +489,9 @@ public class TripCalcService {
                 : InputFields.country("options.country", o.country(), errors);
         if (o.fuelCurrency() != null && FuelValues.currency(o.fuelCurrency()) == null) {
             errors.put("options.fuelCurrency", ErrorCodes.FIELD_INVALID_VALUE);
+        }
+        if (o.adBlueCurrency() != null && FuelValues.currency(o.adBlueCurrency()) == null) {
+            errors.put("options.adBlueCurrency", ErrorCodes.FIELD_INVALID_VALUE);
         }
         if (o.otherCosts() != null) {
             for (int i = 0; i < o.otherCosts().size(); i++) {
