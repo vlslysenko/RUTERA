@@ -772,8 +772,16 @@ driving is used up (45 h, 24 h when allowed, longer until Monday when only the n
 of two swaps at the wheel, co-driving counts as the passive driver's break and the crew rests 9 h within 30 h. Not
 modelled: split daily rest, ferries and trains, compensation of reduced weekly rests, opening hours of loading places.
 
-Costs: fuel = km x consumption (options, else the vehicle's `avgL100km`) / 100 x price (options, else the average
-net price per litre of the firma's DIESEL fuel transactions of the last 30 days in the base currency); per driver
+Costs: fuel = km x consumption (options, else the vehicle's `avgL100km`) / 100 x the net DIESEL price per litre:
+the options' `fuelPrice` for the whole trip; else per country of the route the firma's own fuel card purchases in
+that country in the last 30 days (the currency with the most litres), else the shared price table, else the firma's
+average over all its purchases in the base currency. One FUEL line without a country when every country got the same
+price, else one line per country; `source` of a FUEL line: `OPTIONS`, `FUEL_CARDS`, `PRICE_TABLE`,
+`FUEL_CARDS_ALL`. The price table (`GET /app/calc/fuel-prices`, `trip.trip/view`; shared by all firmas, written only
+by the operator: `POST /app/calc/fuel-prices` `{country, product: DIESEL | ADBLUE | PETROL | LNG | CNG, priceNet,
+currency, validOn, source?}` replaces the row of that country, product and day, `DELETE /app/calc/fuel-prices/{id}`)
+holds net prices without VAT; the latest row on or before the start day counts. Price sources plug in as beans of
+`core.calc.FuelPriceProvider`, imported daily into the table by `FuelPriceImporter` (none built in yet); per driver
 with the pay rate valid on the start day: `perKm` x km, per diem (abroad when any km is outside the firma's
 country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = toll km per country x the
 matching tariff (rows whose axles and weight conditions hold for the truck as routed, so a tractor with its

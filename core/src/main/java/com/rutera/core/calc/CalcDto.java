@@ -103,8 +103,23 @@ public final class CalcDto {
     }
 
     /** kind: FUEL, DRIVER_KM, DRIVER_PER_DIEM, DRIVER_BASE, TOLL, OTHER; rate and amount null when unknown. */
+    /** A cost line; source tells where a FUEL price comes from (FuelPrices: OPTIONS, FUEL_CARDS, PRICE_TABLE, ...). */
     public record CostLine(String kind, String label, String country, BigDecimal quantity, String unit,
-                           BigDecimal rate, BigDecimal amount, String currency) {
+                           BigDecimal rate, BigDecimal amount, String currency, String source) {
+    }
+
+    /** A row of the shared fuel price table: net per litre without VAT on a day. */
+    public record FuelPriceDto(Long id, String country, String product, BigDecimal priceNet, String currency,
+                               LocalDate validOn, String source, Instant updatedAt) {
+        static FuelPriceDto of(com.rutera.common.domain.FuelPrice p) {
+            return new FuelPriceDto(p.getId(), p.getCountry(), p.getProduct().name(), p.getPriceNet(), p.getCurrency(),
+                    p.getValidOn(), p.getSource(), p.getUpdatedAt() != null ? p.getUpdatedAt() : p.getCreatedAt());
+        }
+    }
+
+    /** Body of {@code POST /app/calc/fuel-prices} (operator only). */
+    public record FuelPriceInput(String country, String product, BigDecimal priceNet, String currency,
+                                 LocalDate validOn, @Size(max = 200) String source) {
     }
 
     public record CurrencyTotal(String currency, BigDecimal amount) {

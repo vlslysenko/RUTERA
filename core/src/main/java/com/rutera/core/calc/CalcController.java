@@ -22,6 +22,9 @@ import java.util.List;
  * POST   /app/calc/route              {points, vehicleId?, profile?, avoidTolls?, avoidFerries?} -> Route (trip.trip/view)
  * GET    /app/calc/places?q=&limit=   -> Place[] for search-as-you-type                    (trip.trip/view)
  * GET    /app/calc/toll-tariffs       -> TollTariff[]                                     (trip.trip/view)
+ * GET    /app/calc/fuel-prices        -> FuelPrice[] (shared by all firmas)               (trip.trip/view)
+ * POST   /app/calc/fuel-prices        {country, product, priceNet, currency, validOn, source?} -> FuelPrice (operator)
+ * DELETE /app/calc/fuel-prices/{id}   -> 204                                              (operator)
  * POST   /app/calc/toll-tariffs       {input} -> 201 TollTariff                           (trip.trip/manage)
  * PUT    /app/calc/toll-tariffs/{id}  {input} -> TollTariff                               (trip.trip/manage)
  * DELETE /app/calc/toll-tariffs/{id}  -> 204                                              (trip.trip/manage)
@@ -34,12 +37,31 @@ public class CalcController {
     private final TollTariffService tariffs;
     private final RouteService routes;
     private final PlaceSearch places;
+    private final FuelPriceService fuelPrices;
 
-    public CalcController(TripCalcService calc, TollTariffService tariffs, RouteService routes, PlaceSearch places) {
+    public CalcController(TripCalcService calc, TollTariffService tariffs, RouteService routes, PlaceSearch places,
+                          FuelPriceService fuelPrices) {
         this.calc = calc;
         this.tariffs = tariffs;
         this.routes = routes;
         this.places = places;
+        this.fuelPrices = fuelPrices;
+    }
+
+    @GetMapping({"/app/calc/fuel-prices", "/api/v1/calc/fuel-prices"})
+    public List<CalcDto.FuelPriceDto> fuelPrices() {
+        return fuelPrices.list();
+    }
+
+    @PostMapping("/app/calc/fuel-prices")
+    public CalcDto.FuelPriceDto saveFuelPrice(@Valid @RequestBody CalcDto.FuelPriceInput input) {
+        return fuelPrices.save(input);
+    }
+
+    @DeleteMapping("/app/calc/fuel-prices/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFuelPrice(@PathVariable Long id) {
+        fuelPrices.delete(id);
     }
 
     @GetMapping({"/app/calc/places", "/api/v1/calc/places"})

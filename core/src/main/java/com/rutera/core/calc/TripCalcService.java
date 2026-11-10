@@ -38,6 +38,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -61,13 +62,15 @@ public class TripCalcService {
     private final DriverRepository drivers;
     private final DriverPayRateRepository payRates;
     private final FuelTransactionRepository fuel;
+    private final FuelPrices fuelPrices;
     private final TollTariffRepository tariffs;
     private final HosService hos;
     private final RouteService routes;
 
     public TripCalcService(FirmaRepository firmas, VehicleRepository vehicles, DriverRepository drivers,
                            DriverPayRateRepository payRates, FuelTransactionRepository fuel,
-                           TollTariffRepository tariffs, HosService hos, RouteService routes) {
+                           TollTariffRepository tariffs, HosService hos, RouteService routes,
+                           FuelPrices fuelPrices) {
         this.firmas = firmas;
         this.vehicles = vehicles;
         this.drivers = drivers;
@@ -76,6 +79,7 @@ public class TripCalcService {
         this.tariffs = tariffs;
         this.hos = hos;
         this.routes = routes;
+        this.fuelPrices = fuelPrices;
     }
 
     private record Input(Instant start, Vehicle vehicle, List<Driver> crew, int crewSize, DriverState.Source mode,
@@ -197,24 +201,10 @@ public class TripCalcService {
 
         BigDecimal consumption = o.consumptionL100km() != null ? o.consumptionL100km()
                 : input.vehicle() == null ? null : input.vehicle().getAvgL100km();
-        BigDecimal price = o.fuelPrice();
-        String fuelCurrency = o.fuelPrice() != null && o.fuelCurrency() != null
-                ? FuelValues.currency(o.fuelCurrency()) : base;
-        if (price == null) {
-            price = fuel.averagePrice(FuelTransaction.Product.DIESEL, base,
-                    input.start().minus(Duration.ofDays(FUEL_PRICE_DAYS)));
-            price = price == null ? null : price.setScale(4, RoundingMode.HALF_UP);
-        }
         if (consumption == null) {
             missing.add("calc.missing.consumption");
         }
-        if (price == null) {
-            missing.add("calc.missing.fuel_price");
-        }
-        BigDecimal litres = consumption == null ? null
-                : km.multiply(consumption).divide(HUNDRED, 1, RoundingMode.HALF_UP);
-        lines.add(new CalcDto.CostLine("FUEL", null, null, litres, "L", price,
-                litres == null || price == null ? null : money(litres.multiply(price)), fuelCurrency));
+        fuelLines(input, firma, base, km, consumption, lines, missing);
 
         if (!payHidden) {
             boolean abroad = input.kmByCountry().keySet().stream().anyMatch(c -> !c.equals(firma.getCountry()));
@@ -234,18 +224,18 @@ public class TripCalcService {
                 BigDecimal driven = kmByDriver.getOrDefault(i + 1, BigDecimal.ZERO).setScale(1, RoundingMode.HALF_UP);
                 if (rate.getPerKm() != null) {
                     lines.add(new CalcDto.CostLine("DRIVER_KM", label, null, driven, "KM", rate.getPerKm(),
-                            money(driven.multiply(rate.getPerKm())), rate.getCurrency()));
+                            money(driven.multiply(rate.getPerKm())), rate.getCurrency(), null));
                 }
                 BigDecimal perDiem = abroad ? rate.getPerDiemAbroad() : rate.getPerDiemHome();
                 if (perDiem != null) {
                     lines.add(new CalcDto.CostLine("DRIVER_PER_DIEM", label, null, BigDecimal.valueOf(days), "DAY",
-                            perDiem, money(perDiem.multiply(BigDecimal.valueOf(days))), rate.getCurrency()));
+                            perDiem, money(perDiem.multiply(BigDecimal.valueOf(days))), rate.getCurrency(), null));
                 }
                 if (rate.getMonthlyBase() != null) {
                     BigDecimal daily = rate.getMonthlyBase().divide(THIRTY, 4, RoundingMode.HALF_UP);
                     lines.add(new CalcDto.CostLine("DRIVER_BASE", label, null, BigDecimal.valueOf(days), "DAY",
                             daily.setScale(2, RoundingMode.HALF_UP),
-                            money(daily.multiply(BigDecimal.valueOf(days))), rate.getCurrency()));
+                            money(daily.multiply(BigDecimal.valueOf(days))), rate.getCurrency(), null));
                 }
             }
         }
@@ -269,13 +259,13 @@ public class TripCalcService {
             lines.add(new CalcDto.CostLine("TOLL", null, e.getKey(), e.getValue().setScale(1, RoundingMode.HALF_UP),
                     "KM", t == null ? null : t.getRatePerKm(),
                     t == null ? null : money(e.getValue().multiply(t.getRatePerKm())),
-                    t == null ? base : t.getCurrency()));
+                    t == null ? base : t.getCurrency(), null));
         }
 
         if (o.otherCosts() != null) {
             for (CalcDto.OtherCost c : o.otherCosts()) {
                 lines.add(new CalcDto.CostLine("OTHER", InputFields.blankToNull(c.label()), null, null, null, null,
-                        money(c.amount()), c.currency() == null ? base : FuelValues.currency(c.currency())));
+                        money(c.amount()), c.currency() == null ? base : FuelValues.currency(c.currency()), null));
             }
         }
 
@@ -287,6 +277,55 @@ public class TripCalcService {
         }
         return new CalcDto.Costs(lines, sums.entrySet().stream()
                 .map(e -> new CalcDto.CurrencyTotal(e.getKey(), e.getValue())).toList(), List.copyOf(missing));
+    }
+
+    /**
+     * FUEL lines: litres = km x consumption / 100 at a price per litre. The options' price for the whole trip; else per
+     * country the firma's fuel cards there, the shared price table, then the firma's average in its base currency
+     * ({@link FuelPrices}). One line without a country when every country got the same price, else one per country.
+     */
+    private void fuelLines(Input input, Firma firma, String base, BigDecimal km, BigDecimal consumption,
+                           List<CalcDto.CostLine> lines, List<String> missing) {
+        CalcDto.Options o = input.options();
+        if (o.fuelPrice() != null) {
+            String currency = o.fuelCurrency() != null ? FuelValues.currency(o.fuelCurrency()) : base;
+            lines.add(fuelLine(null, km, consumption, new FuelPrices.Price(o.fuelPrice(), currency,
+                    FuelPrices.OPTIONS), base));
+            return;
+        }
+        Instant since = input.start().minus(Duration.ofDays(FUEL_PRICE_DAYS));
+        LocalDate day = LocalDate.ofInstant(input.start(), zone(firma));
+        FuelPrices.Price average = fuelPrices.firmAverage(FuelTransaction.Product.DIESEL, base, since).orElse(null);
+        Map<String, FuelPrices.Price> byCountry = new LinkedHashMap<>();
+        for (String country : input.kmByCountry().keySet()) {
+            byCountry.put(country, fuelPrices.inCountry(country, FuelTransaction.Product.DIESEL, since, day)
+                    .orElse(average));
+        }
+        Set<FuelPrices.Price> distinct = new HashSet<>(byCountry.values());
+        if (byCountry.isEmpty() || (distinct.size() == 1 && !distinct.contains(null))) {
+            FuelPrices.Price p = byCountry.isEmpty() ? average : distinct.iterator().next();
+            if (p == null) {
+                missing.add("calc.missing.fuel_price");
+            }
+            lines.add(fuelLine(null, km, consumption, p, base));
+            return;
+        }
+        for (Map.Entry<String, FuelPrices.Price> e : byCountry.entrySet()) {
+            if (e.getValue() == null) {
+                addOnce(missing, "calc.missing.fuel_price");
+            }
+            lines.add(fuelLine(e.getKey(), input.kmByCountry().get(e.getKey()), consumption, e.getValue(), base));
+        }
+    }
+
+    private static CalcDto.CostLine fuelLine(String country, BigDecimal km, BigDecimal consumption,
+                                             FuelPrices.Price price, String base) {
+        BigDecimal litres = consumption == null ? null
+                : km.multiply(consumption).divide(HUNDRED, 1, RoundingMode.HALF_UP);
+        BigDecimal rate = price == null ? null : price.perLitre();
+        return new CalcDto.CostLine("FUEL", null, country, litres, "L", rate,
+                litres == null || rate == null ? null : money(litres.multiply(rate)),
+                price == null ? base : price.currency(), price == null ? null : price.source());
     }
 
     /**

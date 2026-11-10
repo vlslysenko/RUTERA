@@ -59,6 +59,14 @@ public interface FuelTransactionRepository extends JpaRepository<FuelTransaction
     BigDecimal averagePrice(@Param("product") FuelTransaction.Product product,
                              @Param("currency") String currency, @Param("from") Instant from);
 
+    /** Per currency: the average net price per unit and the quantity bought in a country since an instant. */
+    @Query("""
+            select t.currency, sum(coalesce(t.net, t.gross)) / sum(t.quantity), sum(t.quantity) from FuelTransaction t
+            where t.product = :product and t.country = :country and t.at >= :from and t.quantity > 0
+            group by t.currency""")
+    List<Object[]> averagePriceInCountry(@Param("product") FuelTransaction.Product product,
+                                         @Param("country") String country, @Param("from") Instant from);
+
     boolean existsByCardId(Long cardId);
 
     @Modifying
