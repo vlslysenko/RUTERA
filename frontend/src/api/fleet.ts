@@ -144,6 +144,50 @@ export const fleetApi = {
     api<VehicleDocument>(`/fleet/vehicles/${id}/documents/${docId}`, { method: 'PUT', body }),
   removeDocument: (id: number | string, docId: number) =>
     api<void>(`/fleet/vehicles/${id}/documents/${docId}`, { method: 'DELETE' }),
+  decodeVin: (vin: string, year?: number | null) =>
+    api<VinDecode>('/fleet/vin', { query: { vin, year: year ?? undefined } }),
 };
 
 export const VEHICLES_KEY = ['fleet', 'vehicles'] as const;
+
+/*
+ * Offline VIN decoding (backend VinDecoder; fleet.vehicle/view):
+ *   GET /app/fleet/vin?vin=...[&year=YYYY] -> VinDecode (an invalid VIN is a status, not an error)
+ * year = optional first registration year, it drives the Euro class suggestion. A VIN gives the maker and the
+ * country reliably; model year, model, Euro class and fuel are suggestions with a confidence.
+ */
+export type VinConfidence = 'HIGH' | 'MEDIUM' | 'LOW';
+export type VinField = 'make' | 'model' | 'kind' | 'axles' | 'fuelType' | 'euroClass';
+
+export interface VinSuggestion {
+  field: VinField;
+  /** Enum name for kind, fuel and Euro class; null when one of `options` has to be picked. */
+  value: string | null;
+  options: string[];
+  confidence: VinConfidence;
+  basis: 'WMI' | 'VDS' | 'WHEELS' | 'YEAR' | 'MODELS';
+}
+
+export interface VinDecode {
+  vin: string;
+  status: 'OK' | 'INVALID_LENGTH' | 'INVALID_CHARS';
+  wmi: string | null;
+  manufacturer: string | null;
+  /** ISO 3166 alpha-2. */
+  country: string | null;
+  checkDigit: 'VALID' | 'INVALID' | null;
+  checkDigitRequired: boolean;
+  modelYear: number | null;
+  modelYearConfidence: VinConfidence | null;
+  yearNotEncoded: boolean;
+  year: number | null;
+  yearSource: 'REGISTRATION' | 'MODEL_YEAR' | null;
+  wheels: string | null;
+  suggestions: VinSuggestion[];
+  engines: string[];
+}
+
+/** A full VIN: 17 characters without I, O and Q. */
+export const FULL_VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/;
+
+export const vinKey = (vin: string, year: number | null) => ['fleet', 'vin', vin, year] as const;

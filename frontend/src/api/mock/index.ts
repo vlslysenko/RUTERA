@@ -56,6 +56,7 @@ import type { FirmaSettings, FirmaSettingsInput } from '@/api/admin';
 import * as auditMock from './audit';
 import * as operatorMock from './operator';
 import * as tokenMock from './tokens';
+import { decodeVin } from './vin';
 /*
  * In-browser mock of the backend's /app endpoints. Enabled with VITE_API_MOCK=true (default in dev).
  * The session lives in sessionStorage, per-user settings in localStorage; users live in memory per page load.
@@ -302,6 +303,11 @@ route('GET', '/app/fleet/vehicles', withPrivilege('fleet.vehicle/view', () => ({
     .map((v) => toVehicle(v, vehicles, driverName))
     .sort((a, b) => a.plate.localeCompare(b.plate)),
 })));
+
+route('GET', '/app/fleet/vin', withPrivilege('fleet.vehicle/view', (_u, req) => {
+  const year = Number(req.query.year);
+  return { status: 200, body: decodeVin(req.query.vin ?? '', Number.isInteger(year) && year > 0 ? year : null) };
+}));
 
 route('GET', '/app/fleet/vehicles/:id', withPrivilege('fleet.vehicle/view', (_u, req) => {
   const v = findVehicle(req.params.id);

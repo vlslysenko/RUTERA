@@ -1,10 +1,11 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm, useWatch, type Control, type FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, Group, NumberInput, Select, Stack, TextInput } from '@mantine/core';
+import { ActionIcon, Button, Group, NumberInput, Select, Stack, TextInput, Tooltip } from '@mantine/core';
+import { IconWand } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useTranslation } from 'react-i18next';
 import { DRIVERS_KEY, driversApi } from '@/api/drivers';
@@ -13,13 +14,16 @@ import {
   EURO_CLASSES,
   fleetApi,
   FUEL_TYPES,
+  FULL_VIN_RE,
   isTrailer,
   TACHO_GENS,
   VEHICLE_KINDS,
   VEHICLE_STATUSES,
   VEHICLES_KEY,
+  vinKey,
   type Vehicle,
   type VehicleInput,
+  type VinField,
 } from '@/api/fleet';
 import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
@@ -29,6 +33,7 @@ import { Plate } from '@/components/Plate';
 import { decimalSeparator, numberField, toNumberInputValue } from '@/forms/number';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { LabelHint } from '@/components/LabelHint';
+import { VinDialog, type VinFormState } from './VinDialog';
 import classes from './VehicleDetail.module.css';
 
 /* Same rules as VehicleService on the backend. Plate: letters, digits, spaces and hyphens. VIN: up to 17 letters
@@ -126,6 +131,8 @@ function toFormValues(v: Vehicle): FormInput {
   };
 }
 
+const VIN_FIELDS: readonly VinField[] = ['make', 'model', 'kind', 'axles', 'fuelType', 'euroClass'];
+
 const blankToNull = (s: string) => (s.trim() === '' ? null : s.trim());
 
 /** Trailers have no engine fields; they are sent as null so a kind change does not leave stale values behind. */
@@ -212,6 +219,9 @@ export function VehicleForm() {
     register,
     handleSubmit,
     setError,
+    getValues,
+    setValue,
+    getFieldState,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
@@ -221,6 +231,48 @@ export function VehicleForm() {
   const kind = useWatch({ control, name: 'kind' });
   const tachoGen = useWatch({ control, name: 'tachoGen' });
   const trailer = isTrailer(kind);
+
+  // VIN dialog: opens by itself once per full VIN typed into a new vehicle when the maker is known, and from the
+  // button beside the field at any time.
+  const vin = vinOf(useWatch({ control, name: 'vin' }) ?? '');
+  const vinComplete = FULL_VIN_RE.test(vin);
+  const [vinDialog, setVinDialog] = useState<string | null>(null);
+  const [vinForm, setVinForm] = useState<VinFormState | null>(null);
+  const offeredVin = useRef<string | null>(null);
+  const vinRegister = register('vin');
+
+  const openVinDialog = (v: string) => {
+    const values = getValues();
+    const state = {} as VinFormState;
+    for (const f of VIN_FIELDS) {
+      state[f] = { value: values[f] ?? null, untouched: isNew && !getFieldState(f).isDirty };
+    }
+    setVinForm(state);
+    setVinDialog(v);
+  };
+
+  const offerVin = (raw: string) => {
+    const v = vinOf(raw);
+    if (!isNew || !FULL_VIN_RE.test(v) || offeredVin.current === v) return;
+    offeredVin.current = v;
+    qc.fetchQuery({ queryKey: vinKey(v, null), queryFn: () => fleetApi.decodeVin(v), staleTime: Infinity })
+      .then((d) => {
+        if (d.manufacturer && vinOf(getValues('vin')) === v) openVinDialog(v);
+      })
+      .catch(() => undefined);
+  };
+
+  const applyVin = (values: Partial<Record<VinField, string>>) => {
+    const opts = { shouldDirty: true, shouldValidate: true } as const;
+    for (const [field, value] of Object.entries(values) as [VinField, string][]) {
+      if (field === 'axles') setValue('axles', Number(value), opts);
+      else if (field === 'kind') setValue('kind', value as FormValues['kind'], opts);
+      else if (field === 'fuelType') setValue('fuelType', value as FormValues['fuelType'], opts);
+      else if (field === 'euroClass') setValue('euroClass', value as FormValues['euroClass'], opts);
+      else setValue(field, value, opts);
+    }
+    notifications.show({ color: 'green', message: t('fleet.vin.applied') });
+  };
 
   const trailerOptions = useMemo(
     () =>
@@ -320,7 +372,23 @@ export function VehicleForm() {
                   maxLength={25}
                   classNames={{ input: classes.mono }}
                   error={errors.vin?.message && t(errors.vin.message)}
-                  {...register('vin')}
+                  {...vinRegister}
+                  onChange={(e) => {
+                    void vinRegister.onChange(e);
+                    offerVin(e.currentTarget.value);
+                  }}
+                  rightSection={
+                    <Tooltip label={t('fleet.vin.decode')}>
+                      <ActionIcon
+                        variant="subtle"
+                        aria-label={t('fleet.vin.decode')}
+                        disabled={!vinComplete}
+                        onClick={() => openVinDialog(vin)}
+                      >
+                        <IconWand size={16} />
+                      </ActionIcon>
+                    </Tooltip>
+                  }
                 />
               </Group>
               <Group grow align="flex-start">
@@ -455,6 +523,9 @@ export function VehicleForm() {
             </Group>
           </Stack>
         </form>
+      )}
+      {vinForm && (
+        <VinDialog vin={vinDialog} form={vinForm} onClose={() => setVinDialog(null)} onApply={applyVin} />
       )}
     </DetailDrawer>
   );
