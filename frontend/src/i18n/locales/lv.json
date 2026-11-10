@@ -1420,7 +1420,7 @@
   "calc.adblue_price": "AdBlue cena par l",
   "calc.missing.fx_rate": "Summa bāzes valūtā nav aprēķināta: nav kursa kādai valūtai.",
   "calc.missing.adblue_price": "AdBlue izmaksas nav aprēķinātas: nav AdBlue cenas (iestatījumi vai jūsu AdBlue pirkumi).",
-  "calc.warning.fuel_tax_change": "Pirms ierašanās maršruta valstī mainās degvielas akcīzes nodoklis: degvielas cena tur var atšķirties.",
+  "calc.warning.fuel_tax_change": "Degvielas cenās ir ņemta vērā nodokļa izmaiņa, kas stājas spēkā pirms reisa (piem., pagaidu nodokļa samazinājuma beigas).",
   "hint.calc.adblue_pct": "Tukšs: Euro 6 vai nezināma 5 %, Euro 5 4 %, Euro 4 3 %, Euro 3 nav.",
   "auth.login.invalid": "Nederīgs lietotājvārds vai parole",
   "auth.login.locked": "Pārāk daudz neveiksmīgu mēģinājumu. Konts ir īslaicīgi bloķēts, mēģiniet vēlāk vēlreiz.",

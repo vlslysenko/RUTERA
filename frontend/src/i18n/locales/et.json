@@ -1420,7 +1420,7 @@
   "calc.adblue_price": "AdBlue hind liitri kohta",
   "calc.missing.fx_rate": "Põhivaluuta summat ei arvutatud: ühe valuuta kurss puudub.",
   "calc.missing.adblue_price": "AdBlue kulu ei arvutatud: AdBlue hind puudub (valikud või teie AdBlue ostud).",
-  "calc.warning.fuel_tax_change": "Enne saabumist muutub marsruudi riigis kütuseaktsiis: kütuse hind seal võib erineda.",
+  "calc.warning.fuel_tax_change": "Kütusehinnad arvestavad maksumuudatust, mis jõustub enne reisi (nt ajutise maksulangetuse lõpp).",
   "hint.calc.adblue_pct": "Tühi: Euro 6 või teadmata 5 %, Euro 5 4 %, Euro 4 3 %, Euro 3 puudub.",
   "auth.login.invalid": "Vale kasutajanimi või parool",
   "auth.login.locked": "Liiga palju ebaõnnestunud katseid. Konto on ajutiselt lukustatud, proovige hiljem uuesti.",

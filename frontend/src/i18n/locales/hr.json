@@ -1420,7 +1420,7 @@
   "calc.adblue_price": "Cijena AdBlue po litri",
   "calc.missing.fx_rate": "Zbroj u osnovnoj valuti nije izračunat: nema tečaja za jednu valutu.",
   "calc.missing.adblue_price": "Trošak AdBlue nije izračunat: nema cijene AdBlue (opcije ili vaše kupnje AdBlue).",
-  "calc.warning.fuel_tax_change": "Prije dolaska mijenja se porez na gorivo u zemlji na ruti: cijena goriva tamo može biti drukčija.",
+  "calc.warning.fuel_tax_change": "Cijene goriva uključuju promjenu poreza koja stupa na snagu prije vožnje (npr. kraj privremenog smanjenja poreza).",
   "hint.calc.adblue_pct": "Prazno: Euro 6 ili nepoznato 5 %, Euro 5 4 %, Euro 4 3 %, Euro 3 ništa.",
   "auth.login.invalid": "Neispravno korisničko ime ili lozinka",
   "auth.login.locked": "Previše neuspjelih pokušaja. Račun je privremeno zaključan, pokušajte ponovno kasnije.",

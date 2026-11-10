@@ -1420,7 +1420,7 @@
   "calc.adblue_price": "AdBlue-prijs per l",
   "calc.missing.fx_rate": "Totaal in de basisvaluta niet berekend: geen koers voor een valuta.",
   "calc.missing.adblue_price": "AdBlue-kosten niet berekend: geen AdBlue-prijs (opties of uw AdBlue-aankopen).",
-  "calc.warning.fuel_tax_change": "Vóór aankomst verandert de brandstofaccijns in een land van de route: de brandstofprijs daar kan afwijken.",
+  "calc.warning.fuel_tax_change": "De brandstofprijzen bevatten een belastingwijziging die vóór de rit ingaat (bv. het einde van een tijdelijke belastingverlaging).",
   "hint.calc.adblue_pct": "Leeg: Euro 6 of onbekend 5 %, Euro 5 4 %, Euro 4 3 %, Euro 3 geen.",
   "auth.login.invalid": "Ongeldige gebruikersnaam of wachtwoord",
   "auth.login.locked": "Te veel mislukte pogingen. Het account is tijdelijk geblokkeerd, probeer het later opnieuw.",

@@ -1420,7 +1420,7 @@
   "calc.adblue_price": "AdBlue-pris per liter",
   "calc.missing.fx_rate": "Summan i basvalutan beräknades inte: växelkurs saknas för en valuta.",
   "calc.missing.adblue_price": "AdBlue-kostnaden beräknades inte: inget AdBlue-pris (alternativ eller dina AdBlue-köp).",
-  "calc.warning.fuel_tax_change": "Före ankomst ändras bränsleskatten i ett land på rutten: bränslepriset där kan skilja sig.",
+  "calc.warning.fuel_tax_change": "Bränslepriserna tar med en skatteändring som träder i kraft före resan (t.ex. slutet på en tillfällig skattesänkning).",
   "hint.calc.adblue_pct": "Tomt: Euro 6 eller okänd 5 %, Euro 5 4 %, Euro 4 3 %, Euro 3 ingen.",
   "auth.login.invalid": "Ogiltigt användarnamn eller lösenord",
   "auth.login.locked": "För många misslyckade försök. Kontot är tillfälligt låst, försök igen senare.",

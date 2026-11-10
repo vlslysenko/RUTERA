@@ -1420,7 +1420,7 @@
   "calc.adblue_price": "Prix de l’AdBlue par l",
   "calc.missing.fx_rate": "Total en devise de base non calculé : pas de taux pour une devise.",
   "calc.missing.adblue_price": "Coût de l’AdBlue non calculé : pas de prix de l’AdBlue (options ou vos achats d’AdBlue).",
-  "calc.warning.fuel_tax_change": "Avant l’arrivée, la taxe sur les carburants change dans un pays de l’itinéraire : le prix du carburant y peut différer.",
+  "calc.warning.fuel_tax_change": "Les prix du carburant intègrent un changement de taxe qui entre en vigueur avant le trajet (p. ex. la fin d’une baisse temporaire de taxe).",
   "hint.calc.adblue_pct": "Vide : Euro 6 ou inconnue 5 %, Euro 5 4 %, Euro 4 3 %, Euro 3 aucun.",
   "auth.login.invalid": "Identifiant ou mot de passe incorrect",
   "auth.login.locked": "Trop de tentatives échouées. Le compte est temporairement verrouillé, réessayez plus tard.",

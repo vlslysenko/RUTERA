@@ -1420,7 +1420,7 @@
   "calc.adblue_price": "AdBlue ára literenként",
   "calc.missing.fx_rate": "Az alap pénznemű összeg nincs kiszámítva: hiányzik egy pénznem árfolyama.",
   "calc.missing.adblue_price": "Az AdBlue költsége nincs kiszámítva: nincs AdBlue-ár (beállítások vagy az Ön AdBlue-vásárlásai).",
-  "calc.warning.fuel_tax_change": "Érkezés előtt az útvonal egyik országában változik az üzemanyagadó: ott az üzemanyagár eltérhet.",
+  "calc.warning.fuel_tax_change": "Az üzemanyagárak tartalmaznak egy adóváltozást, amely a fuvar előtt lép életbe (pl. egy ideiglenes adócsökkentés vége).",
   "hint.calc.adblue_pct": "Üres: Euro 6 vagy ismeretlen 5 %, Euro 5 4 %, Euro 4 3 %, Euro 3 semmi.",
   "auth.login.invalid": "Érvénytelen felhasználónév vagy jelszó",
   "auth.login.locked": "Túl sok sikertelen próbálkozás. A fiók ideiglenesen zárolva van, próbálja újra később.",

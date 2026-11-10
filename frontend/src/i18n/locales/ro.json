@@ -1420,7 +1420,7 @@
   "calc.adblue_price": "Preț AdBlue pe l",
   "calc.missing.fx_rate": "Totalul în moneda de bază nu a fost calculat: lipsește cursul unei monede.",
   "calc.missing.adblue_price": "Costul AdBlue nu a fost calculat: lipsește prețul AdBlue (opțiuni sau achizițiile dvs. de AdBlue).",
-  "calc.warning.fuel_tax_change": "Înainte de sosire se schimbă acciza la combustibil într-o țară de pe rută: prețul combustibilului acolo poate diferi.",
+  "calc.warning.fuel_tax_change": "Prețurile combustibilului includ o modificare a taxei care intră în vigoare înainte de cursă (de ex. sfârșitul unei reduceri temporare a accizei).",
   "hint.calc.adblue_pct": "Gol: Euro 6 sau necunoscută 5 %, Euro 5 4 %, Euro 4 3 %, Euro 3 deloc.",
   "auth.login.invalid": "Utilizator sau parolă incorecte",
   "auth.login.locked": "Prea multe încercări eșuate. Contul este blocat temporar, încercați din nou mai târziu.",
