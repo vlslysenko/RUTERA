@@ -74,7 +74,12 @@ public final class CalcDto {
 
     /** A truck route; polylines are encoded with precision 6; OSM data needs the attribution shown. */
     public record Route(BigDecimal distanceKm, int durationMin, List<RoutePoint> points, List<RouteLeg> legs,
-                        int polylinePrecision, String attribution) {
+                        int polylinePrecision, String attribution, Truck truck) {
+    }
+
+    /** The truck the route was found for: the request's profile, else the vehicle card, else EU limits. */
+    public record Truck(double heightM, double widthM, double lengthM, double weightT, Double axleLoadT, int axles,
+                        boolean hazmat) {
     }
 
     public record Totals(BigDecimal distanceKm, int drivingMin, int breakMin, int restMin, int workMin,

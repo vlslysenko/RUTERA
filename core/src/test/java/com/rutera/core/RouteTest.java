@@ -123,6 +123,40 @@ class RouteTest extends AbstractIntegrationTest {
         assertThat(leg.get("countries").get(1).get("km").asDouble()).isEqualTo(130.0);
         assertThat(lastRoute).contains("\"costing\":\"truck\"").contains("\"height\":4.0").contains("\"weight\":40.0")
                 .contains("\"axle_count\":5").contains("\"use_ferry\":0.0");
+        assertThat(route.get("truck").get("weightT").asDouble()).isEqualTo(40.0);
+
+        // A tractor drives as a combination: 40 t whatever its card says, its trailer's axles and height added.
+        long trailerId = body(c.post("/app/fleet/vehicles", Map.of("kind", "SEMI_TRAILER", "plate", "RT 1002",
+                "heightMm", 4050, "axles", 3))).get("id").asLong();
+        long tractorId = body(c.post("/app/fleet/vehicles", Map.of("kind", "TRACTOR", "plate", "RT 1003",
+                "heightMm", 3800, "grossWeightKg", 18000, "axles", 2, "defaultTrailerId", trailerId))).get("id").asLong();
+        JsonNode combination = body(c.post("/app/calc/route", Map.of("vehicleId", tractorId, "points",
+                List.of(Map.of("lat", 52.4, "lng", 16.9), Map.of("lat", 52.52, "lng", 13.405))))).get("truck");
+        assertThat(combination.get("weightT").asDouble()).isEqualTo(40.0);
+        assertThat(combination.get("axles").asInt()).isEqualTo(5);
+        assertThat(combination.get("heightM").asDouble()).isEqualTo(4.05);
+        assertThat(combination.get("lengthM").asDouble()).isEqualTo(16.5);
+        assertThat(lastRoute).contains("\"weight\":40.0").contains("\"axle_count\":5").contains("\"height\":4.05")
+                .contains("\"width\":2.55").contains("\"length\":16.5").contains("\"axle_load\":11.5");
+
+        // A van with an empty card gets the van limits; no vehicle means a combination; the request overrides.
+        long vanId = body(c.post("/app/fleet/vehicles", Map.of("kind", "VAN", "plate", "RT 1004"))).get("id").asLong();
+        JsonNode van = body(c.post("/app/calc/route", Map.of("vehicleId", vanId, "points",
+                List.of(Map.of("lat", 52.4, "lng", 16.9), Map.of("lat", 52.52, "lng", 13.405))))).get("truck");
+        assertThat(van.get("weightT").asDouble()).isEqualTo(3.5);
+        assertThat(van.get("heightM").asDouble()).isEqualTo(2.7);
+        assertThat(van.get("axleLoadT").isNull()).isTrue();
+        assertThat(lastRoute).doesNotContain("axle_load");
+        JsonNode none = body(c.post("/app/calc/route", Map.of("points",
+                List.of(Map.of("lat", 52.4, "lng", 16.9), Map.of("lat", 52.52, "lng", 13.405))))).get("truck");
+        assertThat(none.get("weightT").asDouble()).isEqualTo(40.0);
+        assertThat(none.get("axles").asInt()).isEqualTo(5);
+        JsonNode light = body(c.post("/app/calc/route", Map.of("vehicleId", tractorId, "profile",
+                Map.of("weightT", 24.0, "hazmat", true), "points",
+                List.of(Map.of("lat", 52.4, "lng", 16.9), Map.of("lat", 52.52, "lng", 13.405))))).get("truck");
+        assertThat(light.get("weightT").asDouble()).isEqualTo(24.0);
+        assertThat(light.get("hazmat").asBoolean()).isTrue();
+        assertThat(lastRoute).contains("\"weight\":24.0").contains("\"hazmat\":true");
 
         MvcResult unknown = c.post("/app/calc/route", Map.of("points",
                 List.of(Map.of("address", "Nowhere 1"), Map.of("lat", 52.0, "lng", 13.0))));

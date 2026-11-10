@@ -22,14 +22,26 @@ import java.util.Optional;
 
 /**
  * Truck routes for the calculator and the map ({@code POST /app/calc/route}): addresses are geocoded
- * ({@link Geocoder}), the vehicle's height, weight and axles (overridable) go to the routing engine
- * ({@link RouteProvider}); the answer has per leg the distance, time, km per country and the shape.
+ * ({@link Geocoder}), the truck's dimensions go to the routing engine ({@link RouteProvider}); the answer has per leg
+ * the distance, time, km per country and the shape, and the truck it was found for.
+ * <p>
+ * The truck: the request's {@code profile}, else the vehicle card (height, gross weight, axles), else the EU limits of
+ * Directive 96/53/EC for the kind. A tractor drives as a combination with a semi-trailer: 40 t whatever its card says
+ * (the card holds the tractor alone), the axles and height of its default trailer added when known, else 5 axles.
  */
 @Service
 public class RouteService {
 
     static final String ATTRIBUTION = "© OpenStreetMap contributors";
     static final int MAX_POINTS = 25;
+
+    /** EU limits for what the request and the card leave open (axle load null: the engine's default). */
+    private record Limits(double heightM, double widthM, double lengthM, double weightT, Double axleLoadT, int axles) {
+    }
+
+    static final Limits COMBINATION = new Limits(4.0, 2.55, 16.5, 40.0, 11.5, 5);
+    static final Limits RIGID = new Limits(4.0, 2.55, 12.0, 18.0, 11.5, 2);
+    static final Limits VAN = new Limits(2.7, 2.1, 6.0, 3.5, null, 2);
 
     private final RouteProvider provider;
     private final Geocoder geocoder;
@@ -106,10 +118,11 @@ public class RouteService {
         if (!errors.isEmpty()) {
             throw ApiException.validation(errors);
         }
+        RouteProvider.Profile truck = profile(vehicle, override, avoidTolls, avoidFerries);
         List<RouteProvider.Leg> legs;
         try {
             legs = provider.route(points.stream().map(p -> new RouteProvider.Point(p.lat(), p.lng())).toList(),
-                    profile(vehicle, override, avoidTolls, avoidFerries));
+                    truck);
         } catch (RouteProvider.NotFound e) {
             throw ApiException.validation(Map.of("route", ErrorCodes.CALC_ROUTE_NOT_FOUND));
         } catch (RouteProvider.Failed e) {
@@ -127,20 +140,50 @@ public class RouteService {
             km += l.distanceKm();
             minutes += l.durationMin();
         }
-        return new CalcDto.Route(km(km), minutes, points, out, 6, ATTRIBUTION);
+        return new CalcDto.Route(km(km), minutes, points, out, 6, ATTRIBUTION, new CalcDto.Truck(truck.heightM(),
+                truck.widthM(), truck.lengthM(), truck.weightT(), truck.axleLoadT(), truck.axles(), truck.hazmat()));
     }
 
-    /** The vehicle's height, weight and axles, overridden by the request. */
-    private static RouteProvider.Profile profile(Vehicle v, CalcDto.ProfileInput o, boolean avoidTolls,
-                                                 boolean avoidFerries) {
-        Double height = o != null && o.heightM() != null ? o.heightM()
-                : v != null && v.getHeightMm() != null ? v.getHeightMm() / 1000.0 : null;
-        Double weight = o != null && o.weightT() != null ? o.weightT()
-                : v != null && v.getGrossWeightKg() != null ? v.getGrossWeightKg() / 1000.0 : null;
-        Integer axles = o != null && o.axles() != null ? o.axles() : v == null ? null : v.getAxles();
-        return new RouteProvider.Profile(height, o == null ? null : o.widthM(), o == null ? null : o.lengthM(),
-                weight, o == null ? null : o.axleLoadT(), axles, o != null && Boolean.TRUE.equals(o.hazmat()),
-                avoidTolls, avoidFerries);
+    /** The truck: the request's profile, else the vehicle card, else the EU limits of its kind (see the class). */
+    private RouteProvider.Profile profile(Vehicle v, CalcDto.ProfileInput o, boolean avoidTolls,
+                                          boolean avoidFerries) {
+        Vehicle.Kind kind = v == null ? Vehicle.Kind.TRACTOR : v.getKind();
+        Limits limits = kind == Vehicle.Kind.VAN ? VAN : kind == Vehicle.Kind.TRUCK ? RIGID : COMBINATION;
+        Double cardHeight = null;
+        Double cardWeight = null;
+        Integer cardAxles = null;
+        if (v != null && limits == COMBINATION) {
+            Vehicle trailer = kind == Vehicle.Kind.TRACTOR && v.getDefaultTrailerId() != null
+                    ? vehicles.findByIdAndDeletedFalse(v.getDefaultTrailerId()).orElse(null) : null;
+            cardHeight = higher(meters(v.getHeightMm()), trailer == null ? null : meters(trailer.getHeightMm()));
+            if (kind == Vehicle.Kind.TRACTOR && trailer != null && v.getAxles() != null && trailer.getAxles() != null) {
+                cardAxles = v.getAxles() + trailer.getAxles();
+            }
+        } else if (v != null) {
+            cardHeight = meters(v.getHeightMm());
+            cardWeight = v.getGrossWeightKg() == null ? null : v.getGrossWeightKg() / 1000.0;
+            cardAxles = v.getAxles();
+        }
+        double height = first(o == null ? null : o.heightM(), cardHeight, limits.heightM());
+        double width = first(o == null ? null : o.widthM(), null, limits.widthM());
+        double length = first(o == null ? null : o.lengthM(), null, limits.lengthM());
+        double weight = first(o == null ? null : o.weightT(), cardWeight, limits.weightT());
+        Double axleLoad = o != null && o.axleLoadT() != null ? o.axleLoadT() : limits.axleLoadT();
+        int axles = o != null && o.axles() != null ? o.axles() : cardAxles != null ? cardAxles : limits.axles();
+        return new RouteProvider.Profile(height, width, length, weight, axleLoad, axles,
+                o != null && Boolean.TRUE.equals(o.hazmat()), avoidTolls, avoidFerries);
+    }
+
+    private static Double meters(Integer mm) {
+        return mm == null ? null : mm / 1000.0;
+    }
+
+    private static Double higher(Double a, Double b) {
+        return a == null ? b : b == null ? a : Math.max(a, b);
+    }
+
+    private static double first(Double requested, Double card, double limit) {
+        return requested != null ? requested : card != null ? card : limit;
     }
 
     private static BigDecimal km(double value) {

@@ -732,11 +732,17 @@ DRIVER_PER_DIEM | DRIVER_BASE | TOLL | OTHER, label, country, quantity, unit, ra
 [{currency, amount}], missing: [code]}, payHidden, warnings: [code]}`.
 
 `Route = {distanceKm, durationMin, points: [{lat, lng, label}], legs: [{from, to, distanceKm, durationMin, countries:
-[{country, km}], polyline}], polylinePrecision: 6, attribution}`. Truck routes come from a Valhalla server
+[{country, km}], polyline}], polylinePrecision: 6, attribution, truck: {heightM, widthM, lengthM, weightT, axleLoadT,
+axles, hazmat}}`. Truck routes come from a Valhalla server
 (`RUTERA_ROUTING_URL`; MIT licence, OSM data under ODbL: show the `attribution` "© OpenStreetMap contributors" with the
 map), addresses are geocoded with Nominatim (`RUTERA_GEOCODING_URL`, `rutera.geocoding.user-agent`; at most one
-request per second, answers cached; the public instance only for development). The vehicle's height, gross weight
-and axles go to the truck costing unless `profile` overrides them; km per country come from the edges of the route.
+request per second, answers cached; the public instance only for development). The truck costing gets the
+request's `profile`, else the vehicle card (height, gross weight, axles), else the EU limits of Directive 96/53/EC
+for the kind: a tractor (and no vehicle at all) as a combination with a semi-trailer, 4.0 m, 2.55 m, 16.5 m, 40 t
+whatever the card says (it holds the tractor alone), 11.5 t per axle, the axles and height of its default trailer
+added when known, else 5 axles; a truck 4.0 m, 2.55 m, 12 m, 18 t, 11.5 t, 2 axles; a van 2.7 m, 2.1 m, 6 m, 3.5 t,
+2 axles. Valhalla keeps to the OSM restrictions for them (maxweight, maxheight, maxwidth, maxlength, maxaxleload,
+hgv, hazmat); `truck` in the answer is what was used. Km per country come from the edges of the route.
 Errors: 503 `calc.routing.disabled` (no routing server configured), 502 `calc.routing.failed` /
 `calc.geocode.failed` (server unreachable), 422 `points[i]: calc.geocode.not_found`, `route: calc.route.not_found`
 (no truck route), `points: validation.required | validation.invalid_value` (fewer than 2 or more than 25 points). In
