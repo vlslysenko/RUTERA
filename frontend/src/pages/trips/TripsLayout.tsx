@@ -5,7 +5,7 @@ import { hasAnyPrivilege, hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
 import { PageHeader } from '@/components/PageHeader';
 
-/** Trips section: trips, orders, CMR, contractors, calculator and tolls as route tabs, each shown only with its privilege. */
+/** Trips section: trips, orders, CMR, contractors, calculator, tolls and fuel prices as route tabs, each shown only with its privilege. */
 export function TripsLayout() {
   const { t } = useTranslation();
   const user = useUser();
@@ -23,6 +23,7 @@ export function TripsLayout() {
       ? [
           { value: '/trips/calc', label: t('trips.tab.calc') },
           { value: '/trips/tolls', label: t('trips.tab.tolls') },
+          { value: '/trips/fuel-prices', label: t('trips.tab.fuel_prices') },
         ]
       : []),
   ];

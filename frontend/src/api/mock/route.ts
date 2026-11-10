@@ -84,14 +84,18 @@ export function route(b: Partial<RouteRequest>): MockReply {
       const bend = Math.sin(f * Math.PI) * 0.15;
       return [from.lat + (to.lat - from.lat) * f + bend, from.lng + (to.lng - from.lng) * f];
     });
+    // About 80 % of truck km run on toll roads (motorways, expressways) in the mock.
+    const toll = (v: number) => Math.round(v * 0.8 * 10) / 10;
+    const half = Math.round((distanceKm / 2) * 10) / 10;
     const countries =
       from.country === to.country
-        ? [{ country: from.country, km: distanceKm }]
+        ? [{ country: from.country, km: distanceKm, tollKm: toll(distanceKm) }]
         : [
-            { country: from.country, km: Math.round((distanceKm / 2) * 10) / 10 },
-            { country: to.country, km: Math.round((distanceKm - Math.round((distanceKm / 2) * 10) / 10) * 10) / 10 },
+            { country: from.country, km: half, tollKm: toll(half) },
+            { country: to.country, km: Math.round((distanceKm - half) * 10) / 10, tollKm: toll(distanceKm - half) },
           ];
-    return { from: from.label, to: to.label, distanceKm, durationMin: Math.round((distanceKm / 70) * 60), countries, polyline: encodePolyline(line, 6) };
+    const place = (p: { lat: number; lng: number; label: string }) => ({ lat: p.lat, lng: p.lng, label: p.label });
+    return { from: place(from), to: place(to), distanceKm, durationMin: Math.round((distanceKm / 70) * 60), countries, polyline: encodePolyline(line, 6) };
   });
   if (legs.some((l) => l.distanceKm > 3000)) return fail(422, 'error.validation', { route: 'calc.route.not_found' });
   const body: CalcRoute = {
@@ -101,6 +105,17 @@ export function route(b: Partial<RouteRequest>): MockReply {
     legs,
     polylinePrecision: 6,
     attribution: '© OpenStreetMap contributors',
+    truck: { heightM: 4, widthM: 2.55, lengthM: 16.5, weightT: 40, axleLoadT: 11.5, axles: 5, hazmat: false },
+    breakdown: null,
   };
+  const byCountry = new Map<string, { country: string; km: number; tollKm: number }>();
+  for (const l of legs)
+    for (const c of l.countries) {
+      const s = byCountry.get(c.country) ?? { country: c.country, km: 0, tollKm: 0 };
+      s.km = Math.round((s.km + c.km) * 10) / 10;
+      s.tollKm = Math.round((s.tollKm + c.tollKm) * 10) / 10;
+      byCountry.set(c.country, s);
+    }
+  body.breakdown = { countries: [...byCountry.values()], eta: null, days: 1, costs: { lines: [], totals: [], missing: [] }, payHidden: false };
   return { status: 200, body };
 }

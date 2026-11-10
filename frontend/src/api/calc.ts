@@ -24,13 +24,20 @@ export interface ManualState {
   lastWeeklyRestEnd: string | null;
 }
 
+/** Km of a leg (or a route) in one country; tollKm: of them on toll roads, when the route knows it. */
+export interface CountryKm {
+  country: string;
+  km: number;
+  tollKm?: number | null;
+}
+
 export interface CalcLeg {
   name: string | null;
   distanceKm: number;
   /** Empty: distance / options.avgSpeedKmh. */
   durationMin: number | null;
   /** Empty: all km in options.country or the firma country. */
-  countries: { country: string; km: number }[] | null;
+  countries: CountryKm[] | null;
   /** Loading, unloading, customs... at the end of the leg. */
   serviceMin: number | null;
 }
@@ -101,6 +108,14 @@ export type CostKind = (typeof COST_KINDS)[number];
  * Units: FUEL L, DRIVER_KM KM, DRIVER_PER_DIEM and DRIVER_BASE DAY, TOLL KM (one line per country). OTHER lines have no
  * quantity, unit nor rate; a TOLL line of a country without a tariff has no rate nor amount (calc.missing.toll_tariff).
  */
+/**
+ * Where a fuel price came from, best first (backend FuelPriceProvider.Quality): typed into the calculation, the firma's
+ * contract, its own fuel card purchases in that country, a reference price with the firma's discount, the reference
+ * price of the country, the firma's purchases in all countries (last resort), none.
+ */
+export const FUEL_SOURCES = ['MANUAL', 'CONTRACT', 'OWN_TX', 'REFERENCE_ADJUSTED', 'REFERENCE', 'OWN_TX_ALL', 'MISSING'] as const;
+export type FuelSource = (typeof FUEL_SOURCES)[number];
+
 export interface CostLine {
   kind: CostKind;
   label: string | null;
@@ -110,6 +125,9 @@ export interface CostLine {
   rate: number | null;
   amount: number | null;
   currency: string | null;
+  /** FUEL only: where the price came from, and its day (YYYY-MM-DD). */
+  source?: FuelSource | null;
+  priceDate?: string | null;
 }
 
 export interface CalcPlan {
@@ -169,13 +187,20 @@ export interface RouteRequest {
   avoidFerries: boolean;
 }
 
+/** A point of a routed leg: where it is and what it is called. */
+export interface RoutePlace {
+  lat: number;
+  lng: number;
+  label: string;
+}
+
 export interface RouteLeg {
-  from: string;
-  to: string;
+  from: RoutePlace;
+  to: RoutePlace;
   distanceKm: number;
   durationMin: number;
   /** Km per country from the edges of the route; they add up to the distance. */
-  countries: { country: string; km: number }[];
+  countries: CountryKm[];
   /** Encoded polyline (Google algorithm) with `polylinePrecision` decimals. */
   polyline: string;
 }
@@ -189,6 +214,27 @@ export interface CalcRoute {
   polylinePrecision: number;
   /** "© OpenStreetMap contributors": shown with the map. */
   attribution: string;
+  /** The truck the route was found for: the vehicle card, else EU limits (backend 99b9986). */
+  truck?: { heightM: number; widthM: number; lengthM: number; weightT: number; axleLoadT: number | null; axles: number; hazmat: boolean } | null;
+  /** Km and toll km per country of the whole route, and its costs (backend 2346082). */
+  breakdown?: { countries: CountryKm[]; eta: string | null; days: number; costs: CalcPlan['costs']; payHidden: boolean } | null;
+}
+
+/** A reference fuel price (GET /app/calc/fuel-prices, shared by all firmas): per litre, net without VAT. */
+export interface FuelPrice {
+  id: number;
+  country: string;
+  product: string;
+  priceDate: string;
+  net: number;
+  gross: number | null;
+  vatRate: number | null;
+  excisePer1000l: number | null;
+  currency: string;
+  kind: string;
+  source: string | null;
+  fetchedAt: string | null;
+  updatedAt: string | null;
 }
 
 /** A place suggested while typing (GET /app/calc/places, backend d67dafa). */
@@ -201,6 +247,7 @@ export interface PlaceSuggestion {
 
 export const calcApi = {
   /** Fewer than 3 characters answer []; 429 api.rate_limited; 502/503 calc.geocode.failed (no or down provider). */
+  fuelPrices: () => api<FuelPrice[]>('/calc/fuel-prices'),
   places: (q: string, limit = 5) => api<PlaceSuggestion[]>('/calc/places', { query: { q, limit } }),
   plan: (body: CalcRequest) => api<CalcPlan>('/calc/trip', { method: 'POST', body }),
   route: (body: RouteRequest) => api<CalcRoute>('/calc/route', { method: 'POST', body }),
@@ -211,3 +258,4 @@ export const calcApi = {
 };
 
 export const TOLLS_KEY = ['calc', 'tolls'] as const;
+export const FUEL_PRICES_KEY = ['calc', 'fuel-prices'] as const;

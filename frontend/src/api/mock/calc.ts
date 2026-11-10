@@ -21,6 +21,15 @@ export interface CalcLookup {
   firmaCountry: string;
 }
 
+/** Reference fuel prices (GET /app/calc/fuel-prices): diesel per litre, net, in the country's currency. */
+export function listFuelPrices() {
+  const row = (id: number, country: string, net: number, vatRate: number, currency: string) => ({
+    id, country, product: 'DIESEL', priceDate: '2026-11-02', net, gross: Math.round(net * (1 + vatRate / 100) * 1000) / 1000, vatRate,
+    excisePer1000l: null, currency, kind: 'NATIONAL', source: 'EU Weekly Oil Bulletin', fetchedAt: '2026-11-03T06:00:00Z', updatedAt: '2026-11-03T06:00:00Z',
+  });
+  return [row(1, 'PL', 5.21, 23, 'PLN'), row(2, 'DE', 1.401, 19, 'EUR'), row(3, 'CZ', 31.9, 21, 'CZK'), row(4, 'FR', 1.398, 20, 'EUR')];
+}
+
 const invalid = (details: Record<string, string>): MockReply => ({ status: 422, body: { code: 'error.validation', details } });
 const r2 = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100;
 const MIN = 60_000;
@@ -214,16 +223,27 @@ export function plan(req: CalcRequest, lk: CalcLookup): MockReply {
   const fuel = opts.fuelPrice != null ? { price: opts.fuelPrice, currency: opts.fuelCurrency ?? 'EUR' } : lk.dieselPrice();
   if (consumption == null) missing.push('calc.missing.consumption');
   if (!fuel) missing.push('calc.missing.fuel_price');
+  if (consumption != null && !fuel) {
+    lines.push({ kind: 'FUEL', label: null, country: null, quantity: r2((totalKm * consumption) / 100), unit: 'L', rate: null, amount: null, currency: null, source: 'MISSING', priceDate: null });
+  }
   if (consumption != null && fuel) {
     const litres = r2((totalKm * consumption) / 100);
-    lines.push({ kind: 'FUEL', label: null, country: null, quantity: litres, unit: 'L', rate: fuel.price, amount: r2(litres * fuel.price), currency: fuel.currency });
+    // Typed-in price: MANUAL; else the firma's own card purchases (the mock has no reference prices).
+    const source = opts.fuelPrice != null ? 'MANUAL' : 'OWN_TX_ALL';
+    const priceDate = opts.fuelPrice != null ? null : req.start.slice(0, 10);
+    lines.push({ kind: 'FUEL', label: null, country: null, quantity: litres, unit: 'L', rate: fuel.price, amount: r2(litres * fuel.price), currency: fuel.currency, source, priceDate });
   }
 
   // km per country over all legs.
   const byCountry = new Map<string, number>();
+  // Tolls are paid on the toll km of a country when the route knows them, else on all its km.
+  const tollKmBy = new Map<string, number>();
   for (const l of req.legs) {
-    const parts = l.countries?.length ? l.countries : [{ country: lk.firmaCountry, km: l.distanceKm }];
-    for (const p of parts) byCountry.set(p.country, (byCountry.get(p.country) ?? 0) + p.km);
+    const parts = l.countries?.length ? l.countries : [{ country: lk.firmaCountry, km: l.distanceKm, tollKm: null }];
+    for (const p of parts) {
+      byCountry.set(p.country, (byCountry.get(p.country) ?? 0) + p.km);
+      tollKmBy.set(p.country, (tollKmBy.get(p.country) ?? 0) + (p.tollKm ?? p.km));
+    }
   }
 
   const abroad = [...byCountry.keys()].some((c) => c !== lk.firmaCountry);
@@ -248,7 +268,8 @@ export function plan(req: CalcRequest, lk: CalcLookup): MockReply {
     });
   }
 
-  for (const [country, ckm] of byCountry) {
+  for (const [country] of byCountry) {
+    const ckm = tollKmBy.get(country) ?? 0;
     const candidates = tariffs.filter((t) => t.country === country)
       .filter((t) => (!t.euroClass || t.euroClass === vehicle?.euroClass) && (t.axlesMin == null || (vehicle?.axles ?? 0) >= t.axlesMin) && (t.weightMinKg == null || (vehicle?.grossWeightKg ?? 0) >= t.weightMinKg));
     const best = candidates.sort((a, b) => [b.euroClass, b.axlesMin, b.weightMinKg].filter((x) => x != null).length - [a.euroClass, a.axlesMin, a.weightMinKg].filter((x) => x != null).length)[0];

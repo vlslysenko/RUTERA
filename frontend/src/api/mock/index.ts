@@ -1044,6 +1044,7 @@ const calcLookup = (u: MockUser): calcMock.CalcLookup => ({
 route('POST', '/app/calc/trip', withPrivilege('trip.trip/view', (u, { body }) => calcMock.plan((body ?? {}) as CalcRequest, calcLookup(u))));
 route('GET', '/app/calc/places', withPrivilege('trip.trip/view', (_u, { query }) => routeMock.places(query.q, Number(query.limit) || 5)));
 route('POST', '/app/calc/route', withPrivilege('trip.trip/view', (_u, { body }) => routeMock.route((body ?? {}) as Partial<RouteRequest>)));
+route('GET', '/app/calc/fuel-prices', withPrivilege('trip.trip/view', () => ({ status: 200, body: calcMock.listFuelPrices() })));
 route('GET', '/app/calc/toll-tariffs', withPrivilege('trip.trip/view', () => calcMock.listTolls()));
 route('POST', '/app/calc/toll-tariffs', withPrivilege('trip.trip/manage', (_u, { body }) => calcMock.saveToll((body ?? {}) as TollTariffInput, null)));
 route('PUT', '/app/calc/toll-tariffs/:id', withPrivilege('trip.trip/manage', (_u, req) => calcMock.saveToll((req.body ?? {}) as TollTariffInput, req.params.id)));

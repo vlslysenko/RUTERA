@@ -1,7 +1,7 @@
 import { Alert, Group, Paper, Stack, Table, Text } from '@mantine/core';
 import { IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import type { CalcPlan, TimelineItem } from '@/api/calc';
+import type { CalcPlan, CostLine, CountryKm, TimelineItem } from '@/api/calc';
 import { useUser } from '@/auth/useAuth';
 import { formatMinutes } from '@/pages/tacho/hosFormat';
 import { countryName } from '@/utils/countries';
@@ -29,8 +29,24 @@ function dayOf(iso: string, lang: string, timeZone?: string): string {
   return new Intl.DateTimeFormat(lang, { weekday: 'short', day: '2-digit', month: '2-digit', timeZone }).format(new Date(iso));
 }
 
-/** The plan: arrival, totals, warnings, the timeline of driving / breaks / rests, the drivers' state and the costs. */
-export function CalcResult({ plan, legNames }: { plan: CalcPlan; legNames: string[] }) {
+/** Where a fuel price came from and its day, under the fuel line; a missing price is marked in red. */
+function PriceSource({ line }: { line: CostLine }) {
+  const { t, i18n } = useTranslation();
+  if (line.kind !== 'FUEL' || !line.source) return null;
+  const day = line.priceDate ? new Intl.DateTimeFormat(i18n.resolvedLanguage ?? 'en', { dateStyle: 'short', timeZone: 'UTC' }).format(new Date(`${line.priceDate}T00:00:00Z`)) : null;
+  return (
+    <Text size="xs" c={line.source === 'MISSING' ? 'red' : 'dimmed'}>
+      {t(`calc.source.${line.source}`)}
+      {day ? ` · ${t('calc.price_date', { date: day })}` : ''}
+    </Text>
+  );
+}
+
+/**
+ * The plan: arrival, totals, warnings, the timeline of driving / breaks / rests, km and toll km per country, the
+ * drivers' state and the costs (fuel per country with where its price came from, tolls, driver pay, other).
+ */
+export function CalcResult({ plan, legNames, countries = [] }: { plan: CalcPlan; legNames: string[]; countries?: CountryKm[] }) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
   const tz = useUser().firma?.timezone;
@@ -126,6 +142,32 @@ export function CalcResult({ plan, legNames }: { plan: CalcPlan; legNames: strin
         </Stack>
       </Paper>
 
+      {countries.length > 0 && (
+        <Paper withBorder p="md">
+          <Text size="xs" fw={600} tt="uppercase" c="dimmed" mb={8}>
+            {t('calc.countries')}
+          </Text>
+          <Table fz="sm">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>{t('trips.country')}</Table.Th>
+                <Table.Th className={classes.num}>km</Table.Th>
+                <Table.Th className={classes.num}>{t('calc.toll_km')}</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {countries.map((c) => (
+                <Table.Tr key={c.country}>
+                  <Table.Td>{countryName(c.country, lang)}</Table.Td>
+                  <Table.Td className={classes.num}>{km(c.km)}</Table.Td>
+                  <Table.Td className={classes.num}>{c.tollKm != null ? km(c.tollKm) : '—'}</Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Paper>
+      )}
+
       <Paper withBorder p="md">
         <Text size="xs" fw={600} tt="uppercase" c="dimmed" mb={8}>
           {t('calc.costs')}
@@ -143,13 +185,24 @@ export function CalcResult({ plan, legNames }: { plan: CalcPlan; legNames: strin
                     {t(`calc.cost.${l.kind}`)}
                     {l.country ? ` · ${countryName(l.country, lang)}` : ''}
                     {l.label ? ` · ${l.label}` : ''}
+                    <PriceSource line={l} />
                   </Table.Td>
                   <Table.Td className={classes.num}>
                     {l.quantity != null && l.unit ? `${new Intl.NumberFormat(lang, { maximumFractionDigits: 2 }).format(l.quantity)} ${t(`calc.unit.${l.unit}`)}` : ''}
                   </Table.Td>
                   <Table.Td className={classes.num}>{l.rate != null && l.currency ? `× ${formatMoney(l.rate, l.currency, lang)}` : ''}</Table.Td>
                   <Table.Td className={classes.num}>
-                    {l.amount != null && l.currency ? <b>{formatMoney(l.amount, l.currency, lang)}</b> : <Text span c="dimmed">{t('calc.no_rate')}</Text>}
+                    {l.amount != null && l.currency ? (
+                      <b>{formatMoney(l.amount, l.currency, lang)}</b>
+                    ) : (
+                      // Not priced: not part of the total, so it must not look like a zero.
+                      <Group gap={4} justify="flex-end" wrap="nowrap" c="red">
+                        <IconAlertTriangle size={14} />
+                        <Text span size="sm" c="red" fw={600}>
+                          {t('calc.no_rate')}
+                        </Text>
+                      </Group>
+                    )}
                   </Table.Td>
                 </Table.Tr>
               ))}
@@ -173,35 +226,38 @@ export function CalcResult({ plan, legNames }: { plan: CalcPlan; legNames: strin
           <Text size="xs" fw={600} tt="uppercase" c="dimmed" mb={8}>
             {t('calc.driver_states')}
           </Text>
-          <Table fz="sm">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th />
-                <Table.Th>{t('calc.state_source')}</Table.Th>
-                <Table.Th className={classes.num}>{t('hos.summary.weekly')}</Table.Th>
-                <Table.Th className={classes.num}>{t('hos.summary.two_weeks')}</Table.Th>
-                <Table.Th className={classes.num}>{t('calc.extensions_left')}</Table.Th>
-                <Table.Th className={classes.num}>{t('calc.reduced_left')}</Table.Th>
-                <Table.Th>{t('hos.summary.weekly_rest_by')}</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {plan.driverStates.map((s, i) => (
-                <Table.Tr key={i}>
-                  <Table.Td>{t('calc.driver_n', { n: i + 1 })}</Table.Td>
-                  <Table.Td>
-                    {t(`calc.state.${s.source}`)}
-                    {s.dataUntil ? ` · ${t('calc.data_until', { at: formatInstantShort(s.dataUntil, lang, tz) })}` : ''}
-                  </Table.Td>
-                  <Table.Td className={classes.num}>{formatMinutes(t, s.weekDrivingMin)}</Table.Td>
-                  <Table.Td className={classes.num}>{formatMinutes(t, s.fortnightDrivingMin)}</Table.Td>
-                  <Table.Td className={classes.num}>{s.extensionsLeft}</Table.Td>
-                  <Table.Td className={classes.num}>{s.reducedRestsLeft}</Table.Td>
-                  <Table.Td>{s.weeklyRestDueAt ? formatInstantShort(s.weeklyRestDueAt, lang, tz) : '—'}</Table.Td>
+          {/* Seven columns do not fit a phone: the table scrolls sideways inside its card. */}
+          <Table.ScrollContainer minWidth={720}>
+            <Table fz="sm">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th />
+                  <Table.Th>{t('calc.state_source')}</Table.Th>
+                  <Table.Th className={classes.num}>{t('hos.summary.weekly')}</Table.Th>
+                  <Table.Th className={classes.num}>{t('hos.summary.two_weeks')}</Table.Th>
+                  <Table.Th className={classes.num}>{t('calc.extensions_left')}</Table.Th>
+                  <Table.Th className={classes.num}>{t('calc.reduced_left')}</Table.Th>
+                  <Table.Th>{t('hos.summary.weekly_rest_by')}</Table.Th>
                 </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+              </Table.Thead>
+              <Table.Tbody>
+                {plan.driverStates.map((s, i) => (
+                  <Table.Tr key={i}>
+                    <Table.Td>{t('calc.driver_n', { n: i + 1 })}</Table.Td>
+                    <Table.Td>
+                      {t(`calc.state.${s.source}`)}
+                      {s.dataUntil ? ` · ${t('calc.data_until', { at: formatInstantShort(s.dataUntil, lang, tz) })}` : ''}
+                    </Table.Td>
+                    <Table.Td className={classes.num}>{formatMinutes(t, s.weekDrivingMin)}</Table.Td>
+                    <Table.Td className={classes.num}>{formatMinutes(t, s.fortnightDrivingMin)}</Table.Td>
+                    <Table.Td className={classes.num}>{s.extensionsLeft}</Table.Td>
+                    <Table.Td className={classes.num}>{s.reducedRestsLeft}</Table.Td>
+                    <Table.Td>{s.weeklyRestDueAt ? formatInstantShort(s.weeklyRestDueAt, lang, tz) : '—'}</Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
         </Paper>
       )}
     </Stack>

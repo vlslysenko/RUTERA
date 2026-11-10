@@ -68,6 +68,7 @@ import { TripDetail } from '@/pages/trips/TripDetail';
 import { TripForm } from '@/pages/trips/TripForm';
 import { TripsFallback, TripsLayout } from '@/pages/trips/TripsLayout';
 import { TollTariffsPage } from '@/pages/trips/TollTariffsPage';
+import { FuelPricesPage } from '@/pages/trips/FuelPricesPage';
 import { TripsPage } from '@/pages/trips/TripsPage';
 import { SCREENS } from './navigation';
 import { StartRedirect } from './StartRedirect';
@@ -134,6 +135,7 @@ export const router = createBrowserRouter([
                   children: [
                     { path: 'calc', element: <CalculatorPage /> },
                     { path: 'tolls', element: <TollTariffsPage /> },
+                    { path: 'fuel-prices', element: <FuelPricesPage /> },
                   ],
                 },
                 {

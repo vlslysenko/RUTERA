@@ -6,7 +6,7 @@ import { IconCalculator, IconChevronDown, IconChevronUp, IconPlus, IconTrash, Ic
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
-import { calcApi, type CalcLeg, type CalcPlan, type CalcRequest, type CalcRoute, type DriverStateSource, type PlaceSuggestion, type RoutePoint } from '@/api/calc';
+import { calcApi, type CalcLeg, type CalcPlan, type CountryKm, type CalcRequest, type CalcRoute, type DriverStateSource, type PlaceSuggestion, type RoutePoint } from '@/api/calc';
 import { TRIPS_KEY, tripsApi, type Trip, type TripStop } from '@/api/trips';
 import { useUser } from '@/auth/useAuth';
 import { EmptyState } from '@/components/EmptyState';
@@ -27,8 +27,8 @@ interface LegRow {
   distanceKm: number | string;
   durationH: number | string;
   country: string | null;
-  /** Km per country of a leg from the route; typing the distance by hand drops them. */
-  countries: { country: string; km: number }[] | null;
+  /** Km (and toll km) per country of a leg from the route; typing the distance by hand drops them. */
+  countries: CountryKm[] | null;
   serviceH: number | string;
 }
 
@@ -93,13 +93,28 @@ function lastStop(trips: Trip[]): { trip: Trip; stop: TripStop; at: string | nul
   return { trip: best, stop: lastOf(best), at: end(best) };
 }
 
+/** Km and toll km per country over all legs, in the order the trip enters them; empty when no leg names a country. */
+function countriesOf(legs: CalcLeg[]): CountryKm[] {
+  const by = new Map<string, CountryKm>();
+  for (const l of legs) {
+    for (const c of l.countries ?? []) {
+      const sum = by.get(c.country) ?? { country: c.country, km: 0, tollKm: null };
+      sum.km += c.km;
+      if (c.tollKm != null) sum.tollKm = (sum.tollKm ?? 0) + c.tollKm;
+      by.set(c.country, sum);
+    }
+  }
+  return [...by.values()];
+}
+
 const legRow = (l: CalcLeg): LegRow => ({
   key: ++seq,
   name: l.name ?? '',
   distanceKm: l.distanceKm,
   durationH: l.durationMin == null ? '' : Math.round((l.durationMin / 60) * 100) / 100,
   country: l.countries?.[0]?.country ?? null,
-  countries: l.countries && l.countries.length > 1 ? l.countries : null,
+  // One country without toll km is the country select; otherwise the route's split stays.
+  countries: l.countries && (l.countries.length > 1 || l.countries.some((c) => c.tollKm != null)) ? l.countries : null,
   serviceH: l.serviceMin == null ? '' : Math.round((l.serviceMin / 60) * 100) / 100,
 });
 
@@ -226,6 +241,7 @@ export function CalculatorPage() {
   const [others, setOthers] = useState<OtherRow[]>([]);
   const [plan, setPlan] = useState<CalcPlan | null>(null);
   const [planLegNames, setPlanLegNames] = useState<string[]>([]);
+  const [planCountries, setPlanCountries] = useState<CountryKm[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [failure, setFailure] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -349,7 +365,7 @@ export function CalculatorPage() {
   /** The legs from the route: loading at the start (0 km), then one leg per stretch with its km per country. */
   const legsOfRoute = (r: CalcRoute): CalcLeg[] => [
     { name: r.points[0]?.label ?? from.text.trim(), distanceKm: 0, durationMin: null, countries: null, serviceMin: minutes(loadH) },
-    ...r.legs.map((l) => ({ name: `${l.from} – ${l.to}`, distanceKm: l.distanceKm, durationMin: l.durationMin, countries: l.countries, serviceMin: minutes(unloadH) })),
+    ...r.legs.map((l) => ({ name: `${l.from.label} – ${l.to.label}`, distanceKm: l.distanceKm, durationMin: l.durationMin, countries: l.countries, serviceMin: minutes(unloadH) })),
   ];
 
   /** Without a routing engine: one leg of the typed-in distance (km in the firma's country). */
@@ -458,6 +474,7 @@ export function CalculatorPage() {
         setPlan(await calcApi.plan(body));
         setLastLegs(used);
         setPlanLegNames(used.map((l, i) => l.name?.trim() || t('calc.leg_n', { n: i + 1 })));
+        setPlanCountries(countriesOf(used));
       } catch (e) {
         if (e instanceof ApiError && e.details) {
           setErrors(e.details);
@@ -720,7 +737,12 @@ export function CalculatorPage() {
                         {l.countries ? (
                           <Group gap={6} wrap="nowrap">
                             <Text size="xs" c="dimmed" style={{ flex: 1 }}>
-                              {l.countries.map((c) => `${c.country} ${new Intl.NumberFormat(lang, { maximumFractionDigits: 1 }).format(c.km)} km`).join(' · ')}
+                              {l.countries
+                                .map((c) => {
+                                  const n = (v: number) => new Intl.NumberFormat(lang, { maximumFractionDigits: 1 }).format(v);
+                                  return `${c.country} ${n(c.km)} km${c.tollKm != null ? ` (${t('calc.toll_km_short', { km: n(c.tollKm) })})` : ''}`;
+                                })
+                                .join(' · ')}
                             </Text>
                             <Tooltip label={t('calc.route.clear_countries')}>
                               <ActionIcon size="sm" variant="subtle" color="gray" onClick={() => setLeg(l.key, { countries: null })} aria-label={t('calc.route.clear_countries')}>
@@ -745,7 +767,7 @@ export function CalculatorPage() {
       </Paper>
       <Stack gap="md">
         <RouteMap route={route} picks={picks} onPick={pickOnMap} />
-        {plan ? <CalcResult plan={plan} legNames={planLegNames} /> : <EmptyState text={t('calc.empty_simple')} />}
+        {plan ? <CalcResult plan={plan} legNames={planLegNames} countries={planCountries} /> : <EmptyState text={t('calc.empty_simple')} />}
       </Stack>
     </div>
   );
