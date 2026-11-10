@@ -255,11 +255,14 @@ public class TripCalcService {
             byCountry.computeIfAbsent(t.getCountry(), k -> new ArrayList<>()).add(t);
         }
         LocalDate day = LocalDate.ofInstant(input.start(), zone(firma));
+        RouteProvider.Profile truck = routes.truck(input.vehicle());
+        Vehicle.EuroClass euro = input.vehicle() == null ? null : input.vehicle().getEuroClass();
+        int weightKg = (int) Math.round(truck.weightT() * 1000);
         for (Map.Entry<String, BigDecimal> e : input.tollKmByCountry().entrySet()) {
             if (e.getValue().signum() == 0) {
                 continue;
             }
-            TollTariff t = tariff(byCountry.getOrDefault(e.getKey(), List.of()), input.vehicle(), day);
+            TollTariff t = tariff(byCountry.getOrDefault(e.getKey(), List.of()), euro, truck.axles(), weightKg, day);
             if (t == null) {
                 addOnce(missing, "calc.missing.toll_tariff");
             }
@@ -288,17 +291,15 @@ public class TripCalcService {
 
     /**
      * The matching tariff: country rows valid on the day whose Euro class, axles and weight conditions hold for the
-     * vehicle (a condition on a value the vehicle lacks, or without a vehicle, does not hold); the most specific one,
-     * then the latest valid_from.
+     * truck as it drives ({@link RouteService#truck}: a tractor with its semi-trailer, EU limits for an empty card;
+     * a Euro class condition holds only for the class on the card); the most specific one, then the latest valid_from.
      */
-    static TollTariff tariff(List<TollTariff> rows, Vehicle v, LocalDate day) {
+    static TollTariff tariff(List<TollTariff> rows, Vehicle.EuroClass euro, int axles, int weightKg, LocalDate day) {
         return rows.stream()
                 .filter(t -> t.getValidFrom() == null || !t.getValidFrom().isAfter(day))
-                .filter(t -> t.getEuroClass() == null || (v != null && t.getEuroClass() == v.getEuroClass()))
-                .filter(t -> t.getAxlesMin() == null || (v != null && v.getAxles() != null
-                        && v.getAxles() >= t.getAxlesMin()))
-                .filter(t -> t.getWeightMinKg() == null || (v != null && v.getGrossWeightKg() != null
-                        && v.getGrossWeightKg() >= t.getWeightMinKg()))
+                .filter(t -> t.getEuroClass() == null || t.getEuroClass() == euro)
+                .filter(t -> t.getAxlesMin() == null || axles >= t.getAxlesMin())
+                .filter(t -> t.getWeightMinKg() == null || weightKg >= t.getWeightMinKg())
                 .max(Comparator.comparingInt((TollTariff t) -> specificity(t))
                         .thenComparing(t -> t.getValidFrom() == null ? LocalDate.MIN : t.getValidFrom())
                         .thenComparing(TollTariff::getId))

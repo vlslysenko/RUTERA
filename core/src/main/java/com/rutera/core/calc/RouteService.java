@@ -147,6 +147,11 @@ public class RouteService {
                 truck.widthM(), truck.lengthM(), truck.weightT(), truck.axleLoadT(), truck.axles(), truck.hazmat()));
     }
 
+    /** The truck as it drives: the vehicle card, else the EU limits of its kind; a tractor as a combination. */
+    RouteProvider.Profile truck(Vehicle v) {
+        return profile(v, null, false, false);
+    }
+
     /** The truck: the request's profile, else the vehicle card, else the EU limits of its kind (see the class). */
     private RouteProvider.Profile profile(Vehicle v, CalcDto.ProfileInput o, boolean avoidTolls,
                                           boolean avoidFerries) {
@@ -181,8 +186,15 @@ public class RouteService {
         return mm == null ? null : mm / 1000.0;
     }
 
+    /** The higher of two heights; null when neither is known (no ternary: it would unbox a null). */
     private static Double higher(Double a, Double b) {
-        return a == null ? b : b == null ? a : Math.max(a, b);
+        if (a == null) {
+            return b;
+        }
+        if (b == null) {
+            return a;
+        }
+        return Math.max(a, b);
     }
 
     private static double first(Double requested, Double card, double limit) {

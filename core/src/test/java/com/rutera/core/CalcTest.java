@@ -127,6 +127,12 @@ class CalcTest extends AbstractIntegrationTest {
         assertThat(line(tolledPlan, "TOLL", "PL").get("quantity").asDouble()).isEqualTo(120.0);
         assertThat(line(tolledPlan, "TOLL", "PL").get("amount").asDouble()).isEqualTo(24.0);
         assertThat(line(tolledPlan, "TOLL", "DE").get("quantity").asDouble()).isEqualTo(700.0);
+
+        // A tractor's card holds the tractor alone (2 axles, 18 t): the toll class is the combination's (5 axles, 40 t).
+        long tractorId = id(c.post("/app/fleet/vehicles", new HashMap<>(Map.of("kind", "TRACTOR", "plate", "PO 7002C",
+                "euroClass", "EURO_6", "axles", 2, "grossWeightKg", 18000, "avgL100km", 30))));
+        JsonNode tractorPlan = body(c.post("/app/calc/trip", trip(tractorId, List.of(driverId), "FRESH")));
+        assertThat(line(tractorPlan, "TOLL", "DE").get("rate").asDouble()).as("5 axles as a combination").isEqualTo(0.348);
         tolled.put("legs", List.of(Map.of("distanceKm", 300, "countries",
                 List.of(Map.of("country", "PL", "km", 300, "tollKm", 301)))));
         assertThat(body(c.post("/app/calc/trip", tolled)).get("details").get("legs[0].countries").asString())

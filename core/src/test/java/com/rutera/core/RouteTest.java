@@ -183,6 +183,14 @@ class RouteTest extends AbstractIntegrationTest {
         assertThat(lastRoute).contains("\"weight\":40.0").contains("\"axle_count\":5").contains("\"height\":4.05")
                 .contains("\"width\":2.55").contains("\"length\":16.5").contains("\"axle_load\":11.5");
 
+        // A tractor with an empty card and no trailer: the combination limits.
+        long bareId = body(c.post("/app/fleet/vehicles", Map.of("kind", "TRACTOR", "plate", "RT 1005"))).get("id")
+                .asLong();
+        MvcResult bare = c.post("/app/calc/route", Map.of("vehicleId", bareId, "points",
+                List.of(Map.of("lat", 52.4, "lng", 16.9), Map.of("lat", 52.52, "lng", 13.405))));
+        assertThat(bare.getResponse().getStatus()).as(bare.getResponse().getContentAsString()).isEqualTo(200);
+        assertThat(body(bare).get("truck").get("heightM").asDouble()).isEqualTo(4.0);
+
         // A van with an empty card gets the van limits; no vehicle means a combination; the request overrides.
         long vanId = body(c.post("/app/fleet/vehicles", Map.of("kind", "VAN", "plate", "RT 1004"))).get("id").asLong();
         JsonNode van = body(c.post("/app/calc/route", Map.of("vehicleId", vanId, "points",

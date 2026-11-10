@@ -776,8 +776,9 @@ Costs: fuel = km x consumption (options, else the vehicle's `avgL100km`) / 100 x
 net price per litre of the firma's DIESEL fuel transactions of the last 30 days in the base currency); per driver
 with the pay rate valid on the start day: `perKm` x km, per diem (abroad when any km is outside the firma's
 country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = toll km per country x the
-matching tariff (rows whose Euro class, axles and weight conditions hold for the vehicle; a condition on a value
-the vehicle lacks, or without a vehicle, does not hold; the most specific row, then the latest `validFrom`); other
+matching tariff (rows whose axles and weight conditions hold for the truck as routed, so a tractor with its
+semi-trailer and the EU limits for an empty card, and whose Euro class is the card's; the most specific row, then
+the latest `validFrom`); other
 costs as given. A crew of two: DRIVER_KM counts the km of each driver's own DRIVE items; a crew slot without a
 chosen driver gets no pay lines and no missing code. Units of the cost lines: FUEL `L`, DRIVER_KM and TOLL `KM`, DRIVER_PER_DIEM and DRIVER_BASE `DAY`;
 `days` = started 24 h periods from the start to the arrival (at least 1). Loading before the first drive: a first
