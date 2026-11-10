@@ -191,7 +191,17 @@ export interface CalcRoute {
   attribution: string;
 }
 
+/** A place suggested while typing (GET /app/calc/places, backend d67dafa). */
+export interface PlaceSuggestion {
+  label: string;
+  lat: number;
+  lng: number;
+  country: string | null;
+}
+
 export const calcApi = {
+  /** Fewer than 3 characters answer []; 429 api.rate_limited; 502/503 calc.geocode.failed (no or down provider). */
+  places: (q: string, limit = 5) => api<PlaceSuggestion[]>('/calc/places', { query: { q, limit } }),
   plan: (body: CalcRequest) => api<CalcPlan>('/calc/trip', { method: 'POST', body }),
   route: (body: RouteRequest) => api<CalcRoute>('/calc/route', { method: 'POST', body }),
   tolls: () => api<TollTariff[]>('/calc/toll-tariffs'),

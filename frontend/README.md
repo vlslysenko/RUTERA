@@ -84,7 +84,10 @@ of the whole trip), `/trips/orders` (orders; card with "create trip") and `/trip
 carriers). Each tab needs its own privilege; users without `trip.trip/view` land on the first tab they may open.
 Stop errors come as `stops[2].address` and land on the field `stops.2.address` of the trip form.
 `/trips/calc` is the trip calculator (`POST /app/calc/trip`). The form asks for the vehicle, the driver, where from and
-where to (an address or a click on the map), optional stops on the way and the start; "From" and the start are filled
+where to (an address or a click on the map), optional stops on the way and the start. Address fields suggest places
+while typing (`GET /app/calc/places`, debounced 400 ms, from 3 characters); a picked place brings its coordinates to the
+route; a 502/503 `calc.geocode.failed` turns the suggestions off for the session and the fields stay plain text (mock:
+`sessionStorage['mock.places'] = 'off'`); "From" and the start are filled
 from the last stop of the vehicle's running or latest trip (`GET /app/trips?vehicleId=`), the driver from the vehicle's
 usual driver. Calculate asks `POST /app/calc/route` (truck route, km per country; Leaflet 1.9.4 map in `RouteMap`, OSM
 tiles with "© OpenStreetMap contributors") and then the plan: ETA, timeline of driving, breaks and rests (561/2006) and

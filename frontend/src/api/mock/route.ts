@@ -45,6 +45,18 @@ const fail = (status: number, code: string, details?: Record<string, string>): M
   body: { status, code, message: code, ...(details ? { details } : {}) },
 });
 
+/** Place suggestions from the gazetteer (GET /app/calc/places); "mock.places" = "off" answers 503 like no provider. */
+export function places(q: string | undefined, limit: number): MockReply {
+  if (sessionStorage.getItem('mock.places') === 'off') return fail(503, 'calc.geocode.failed');
+  const k = key(q ?? '');
+  if (k.length < 3) return { status: 200, body: [] };
+  const found = Object.entries(PLACES)
+    .filter(([name]) => name.startsWith(k))
+    .slice(0, limit)
+    .map(([name, [lat, lng, country]]) => ({ label: `${name[0].toUpperCase()}${name.slice(1)}, ${country}`, lat, lng, country }));
+  return { status: 200, body: found };
+}
+
 export function route(b: Partial<RouteRequest>): MockReply {
   if (sessionStorage.getItem('mock.routing') === 'off') return fail(503, 'calc.routing.disabled');
   const points = b.points ?? [];

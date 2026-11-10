@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { ActionIcon, Alert, Button, Checkbox, Collapse, Group, NumberInput, Paper, SegmentedControl, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ActionIcon, Alert, Autocomplete, Button, Checkbox, Collapse, Group, NumberInput, Paper, SegmentedControl, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
+import { useDebouncedValue } from '@mantine/hooks';
 import { IconCalculator, IconChevronDown, IconChevronUp, IconPlus, IconTrash, IconX } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ApiError } from '@/api/client';
 import { errorCode } from '@/api/errors';
-import { calcApi, type CalcLeg, type CalcPlan, type CalcRequest, type CalcRoute, type DriverStateSource, type RoutePoint } from '@/api/calc';
+import { calcApi, type CalcLeg, type CalcPlan, type CalcRequest, type CalcRoute, type DriverStateSource, type PlaceSuggestion, type RoutePoint } from '@/api/calc';
 import { TRIPS_KEY, tripsApi, type Trip, type TripStop } from '@/api/trips';
 import { useUser } from '@/auth/useAuth';
 import { EmptyState } from '@/components/EmptyState';
@@ -60,6 +61,8 @@ interface Place {
 let seq = 0;
 // Learnt from the first route call of the session: the server has no routing engine, so the distance is typed in.
 let routingKnownOff = false;
+// Learnt the same way: the server has no place search (503) or it is down (502), so the fields stay plain text.
+let placesKnownOff = false;
 const MAX_VIAS = 23;
 const place = (text = ''): Place => ({ key: ++seq, text, lat: null, lng: null });
 const filled = (p: Place) => p.lat != null || p.text.trim() !== '';
@@ -100,17 +103,77 @@ const legRow = (l: CalcLeg): LegRow => ({
   serviceH: l.serviceMin == null ? '' : Math.round((l.serviceMin / 60) * 100) / 100,
 });
 
-/** Where from, a stop on the way or where to: an address, or the coordinates of a point picked on the map. */
-function PlaceInput({ value, label, hint, description, error, onChange }: { value: Place; label: string; hint?: string; description?: string | null; error?: string; onChange: (text: string) => void }) {
-  const { t } = useTranslation();
+/**
+ * Where from, a stop on the way or where to: an address with suggestions while typing (GET /app/calc/places), or the
+ * coordinates of a point picked on the map. A picked suggestion brings its coordinates, so the route needs no second
+ * lookup. Without a place search on the server the field is plain text and the route looks the address up.
+ */
+function PlaceInput({
+  value,
+  label,
+  hint,
+  description,
+  error,
+  onChange,
+  onPick,
+}: {
+  value: Place;
+  label: string;
+  hint?: string;
+  description?: string | null;
+  error?: string;
+  onChange: (text: string) => void;
+  onPick: (place: PlaceSuggestion) => void;
+}) {
+  const { t, i18n } = useTranslation();
+  const [q] = useDebouncedValue(value.text.trim(), 400);
+  const [off, setOff] = useState(placesKnownOff);
+  // Autocomplete reports the picked label as a change right after the pick: that change must not drop the coordinates.
+  const picked = useRef<string | null>(null);
+  const suggestions = useQuery({
+    queryKey: ['calc', 'places', i18n.resolvedLanguage, q],
+    queryFn: async () => {
+      try {
+        return await calcApi.places(q);
+      } catch (e) {
+        if (e instanceof ApiError && (e.status === 502 || e.status === 503)) {
+          placesKnownOff = true;
+          setOff(true);
+        }
+        // Throttled (429) or offline: no suggestions this time.
+        return [];
+      }
+    },
+    enabled: !off && value.lat == null && q.length >= 3,
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+  const items = off ? [] : (suggestions.data ?? []);
   return (
-    <TextInput
+    <Autocomplete
       label={hint ? <LabelHint label={label} hint={hint} /> : label}
       placeholder={t('calc.place_hint')}
       description={description ?? undefined}
       value={value.text}
-      onChange={(e) => onChange(e.currentTarget.value)}
-      classNames={value.lat != null ? { input: classes.mono } : undefined}
+      onChange={(text) => {
+        if (picked.current === text) {
+          picked.current = null;
+          return;
+        }
+        picked.current = null;
+        onChange(text);
+      }}
+      data={[...new Set(items.map((p) => p.label))]}
+      // The server already matched the text; Mantine must not filter its answer again.
+      filter={({ options }) => options}
+      onOptionSubmit={(chosen) => {
+        const place = items.find((p) => p.label === chosen);
+        if (!place) return;
+        picked.current = chosen;
+        onPick(place);
+      }}
+      // Coordinates of a point picked on the map read better in the monospace font.
+      classNames={value.lat != null && value.lng != null && value.text === coords(value.lat, value.lng) ? { input: classes.mono } : undefined}
       error={error}
     />
   );
@@ -236,6 +299,22 @@ export function CalculatorPage() {
   };
   const editVia = (key: number, text: string) => {
     setVias((vs) => vs.map((v) => (v.key === key ? { ...v, text, lat: null, lng: null } : v)));
+    setRoute(null);
+  };
+
+  const pickFrom = (p: PlaceSuggestion) => {
+    fillToken.current++;
+    setFrom((f) => ({ ...f, text: p.label, lat: p.lat, lng: p.lng }));
+    setFromAuto(false);
+    setFromNote(null);
+    setRoute(null);
+  };
+  const pickTo = (p: PlaceSuggestion) => {
+    setTo((x) => ({ ...x, text: p.label, lat: p.lat, lng: p.lng }));
+    setRoute(null);
+  };
+  const pickVia = (key: number, p: PlaceSuggestion) => {
+    setVias((vs) => vs.map((v) => (v.key === key ? { ...v, text: p.label, lat: p.lat, lng: p.lng } : v)));
     setRoute(null);
   };
 
@@ -417,11 +496,11 @@ export function CalculatorPage() {
           />
           {!manualLegs && (
             <>
-              <PlaceInput value={from} label={t('calc.from_place')} hint={t('hint.calc.from')} description={fromNote} error={err('from') ?? placeError(from)} onChange={editFrom} />
+              <PlaceInput value={from} label={t('calc.from_place')} hint={t('hint.calc.from')} description={fromNote} error={err('from') ?? placeError(from)} onChange={editFrom} onPick={pickFrom} />
               {vias.map((v, i) => (
                 <Group key={v.key} gap={6} wrap="nowrap" align="flex-end">
                   <div style={{ flex: 1 }}>
-                    <PlaceInput value={v} label={t('calc.via_n', { n: i + 1 })} error={placeError(v)} onChange={(text) => editVia(v.key, text)} />
+                    <PlaceInput value={v} label={t('calc.via_n', { n: i + 1 })} error={placeError(v)} onChange={(text) => editVia(v.key, text)} onPick={(p) => pickVia(v.key, p)} />
                   </div>
                   <Tooltip label={t('common.delete')}>
                     <ActionIcon
@@ -439,7 +518,7 @@ export function CalculatorPage() {
                   </Tooltip>
                 </Group>
               ))}
-              <PlaceInput value={to} label={t('calc.to_place')} error={err('to') ?? placeError(to)} onChange={editTo} />
+              <PlaceInput value={to} label={t('calc.to_place')} error={err('to') ?? placeError(to)} onChange={editTo} onPick={pickTo} />
               <Button
                 size="xs"
                 variant="subtle"
