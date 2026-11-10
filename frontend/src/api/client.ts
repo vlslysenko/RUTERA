@@ -60,6 +60,21 @@ function defaultCode(status: number): string {
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
+let unauthenticated: (() => void) | null = null;
+
+/**
+ * Called on a 401 from any request outside /auth/* (the session ended: 12 h after sign-in, 4 h idle or a server
+ * restart), also from calls a screen makes directly rather than through a query or mutation. /auth/me and the sign-in
+ * answer 401 on purpose and are left out, or asking the session again would loop. Set in src/app/queryClient.ts.
+ */
+export function setUnauthenticatedHandler(fn: (() => void) | null): void {
+  unauthenticated = fn;
+}
+
+function sessionEnded(path: string, status: number): void {
+  if (status === 401 && !path.startsWith('/auth/')) unauthenticated?.();
+}
+
 export interface RequestOptions {
   method?: HttpMethod;
   body?: unknown;
@@ -160,6 +175,7 @@ export async function api<T>(path: string, opts: RequestOptions = {}, csrfRetrie
       await refreshCsrfToken(doFetch);
       return api<T>(path, opts, true);
     }
+    sessionEnded(path, error.status);
     throw error;
   }
   return data as T;
@@ -184,6 +200,7 @@ export async function apiDownload(path: string): Promise<{ blob: Blob; fileName:
     } catch {
       body = null;
     }
+    sessionEnded(path, res.status);
     throw new ApiError(res.status, body);
   }
   const disposition = res.headers.get('Content-Disposition') ?? '';

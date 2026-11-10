@@ -83,13 +83,15 @@ Trips are tabs too: `/trips` (trips; card with stops and quick marks, status but
 of the whole trip), `/trips/orders` (orders; card with "create trip") and `/trips/contractors` (customers and
 carriers). Each tab needs its own privilege; users without `trip.trip/view` land on the first tab they may open.
 Stop errors come as `stops[2].address` and land on the field `stops.2.address` of the trip form.
-`/trips/calc` is the trip calculator (`POST /app/calc/trip`): legs with km, driving and loading time and countries, a
-crew of one or two, the drivers' state from the tachograph, rested or typed in; the plan shows the ETA, the timeline of
-driving, breaks and rests (561/2006) and the cost lines. The route panel (`RoutePanel`, Leaflet 1.9.4 loaded only with it, OSM
-tiles with "© OpenStreetMap contributors") takes points as addresses or clicks on the map, asks `POST /app/calc/route`
-(avoid tolls / ferries, the chosen vehicle) and fills the legs with km per country; 503 `calc.routing.disabled` shows
-"enter the legs by hand". The mock routes with a small gazetteer; `sessionStorage['mock.routing'] = 'off'` imitates the
-disabled server. `calc.missing.*` / `calc.warning.*` codes live only in the
+`/trips/calc` is the trip calculator (`POST /app/calc/trip`). The form asks for the vehicle, the driver, where from and
+where to (an address or a click on the map), optional stops on the way and the start; "From" and the start are filled
+from the last stop of the vehicle's running or latest trip (`GET /app/trips?vehicleId=`), the driver from the vehicle's
+usual driver. Calculate asks `POST /app/calc/route` (truck route, km per country; Leaflet 1.9.4 map in `RouteMap`, OSM
+tiles with "© OpenStreetMap contributors") and then the plan: ETA, timeline of driving, breaks and rests (561/2006) and
+the cost lines. 503 `calc.routing.disabled` switches to a distance field for the session. "More options" holds the
+second driver and crew, the drivers' state (tachograph, rested, typed in), loading and unloading time, avoid tolls /
+ferries, speed, fuel, rest options, other costs and legs typed in by hand (prefilled from the last calculation). The mock
+routes with a small gazetteer; `sessionStorage['mock.routing'] = 'off'` imitates the disabled server. `calc.missing.*` / `calc.warning.*` codes live only in the
 frontend bundles. `/trips/tolls` keeps the toll rates per km (country, optional euro class, axles and weight).
 `/trips/cmr` lists CMR consignment notes (`/app/cmr`, read with `trip.order/view` or `trip.cmr/manage`); the card shows
 the boxes with their numbers of the international form, issues and cancels the note and opens or saves the PDF (drafts
