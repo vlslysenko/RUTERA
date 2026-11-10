@@ -29,6 +29,8 @@ class RouteTest extends AbstractIntegrationTest {
 
     private static final HttpServer STUB;
     private static volatile String lastRoute = "";
+    private static final java.util.concurrent.atomic.AtomicInteger FIRMAS = new java.util.concurrent.atomic.AtomicInteger();
+    private static final java.util.concurrent.atomic.AtomicInteger PHOTON_CALLS = new java.util.concurrent.atomic.AtomicInteger();
 
     static {
         try {
@@ -57,6 +59,23 @@ class RouteTest extends AbstractIntegrationTest {
                     + "{\"length\":130.0,\"end_node\":{\"admin_index\":1}}],"
                     + "\"admins\":[{\"country_code\":\"PL\"},{\"country_code\":\"DE\"}]}");
         });
+        STUB.createContext("/photon/api", ex -> {
+            PHOTON_CALLS.incrementAndGet();
+            String query = URLDecoder.decode(ex.getRequestURI().getRawQuery(), StandardCharsets.UTF_8);
+            if (query.contains("q=Broken")) {
+                send(ex, 500, "{}");
+            } else if (query.contains("q=Wroc") && query.contains("lang=en") && query.contains("limit=5")) {
+                send(ex, 200, "{\"type\":\"FeatureCollection\",\"features\":["
+                        + "{\"geometry\":{\"coordinates\":[17.0333,51.11],\"type\":\"Point\"},\"properties\":"
+                        + "{\"osm_key\":\"place\",\"osm_value\":\"city\",\"name\":\"Wrocław\",\"city\":\"Wrocław\","
+                        + "\"state\":\"województwo dolnośląskie\",\"country\":\"Polska\",\"countrycode\":\"PL\"}},"
+                        + "{\"geometry\":{\"coordinates\":[17.02,51.12],\"type\":\"Point\"},\"properties\":"
+                        + "{\"osm_key\":\"building\",\"street\":\"Wrocławska\",\"housenumber\":\"12\","
+                        + "\"postcode\":\"55-100\",\"city\":\"Trzebnica\",\"country\":\"Polska\",\"countrycode\":\"pl\"}}]}");
+            } else {
+                send(ex, 200, "{\"type\":\"FeatureCollection\",\"features\":[]}");
+            }
+        });
         STUB.createContext("/nominatim/search", ex -> {
             String query = URLDecoder.decode(ex.getRequestURI().getRawQuery(), StandardCharsets.UTF_8);
             if (query.contains("Nowhere")) {
@@ -81,12 +100,13 @@ class RouteTest extends AbstractIntegrationTest {
         String base = "http://127.0.0.1:" + STUB.getAddress().getPort();
         registry.add("rutera.routing.url", () -> base + "/valhalla");
         registry.add("rutera.geocoding.url", () -> base + "/nominatim");
+        registry.add("rutera.places.url", () -> base + "/photon");
     }
 
     private Client newFirmaOwner() throws Exception {
         Firma firma = new Firma();
         firma.setName("Route Test");
-        firma.setShortCode("ROUTE1");
+        firma.setShortCode("ROUTE" + FIRMAS.incrementAndGet());
         firma.setCountry("PL");
         firma.setTimezone("UTC");
         firma.setBaseCurrency("PLN");
@@ -95,6 +115,26 @@ class RouteTest extends AbstractIntegrationTest {
         Client c = client();
         assertThat(c.login(owner.getLogin(), "RouteOwner-1").getResponse().getStatus()).isEqualTo(200);
         return c;
+    }
+
+    @Test
+    void placesAreSuggestedWhileTyping() throws Exception {
+        Client c = newFirmaOwner();
+        assertThat(body(c.get("/app/calc/places?q=Wr")).size()).as("under 3 characters").isZero();
+        int before = PHOTON_CALLS.get();
+        JsonNode places = body(c.get("/app/calc/places?q=Wroc"));
+        assertThat(places.size()).isEqualTo(2);
+        assertThat(places.get(0).get("label").asString()).isEqualTo("Wrocław, województwo dolnośląskie, Polska");
+        assertThat(places.get(0).get("lat").asDouble()).isEqualTo(51.11);
+        assertThat(places.get(0).get("lng").asDouble()).isEqualTo(17.0333);
+        assertThat(places.get(0).get("country").asString()).isEqualTo("PL");
+        assertThat(places.get(1).get("label").asString()).isEqualTo("Wrocławska 12, 55-100 Trzebnica, Polska");
+        assertThat(places.get(1).get("country").asString()).isEqualTo("PL");
+        assertThat(body(c.get("/app/calc/places?q=wroc")).size()).as("cached, case-insensitive").isEqualTo(2);
+        assertThat(PHOTON_CALLS.get() - before).isEqualTo(1);
+        MvcResult broken = c.get("/app/calc/places?q=Broken");
+        assertThat(broken.getResponse().getStatus()).isEqualTo(502);
+        assertThat(body(broken).get("code").asString()).isEqualTo("calc.geocode.failed");
     }
 
     @Test

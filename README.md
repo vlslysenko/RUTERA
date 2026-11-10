@@ -745,7 +745,14 @@ added when known, else 5 axles; a truck 4.0 m, 2.55 m, 12 m, 18 t, 11.5 t, 2 axl
 hgv, hazmat); `truck` in the answer is what was used. Km per country come from the edges of the route.
 Errors: 503 `calc.routing.disabled` (no routing server configured), 502 `calc.routing.failed` /
 `calc.geocode.failed` (server unreachable), 422 `points[i]: calc.geocode.not_found`, `route: calc.route.not_found`
-(no truck route), `points: validation.required | validation.invalid_value` (fewer than 2 or more than 25 points). In
+(no truck route), `points: validation.required | validation.invalid_value` (fewer than 2 or more than 25 points).
+`GET /app/calc/places?q=&limit=5` (`trip.trip/view`) suggests places while typing: `[{label, lat, lng, country}]`
+from a Photon server (`RUTERA_GEOCODER_URL`; self-hosted, or https://photon.komoot.io for development under its
+fair use; public Nominatim forbids autocomplete). Fewer than 3 characters answer `[]`; `limit` 1-10, default 5;
+labels in the user's language where Photon has it (en, de, fr), else the local names. Answers are cached for a day,
+calls to the server spread to `RUTERA_GEOCODER_MAX_PER_SECOND` (default 5; a caller waits up to a second, else 429
+`api.rate_limited`); no server configured 503, server down 502, both `calc.geocode.failed`. The picked `lat`/`lng` go
+to `/calc/route` as points, which skips geocoding for them. In
 `TripInput`, `waypoints: [{lat, lng} | {address}, serviceMin?]` replace `legs`: the route's legs become the legs, a
 waypoint's `serviceMin` the loading or unloading there, its countries the toll km. Development server: `docker
 compose --profile routing up -d valhalla` downloads the OSM extract (`RUTERA_OSM_EXTRACT_URL`, Poland by default)

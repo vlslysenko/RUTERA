@@ -77,6 +77,10 @@ public final class CalcDto {
                         int polylinePrecision, String attribution, Truck truck) {
     }
 
+    /** A place for search-as-you-type ({@code GET /app/calc/places}); country is ISO 3166-1 alpha-2. */
+    public record Place(String label, double lat, double lng, String country) {
+    }
+
     /** The truck the route was found for: the request's profile, else the vehicle card, else EU limits. */
     public record Truck(double heightM, double widthM, double lengthM, double weightT, Double axleLoadT, int axles,
                         boolean hazmat) {

@@ -81,6 +81,9 @@ public class McpTools {
             Map.entry("cmr_cancel", "Cancel a CMR note."),
             Map.entry("calc_trip", "Plan a trip under EU 561/2006: breaks, daily and weekly rests, arrival time and "
                     + "cost estimate (fuel, driver pay, tolls) for the given legs, vehicle and drivers."),
+            Map.entry("calc_places_list", "Find places by the start of a name or address (q, 3 characters or "
+                    + "more; limit up to 10): label, lat, lng, country, to pass as points to calc_route. Needs the "
+                    + "place search server of the installation (else error calc.geocode.failed)."),
             Map.entry("calc_route", "Compute a truck route through 2 to 25 points (coordinates or addresses, which "
                     + "are geocoded): distance, duration, km per country and the legs for calc_trip. Needs the "
                     + "routing server of the installation (else error calc.routing.disabled)."),

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,6 +20,7 @@ import java.util.List;
  * POST   /app/calc/trip               {start, vehicleId?, driverIds?, crewSize?, driverState?, manualState?, legs
  *                                      or waypoints, options?} -> Plan                    (trip.trip/view)
  * POST   /app/calc/route              {points, vehicleId?, profile?, avoidTolls?, avoidFerries?} -> Route (trip.trip/view)
+ * GET    /app/calc/places?q=&limit=   -> Place[] for search-as-you-type                    (trip.trip/view)
  * GET    /app/calc/toll-tariffs       -> TollTariff[]                                     (trip.trip/view)
  * POST   /app/calc/toll-tariffs       {input} -> 201 TollTariff                           (trip.trip/manage)
  * PUT    /app/calc/toll-tariffs/{id}  {input} -> TollTariff                               (trip.trip/manage)
@@ -31,11 +33,19 @@ public class CalcController {
     private final TripCalcService calc;
     private final TollTariffService tariffs;
     private final RouteService routes;
+    private final PlaceSearch places;
 
-    public CalcController(TripCalcService calc, TollTariffService tariffs, RouteService routes) {
+    public CalcController(TripCalcService calc, TollTariffService tariffs, RouteService routes, PlaceSearch places) {
         this.calc = calc;
         this.tariffs = tariffs;
         this.routes = routes;
+        this.places = places;
+    }
+
+    @GetMapping({"/app/calc/places", "/api/v1/calc/places"})
+    public List<CalcDto.Place> places(@RequestParam(required = false) String q,
+                                      @RequestParam(required = false) Integer limit) {
+        return places.search(q, limit);
     }
 
     @PostMapping({"/app/calc/route", "/api/v1/calc/route"})
