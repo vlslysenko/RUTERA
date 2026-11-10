@@ -225,6 +225,23 @@ class FleetVehicleTest extends AbstractIntegrationTest {
         Client app = client();
         app.login(driver.getLogin(), "Driver-Pass-1");
         assertThat(app.get("/app/fleet/vehicles").getResponse().getStatus()).isEqualTo(403);
+        assertThat(app.get("/app/fleet/vin?vin=YS2R4X20005663528").getResponse().getStatus()).isEqualTo(403);
+    }
+
+    @Test
+    void vinIsDecodedOffline() throws Exception {
+        Client c = ownerClient();
+        JsonNode scania = body(c.get("/app/fleet/vin?vin=ys2r4x20005663528&year=2022"));
+        assertThat(scania.get("status").asString()).isEqualTo("OK");
+        assertThat(scania.get("manufacturer").asString()).isEqualTo("Scania");
+        assertThat(scania.get("year").asInt()).isEqualTo(2022);
+        List<String> fields = new ArrayList<>();
+        scania.get("suggestions").forEach(s -> fields.add(s.get("field").asString()));
+        assertThat(fields).contains("make", "model", "axles", "euroClass");
+
+        JsonNode invalid = body(c.get("/app/fleet/vin?vin=ABC"));
+        assertThat(invalid.get("status").asString()).isEqualTo("INVALID_LENGTH");
+        assertThat(client().get("/app/fleet/vin?vin=YS2R4X20005663528").getResponse().getStatus()).isEqualTo(401);
     }
 
     @Test
