@@ -118,6 +118,19 @@ class CalcTest extends AbstractIntegrationTest {
         assertThat(line(plan, "TOLL", "DE").get("rate").asDouble()).as("the most specific tariff").isEqualTo(0.348);
         assertThat(line(plan, "TOLL", "DE").get("amount").asDouble()).isEqualTo(243.6);
         assertThat(line(plan, "TOLL", "PL").get("amount").asDouble()).isEqualTo(60.0);
+
+        // Toll km of a country: only those are charged; without them all km of the country count.
+        Map<String, Object> tolled = trip(vehicleId, List.of(driverId), "FRESH");
+        tolled.put("legs", List.of(Map.of("name", "Poznań - Köln", "distanceKm", 1000, "countries",
+                List.of(Map.of("country", "PL", "km", 300, "tollKm", 120), Map.of("country", "DE", "km", 700)))));
+        JsonNode tolledPlan = body(c.post("/app/calc/trip", tolled));
+        assertThat(line(tolledPlan, "TOLL", "PL").get("quantity").asDouble()).isEqualTo(120.0);
+        assertThat(line(tolledPlan, "TOLL", "PL").get("amount").asDouble()).isEqualTo(24.0);
+        assertThat(line(tolledPlan, "TOLL", "DE").get("quantity").asDouble()).isEqualTo(700.0);
+        tolled.put("legs", List.of(Map.of("distanceKm", 300, "countries",
+                List.of(Map.of("country", "PL", "km", 300, "tollKm", 301)))));
+        assertThat(body(c.post("/app/calc/trip", tolled)).get("details").get("legs[0].countries").asString())
+                .isEqualTo("validation.invalid_value");
         Map<String, Double> totalsByCurrency = new HashMap<>();
         plan.get("costs").get("totals").forEach(t -> totalsByCurrency.put(t.get("currency").asString(),
                 t.get("amount").asDouble()));

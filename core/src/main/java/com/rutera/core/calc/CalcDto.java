@@ -17,7 +17,8 @@ public final class CalcDto {
     private CalcDto() {
     }
 
-    public record CountryKm(String country, BigDecimal km) {
+    /** km in a country; tollKm of them on toll roads (null: not known, all km count as toll km). */
+    public record CountryKm(String country, BigDecimal km, BigDecimal tollKm) {
     }
 
     /** A leg of the route: distance, driving time (else distance / avgSpeedKmh), km per country, service at its end. */

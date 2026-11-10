@@ -78,7 +78,8 @@ public class ValhallaRouteProvider implements RouteProvider {
             double km = leg.path("summary").path("length").asDouble();
             int minutes = (int) Math.round(leg.path("summary").path("time").asDouble() / 60.0);
             String shape = leg.path("shape").asString("");
-            legs.add(new Leg(km, minutes, shape, countries(shape)));
+            Countries countries = countries(shape);
+            legs.add(new Leg(km, minutes, shape, countries.km(), countries.tollKm()));
         }
         if (legs.size() != points.size() - 1) {
             throw new Failed("unexpected number of legs");
@@ -86,18 +87,24 @@ public class ValhallaRouteProvider implements RouteProvider {
         return legs;
     }
 
-    /** km per ISO country code along the shape; empty when Valhalla cannot tell. */
-    private Map<String, Double> countries(String shape) {
+    /** km and toll km per ISO country code along a shape. */
+    private record Countries(Map<String, Double> km, Map<String, Double> tollKm) {
+    }
+
+    /** km and toll km ({@link TollNetwork}) per ISO country code along the shape; empty when Valhalla cannot tell. */
+    private Countries countries(String shape) {
         Map<String, Double> km = new LinkedHashMap<>();
+        Map<String, Double> tollKm = new LinkedHashMap<>();
         if (shape.isEmpty()) {
-            return km;
+            return new Countries(km, tollKm);
         }
         ObjectNode request = json.createObjectNode();
         request.put("encoded_polyline", shape);
         request.put("costing", "truck");
         request.put("shape_match", "edge_walk");
         ObjectNode filters = request.putObject("filters");
-        filters.putArray("attributes").add("edge.length").add("node.admin_index").add("admin.country_code");
+        filters.putArray("attributes").add("edge.length").add("edge.toll").add("edge.road_class")
+                .add("node.admin_index").add("admin.country_code");
         filters.put("action", "include");
         request.putObject("directions_options").put("units", "kilometers");
         try {
@@ -108,13 +115,22 @@ public class ValhallaRouteProvider implements RouteProvider {
                 String code = index >= 0 && index < admins.size()
                         ? admins.get(index).path("country_code").asString("") : "";
                 if (code.length() == 2) {
-                    km.merge(code, edge.path("length").asDouble(), Double::sum);
+                    double length = edge.path("length").asDouble();
+                    km.merge(code, length, Double::sum);
+                    if (TollNetwork.tolled(code, edge.path("road_class").asString(null),
+                            edge.path("toll").asBoolean(false))) {
+                        tollKm.merge(code, length, Double::sum);
+                    } else {
+                        tollKm.putIfAbsent(code, 0.0);
+                    }
                 }
             }
         } catch (RuntimeException e) {
             log.warn("Valhalla trace_attributes failed, no countries: {}", e.toString());
+            km.clear();
+            tollKm.clear();
         }
-        return km;
+        return new Countries(km, tollKm);
     }
 
     private JsonNode post(String path, ObjectNode body) {

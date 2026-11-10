@@ -134,7 +134,10 @@ public class RouteService {
         for (int i = 0; i < legs.size(); i++) {
             RouteProvider.Leg l = legs.get(i);
             List<CalcDto.CountryKm> countries = l.kmByCountry().entrySet().stream()
-                    .map(e -> new CalcDto.CountryKm(e.getKey(), km(e.getValue()))).toList();
+                    .map(e -> new CalcDto.CountryKm(e.getKey(), km(e.getValue()),
+                            l.tollKmByCountry().containsKey(e.getKey())
+                                    ? km(l.tollKmByCountry().get(e.getKey())).min(km(e.getValue())) : null))
+                    .toList();
             out.add(new CalcDto.RouteLeg(points.get(i), points.get(i + 1), km(l.distanceKm()), l.durationMin(),
                     countries, l.polyline()));
             km += l.distanceKm();

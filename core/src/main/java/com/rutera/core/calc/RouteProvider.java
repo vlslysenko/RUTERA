@@ -18,7 +18,8 @@ public interface RouteProvider {
     }
 
     /** One leg between two consecutive points; polyline with precision 6; km per ISO country code. */
-    record Leg(double distanceKm, int durationMin, String polyline, Map<String, Double> kmByCountry) {
+    record Leg(double distanceKm, int durationMin, String polyline, Map<String, Double> kmByCountry,
+               Map<String, Double> tollKmByCountry) {
     }
 
     /** No route for this vehicle between the points (answers 422). */

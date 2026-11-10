@@ -718,8 +718,8 @@ through the API) are in `docs/samples` (`toll-tariffs-2026.json`, see its README
 1), driverState?: TACHO | FRESH | MANUAL (default TACHO with drivers, else FRESH), manualState?: {drivingSinceBreakMin,
 drivingInShiftMin, shiftStart, weekDrivingMin, fortnightDrivingMin, extensionsLeft, reducedRestsLeft,
 lastWeeklyRestEnd} (for every driver), legs: [{name?, distanceKm, durationMin? (else distance / avgSpeedKmh),
-countries?: [{country, km}] (must add up to the distance within 1 km; else all km in options.country or the firma's
-country), serviceMin? (loading or unloading at the end of the leg)}], options?: {avgSpeedKmh? (70), extendedDriving?
+countries?: [{country, km, tollKm?}] (must add up to the distance within 1 km; else all km in options.country or the
+firma's country; tollKm, at most km, are the km on toll roads, else all km count), serviceMin? (loading or unloading at the end of the leg)}], options?: {avgSpeedKmh? (70), extendedDriving?
 (true), reducedRests? (true), reducedWeeklyRest? (false), consumptionL100km?, fuelPrice?, fuelCurrency?, country?,
 otherCosts?: [{label, amount, currency?}]}}`.
 
@@ -732,7 +732,7 @@ DRIVER_PER_DIEM | DRIVER_BASE | TOLL | OTHER, label, country, quantity, unit, ra
 [{currency, amount}], missing: [code]}, payHidden, warnings: [code]}`.
 
 `Route = {distanceKm, durationMin, points: [{lat, lng, label}], legs: [{from, to, distanceKm, durationMin, countries:
-[{country, km}], polyline}], polylinePrecision: 6, attribution, truck: {heightM, widthM, lengthM, weightT, axleLoadT,
+[{country, km, tollKm}], polyline}], polylinePrecision: 6, attribution, truck: {heightM, widthM, lengthM, weightT, axleLoadT,
 axles, hazmat}}`. Truck routes come from a Valhalla server
 (`RUTERA_ROUTING_URL`; MIT licence, OSM data under ODbL: show the `attribution` "© OpenStreetMap contributors" with the
 map), addresses are geocoded with Nominatim (`RUTERA_GEOCODING_URL`, `rutera.geocoding.user-agent`; at most one
@@ -742,7 +742,11 @@ for the kind: a tractor (and no vehicle at all) as a combination with a semi-tra
 whatever the card says (it holds the tractor alone), 11.5 t per axle, the axles and height of its default trailer
 added when known, else 5 axles; a truck 4.0 m, 2.55 m, 12 m, 18 t, 11.5 t, 2 axles; a van 2.7 m, 2.1 m, 6 m, 3.5 t,
 2 axles. Valhalla keeps to the OSM restrictions for them (maxweight, maxheight, maxwidth, maxlength, maxaxleload,
-hgv, hazmat); `truck` in the answer is what was used. Km per country come from the edges of the route.
+hgv, hazmat); `truck` in the answer is what was used. Km per country come from the edges of the route. Toll km
+of a country are its edges flagged as toll in OSM (concession motorways) plus the road classes of its truck toll
+network (`core.calc.TollNetwork`, 2026): DE, HU, DK, BG motorway, trunk and primary roads; PL (e-TOLL A/S), AT, CZ,
+SK, BE, NL, SI motorways and expressways; CH every road; elsewhere only the flagged roads. National roads that are
+only partly in a network (PL GP/G, CZ and SK first class) are left out.
 Errors: 503 `calc.routing.disabled` (no routing server configured), 502 `calc.routing.failed` /
 `calc.geocode.failed` (server unreachable), 422 `points[i]: calc.geocode.not_found`, `route: calc.route.not_found`
 (no truck route), `points: validation.required | validation.invalid_value` (fewer than 2 or more than 25 points).
@@ -771,7 +775,7 @@ modelled: split daily rest, ferries and trains, compensation of reduced weekly r
 Costs: fuel = km x consumption (options, else the vehicle's `avgL100km`) / 100 x price (options, else the average
 net price per litre of the firma's DIESEL fuel transactions of the last 30 days in the base currency); per driver
 with the pay rate valid on the start day: `perKm` x km, per diem (abroad when any km is outside the firma's
-country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = km per country x the
+country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = toll km per country x the
 matching tariff (rows whose Euro class, axles and weight conditions hold for the vehicle; a condition on a value
 the vehicle lacks, or without a vehicle, does not hold; the most specific row, then the latest `validFrom`); other
 costs as given. A crew of two: DRIVER_KM counts the km of each driver's own DRIVE items; a crew slot without a

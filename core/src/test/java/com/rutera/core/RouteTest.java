@@ -55,8 +55,9 @@ class RouteTest extends AbstractIntegrationTest {
         });
         STUB.createContext("/valhalla/trace_attributes", ex -> {
             ex.getRequestBody().readAllBytes();
-            send(ex, 200, "{\"edges\":[{\"length\":150.0,\"end_node\":{\"admin_index\":0}},"
-                    + "{\"length\":130.0,\"end_node\":{\"admin_index\":1}}],"
+            send(ex, 200, "{\"edges\":[{\"length\":100.0,\"road_class\":\"motorway\",\"end_node\":{\"admin_index\":0}},"
+                    + "{\"length\":50.0,\"road_class\":\"secondary\",\"end_node\":{\"admin_index\":0}},"
+                    + "{\"length\":130.0,\"road_class\":\"primary\",\"end_node\":{\"admin_index\":1}}],"
                     + "\"admins\":[{\"country_code\":\"PL\"},{\"country_code\":\"DE\"}]}");
         });
         STUB.createContext("/photon/api", ex -> {
@@ -161,6 +162,9 @@ class RouteTest extends AbstractIntegrationTest {
         assertThat(leg.get("polyline").asString()).isEqualTo("_p~iF~ps|U_ulLnnqC");
         assertThat(leg.get("countries").get(0).get("country").asString()).isEqualTo("PL");
         assertThat(leg.get("countries").get(1).get("km").asDouble()).isEqualTo(130.0);
+        assertThat(leg.get("countries").get(0).get("km").asDouble()).isEqualTo(150.0);
+        assertThat(leg.get("countries").get(0).get("tollKm").asDouble()).as("PL: motorway only").isEqualTo(100.0);
+        assertThat(leg.get("countries").get(1).get("tollKm").asDouble()).as("DE: federal roads too").isEqualTo(130.0);
         assertThat(lastRoute).contains("\"costing\":\"truck\"").contains("\"height\":4.0").contains("\"weight\":40.0")
                 .contains("\"axle_count\":5").contains("\"use_ferry\":0.0");
         assertThat(route.get("truck").get("weightT").asDouble()).isEqualTo(40.0);
@@ -219,12 +223,12 @@ class RouteTest extends AbstractIntegrationTest {
         assertThat(p.get("totals").get("distanceKm").asDouble()).isEqualTo(280.0);
         assertThat(p.get("totals").get("drivingMin").asInt()).isEqualTo(200);
         assertThat(p.get("totals").get("workMin").asInt()).as("loading and unloading").isEqualTo(90);
-        boolean germanToll = false;
+        Map<String, Double> tollKm = new HashMap<>();
         for (JsonNode l : p.get("costs").get("lines")) {
-            if (l.get("kind").asString().equals("TOLL") && l.get("country").asString().equals("DE")) {
-                germanToll = l.get("quantity").asDouble() == 130.0;
+            if (l.get("kind").asString().equals("TOLL")) {
+                tollKm.put(l.get("country").asString(), l.get("quantity").asDouble());
             }
         }
-        assertThat(germanToll).as("km per country from the route").isTrue();
+        assertThat(tollKm).as("toll km per country from the route").containsEntry("DE", 130.0).containsEntry("PL", 100.0);
     }
 }

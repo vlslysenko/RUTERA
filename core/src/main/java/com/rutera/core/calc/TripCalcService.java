@@ -80,7 +80,7 @@ public class TripCalcService {
 
     private record Input(Instant start, Vehicle vehicle, List<Driver> crew, int crewSize, DriverState.Source mode,
                          CalcDto.ManualState manual, List<HosPlanner.Leg> legs, Map<String, BigDecimal> kmByCountry,
-                         BigDecimal distance, CalcDto.Options options) {
+                         Map<String, BigDecimal> tollKmByCountry, BigDecimal distance, CalcDto.Options options) {
     }
 
     @RequiresPrivilege(Privileges.TRIP_TRIP_VIEW)
@@ -255,7 +255,10 @@ public class TripCalcService {
             byCountry.computeIfAbsent(t.getCountry(), k -> new ArrayList<>()).add(t);
         }
         LocalDate day = LocalDate.ofInstant(input.start(), zone(firma));
-        for (Map.Entry<String, BigDecimal> e : input.kmByCountry().entrySet()) {
+        for (Map.Entry<String, BigDecimal> e : input.tollKmByCountry().entrySet()) {
+            if (e.getValue().signum() == 0) {
+                continue;
+            }
             TollTariff t = tariff(byCountry.getOrDefault(e.getKey(), List.of()), input.vehicle(), day);
             if (t == null) {
                 addOnce(missing, "calc.missing.toll_tariff");
@@ -379,6 +382,7 @@ public class TripCalcService {
         }
         List<HosPlanner.Leg> legs = new ArrayList<>();
         Map<String, BigDecimal> kmByCountry = new TreeMap<>();
+        Map<String, BigDecimal> tollKmByCountry = new TreeMap<>();
         BigDecimal distance = BigDecimal.ZERO;
         if (legInputs == null || legInputs.isEmpty()) {
             errors.put("legs", ErrorCodes.FIELD_REQUIRED);
@@ -408,18 +412,22 @@ public class TripCalcService {
                 if (l.countries() == null || l.countries().isEmpty()) {
                     if (defaultCountry != null && l.distanceKm().signum() > 0) {
                         kmByCountry.merge(defaultCountry, l.distanceKm(), BigDecimal::add);
+                        tollKmByCountry.merge(defaultCountry, l.distanceKm(), BigDecimal::add);
                     }
                 } else {
                     BigDecimal sum = BigDecimal.ZERO;
                     for (CalcDto.CountryKm c : l.countries()) {
                         String country = c == null ? null : InputFields.country(at + "countries", c.country(), errors);
-                        if (country == null || c.km() == null || c.km().signum() < 0) {
+                        if (country == null || c.km() == null || c.km().signum() < 0 || (c.tollKm() != null
+                                && (c.tollKm().signum() < 0 || c.tollKm().compareTo(c.km()) > 0))) {
                             errors.put(at + "countries", ErrorCodes.FIELD_INVALID_VALUE);
                             continue;
                         }
                         sum = sum.add(c.km());
                         if (c.km().signum() > 0) {
                             kmByCountry.merge(country, c.km(), BigDecimal::add);
+                            tollKmByCountry.merge(country, c.tollKm() == null ? c.km() : c.tollKm(),
+                                    BigDecimal::add);
                         }
                     }
                     if (sum.subtract(l.distanceKm()).abs().compareTo(BigDecimal.ONE) > 0) {
@@ -433,7 +441,8 @@ public class TripCalcService {
         if (!errors.isEmpty()) {
             throw ApiException.validation(errors);
         }
-        return new Input(in.start(), vehicle, crew, crewSize, mode, in.manualState(), legs, kmByCountry, distance, o);
+        return new Input(in.start(), vehicle, crew, crewSize, mode, in.manualState(), legs, kmByCountry,
+                tollKmByCountry, distance, o);
     }
 
     /** The route's legs as calculator legs: a waypoint's service time follows the leg that ends there. */
@@ -462,10 +471,12 @@ public class TripCalcService {
         BigDecimal used = BigDecimal.ZERO;
         for (int i = 0; i < countries.size(); i++) {
             CalcDto.CountryKm c = countries.get(i);
-            BigDecimal km = i == countries.size() - 1 ? distance.subtract(used)
-                    : c.km().multiply(distance).divide(sum, 1, RoundingMode.HALF_UP);
+            BigDecimal km = (i == countries.size() - 1 ? distance.subtract(used)
+                    : c.km().multiply(distance).divide(sum, 1, RoundingMode.HALF_UP)).max(BigDecimal.ZERO);
             used = used.add(km);
-            out.add(new CalcDto.CountryKm(c.country(), km.max(BigDecimal.ZERO)));
+            BigDecimal toll = c.tollKm() == null ? null : c.km().signum() == 0 ? BigDecimal.ZERO
+                    : c.tollKm().multiply(km).divide(c.km(), 1, RoundingMode.HALF_UP).min(km);
+            out.add(new CalcDto.CountryKm(c.country(), km, toll));
         }
         return out;
     }
