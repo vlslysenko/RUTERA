@@ -19,6 +19,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -128,8 +129,9 @@ public class PlaceSearch {
     }
 
     private List<CalcDto.Place> fetch(String q, int limit, String lang) {
-        String uri = UriComponentsBuilder.fromUriString(url + "/api").queryParam("q", q).queryParam("limit", limit)
-                .queryParam("lang", lang).encode().toUriString();
+        // A URI, not a String: RestClient treats a String as a template and would encode the query a second time.
+        URI uri = UriComponentsBuilder.fromUriString(url + "/api").queryParam("q", q).queryParam("limit", limit)
+                .queryParam("lang", lang).encode().build().toUri();
         try {
             ResponseEntity<String> res = client.get().uri(uri).header("User-Agent", userAgent)
                     .accept(MediaType.APPLICATION_JSON).retrieve().onStatus(HttpStatusCode::isError, (req, r) -> {

@@ -29,6 +29,7 @@ class RouteTest extends AbstractIntegrationTest {
 
     private static final HttpServer STUB;
     private static volatile String lastRoute = "";
+    private static volatile String lastRawQuery = "";
     private static final java.util.concurrent.atomic.AtomicInteger FIRMAS = new java.util.concurrent.atomic.AtomicInteger();
     private static final java.util.concurrent.atomic.AtomicInteger PHOTON_CALLS = new java.util.concurrent.atomic.AtomicInteger();
 
@@ -62,6 +63,7 @@ class RouteTest extends AbstractIntegrationTest {
         });
         STUB.createContext("/photon/api", ex -> {
             PHOTON_CALLS.incrementAndGet();
+            lastRawQuery = ex.getRequestURI().getRawQuery();
             String query = URLDecoder.decode(ex.getRequestURI().getRawQuery(), StandardCharsets.UTF_8);
             if (query.contains("q=Broken")) {
                 send(ex, 500, "{}");
@@ -78,9 +80,12 @@ class RouteTest extends AbstractIntegrationTest {
             }
         });
         STUB.createContext("/nominatim/search", ex -> {
+            lastRawQuery = ex.getRequestURI().getRawQuery();
             String query = URLDecoder.decode(ex.getRequestURI().getRawQuery(), StandardCharsets.UTF_8);
             if (query.contains("Nowhere")) {
                 send(ex, 200, "[]");
+            } else if (query.contains("q=Wrocław, wagnera 3&")) {
+                send(ex, 200, "[{\"lat\":\"51.052\",\"lon\":\"17.060\",\"display_name\":\"Wagnera 3, Wrocław\"}]");
             } else {
                 send(ex, 200, "[{\"lat\":\"52.4064\",\"lon\":\"16.9252\",\"display_name\":\"Poznań, Polska\"}]");
             }
@@ -133,6 +138,10 @@ class RouteTest extends AbstractIntegrationTest {
         assertThat(places.get(1).get("country").asString()).isEqualTo("PL");
         assertThat(body(c.get("/app/calc/places?q=wroc")).size()).as("cached, case-insensitive").isEqualTo(2);
         assertThat(PHOTON_CALLS.get() - before).isEqualTo(1);
+        c.send(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/app/calc/places")
+                .param("q", "Łódź Piotrkowska"));
+        assertThat(lastRawQuery).as("encoded once").contains("q=%C5%81%C3%B3d%C5%BA%20Piotrkowska")
+                .doesNotContain("%25");
         MvcResult broken = c.get("/app/calc/places?q=Broken");
         assertThat(broken.getResponse().getStatus()).isEqualTo(502);
         assertThat(body(broken).get("code").asString()).isEqualTo("calc.geocode.failed");
@@ -231,6 +240,13 @@ class RouteTest extends AbstractIntegrationTest {
         assertThat(light.get("weightT").asDouble()).isEqualTo(24.0);
         assertThat(light.get("hazmat").asBoolean()).isTrue();
         assertThat(lastRoute).contains("\"weight\":24.0").contains("\"hazmat\":true");
+
+        // A Polish letter and spaces reach the geocoder encoded once (regression: they were encoded twice).
+        MvcResult polish = c.post("/app/calc/route", Map.of("points",
+                List.of(Map.of("address", "Wrocław, wagnera 3"), Map.of("lat", 52.0, "lng", 13.0))));
+        assertThat(polish.getResponse().getStatus()).as(polish.getResponse().getContentAsString()).isEqualTo(200);
+        assertThat(body(polish).get("points").get(0).get("lat").asDouble()).isEqualTo(51.052);
+        assertThat(lastRawQuery).contains("q=Wroc%C5%82aw,%20wagnera%203").doesNotContain("%25");
 
         MvcResult unknown = c.post("/app/calc/route", Map.of("points",
                 List.of(Map.of("address", "Nowhere 1"), Map.of("lat", 52.0, "lng", 13.0))));

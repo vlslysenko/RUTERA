@@ -13,6 +13,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.LinkedHashMap;
@@ -89,8 +90,9 @@ public class Geocoder {
 
     private Optional<Place> search(String address, String language) {
         throttle();
-        String uri = UriComponentsBuilder.fromUriString(url + "/search").queryParam("q", address)
-                .queryParam("format", "jsonv2").queryParam("limit", 1).encode().toUriString();
+        // A URI, not a String: RestClient treats a String as a template and would encode the query a second time.
+        URI uri = UriComponentsBuilder.fromUriString(url + "/search").queryParam("q", address)
+                .queryParam("format", "jsonv2").queryParam("limit", 1).encode().build().toUri();
         try {
             ResponseEntity<String> res = client.get().uri(uri).header("User-Agent", userAgent)
                     .header("Accept-Language", language == null ? "en" : language)
