@@ -173,7 +173,16 @@ public final class TableReader {
 
     // --- XLSX ----------------------------------------------------------------------------------------------
 
+    /** The rows of the XLSX sheet at this position (0 = first) in the workbook's order; empty rows dropped. */
+    public static List<List<String>> readSheet(byte[] data, int index, int maxRows) throws UnreadableException {
+        return xlsx(data, index, maxRows);
+    }
+
     private static List<List<String>> xlsx(byte[] data, int maxRows) throws UnreadableException {
+        return xlsx(data, 0, maxRows);
+    }
+
+    private static List<List<String>> xlsx(byte[] data, int index, int maxRows) throws UnreadableException {
         Map<String, byte[]> parts = unzip(data);
         if (!parts.containsKey("xl/workbook.xml")) {
             throw new UnreadableException("not an XLSX workbook");
@@ -181,7 +190,7 @@ public final class TableReader {
         try {
             List<String> shared = sharedStrings(parts.get("xl/sharedStrings.xml"));
             boolean[] dateStyles = dateStyles(parts.get("xl/styles.xml"));
-            byte[] sheet = parts.get(firstSheet(parts));
+            byte[] sheet = parts.get(sheetPath(parts, index));
             if (sheet == null) {
                 throw new UnreadableException("the workbook has no sheet");
             }
@@ -230,12 +239,13 @@ public final class TableReader {
         return factory.createXMLStreamReader(in);
     }
 
-    /** The path of the first sheet of the workbook (by its relationship), else sheet1. */
-    private static String firstSheet(Map<String, byte[]> parts) throws XMLStreamException {
+    /** The path of the sheet at this position in the workbook (by its relationship), else sheet{index + 1}. */
+    private static String sheetPath(Map<String, byte[]> parts, int index) throws XMLStreamException {
         String relId = null;
+        int seen = -1;
         XMLStreamReader r = xml(parts.get("xl/workbook.xml"));
         while (r.hasNext() && relId == null) {
-            if (r.next() == XMLStreamConstants.START_ELEMENT && r.getLocalName().equals("sheet")) {
+            if (r.next() == XMLStreamConstants.START_ELEMENT && r.getLocalName().equals("sheet") && ++seen == index) {
                 for (int i = 0; i < r.getAttributeCount(); i++) {
                     if (r.getAttributeLocalName(i).equals("id")) {
                         relId = r.getAttributeValue(i);
@@ -254,7 +264,7 @@ public final class TableReader {
                 }
             }
         }
-        return "xl/worksheets/sheet1.xml";
+        return "xl/worksheets/sheet" + (index + 1) + ".xml";
     }
 
     private static List<String> sharedStrings(byte[] part) throws XMLStreamException {

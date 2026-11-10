@@ -38,13 +38,15 @@ public interface FuelPriceProvider {
     }
 
     /**
-     * A price per litre (kg for LNG/CNG). From a provider: one country, product and day in the country's currency,
-     * with net and gross and the VAT rate (percent); quality REFERENCE, the base currency fields empty. Resolved for
-     * a firma: also the price in its base currency when the currency is the same (fxRate 1), and the quality.
+     * A price per litre (kg for LNG/CNG). From a provider: one country, product and day in its currency, with net
+     * and gross, the VAT rate (percent) and the excise per 1000 l in the same currency where known; quality
+     * REFERENCE, the base currency fields empty. Resolved for a firma: also the price in its base currency when the
+     * currency is the same (fxRate 1), and the quality.
      */
     record PriceQuote(String country, FuelTransaction.Product product, BigDecimal net, BigDecimal gross,
-                      BigDecimal vatRate, String currency, BigDecimal netBase, String baseCurrency, BigDecimal fxRate,
-                      LocalDate priceDate, String source, Quality quality, BigDecimal firmFactor, String note) {
+                      BigDecimal vatRate, BigDecimal excisePer1000l, String currency, BigDecimal netBase,
+                      String baseCurrency, BigDecimal fxRate, LocalDate priceDate, String source, Quality quality,
+                      BigDecimal firmFactor, String note) {
     }
 
     /** A filling station's price near a point (STATION providers). */

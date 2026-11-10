@@ -67,6 +67,7 @@ public class FuelPriceImporter {
                         p.setNet(q.net().setScale(4, RoundingMode.HALF_UP));
                         p.setGross(q.gross() == null ? null : q.gross().setScale(4, RoundingMode.HALF_UP));
                         p.setVatRate(q.vatRate());
+                        p.setExcisePer1000l(q.excisePer1000l());
                         p.setCurrency(q.currency());
                         p.setKind(FuelPrice.Kind.AVERAGE);
                         p.setSource(provider.name());

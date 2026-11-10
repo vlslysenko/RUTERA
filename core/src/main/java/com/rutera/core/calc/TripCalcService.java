@@ -319,7 +319,7 @@ public class TripCalcService {
         if (o.fuelPrice() != null) {
             String currency = o.fuelCurrency() != null ? FuelValues.currency(o.fuelCurrency()) : base;
             lines.add(fuelLine(null, km, consumption, new FuelPriceProvider.PriceQuote(null,
-                    FuelTransaction.Product.DIESEL, o.fuelPrice(), null, null, currency, null, base, null, day, null,
+                    FuelTransaction.Product.DIESEL, o.fuelPrice(), null, null, null, currency, null, base, null, day, null,
                     FuelPriceProvider.Quality.MANUAL, null, null), base));
             return;
         }

@@ -127,7 +127,7 @@ public class FuelPrices {
     private static PriceQuote quote(String country, FuelTransaction.Product product, BigDecimal net, String currency,
                                     String base, LocalDate day, String source, Quality quality) {
         boolean same = currency.equals(base);
-        return new PriceQuote(country, product, net.setScale(4, RoundingMode.HALF_UP), null, null, currency,
+        return new PriceQuote(country, product, net.setScale(4, RoundingMode.HALF_UP), null, null, null, currency,
                 same ? net : null, base, same ? BigDecimal.ONE : null, day, source, quality, null, null);
     }
 }

@@ -792,8 +792,12 @@ DIESEL | ADBLUE | PETROL | LNG | CNG, priceDate, net (or gross with vatRate), gr
 currency, kind?: AVERAGE | CAP | STATION_MEDIAN, source? (MANUAL)}` replaces the row of that country, product, source
 and day, `DELETE /app/calc/fuel-prices/{id}`. Price sources plug in as `core.calc.FuelPriceProvider` beans (the
 provider contract of the fuel research: name, countries, kind NATIONAL | STATION, `fetch(since)` -> `PriceQuote`);
-`FuelPriceImporter` stores the quotes of the national ones daily (none built in yet: the bulletin's XLSX reader
-comes next). Not yet: exchange rates and a total in the base currency, AdBlue, the tax calendar; per driver
+`FuelPriceImporter` stores the quotes of the national ones daily at 04:40 UTC. Built in: `EU_WOB`
+(`core.calc.EuOilBulletin`), the Commission's page (`RUTERA_FUEL_BULLETIN_URL`) links the current "prices with
+taxes" and "duties and taxes" workbooks; diesel and Euro-super 95 of the 27 countries per litre in EUR, net = gross
+without the VAT rate of the duties file, the excise for euro countries; it replaces the starting rows of the same
+day (source `EU_WOB`), so their currency becomes EUR. Needs internet; `RUTERA_FUEL_BULLETIN_ENABLED=false` switches
+it off. Not yet: exchange rates and a total in the base currency, AdBlue, the tax calendar; per driver
 with the pay rate valid on the start day: `perKm` x km, per diem (abroad when any km is outside the firma's
 country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = toll km per country x the
 matching tariff (rows whose axles and weight conditions hold for the truck as routed, so a tractor with its
