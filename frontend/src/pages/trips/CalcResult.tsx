@@ -6,6 +6,7 @@ import { useUser } from '@/auth/useAuth';
 import { formatMinutes } from '@/pages/tacho/hosFormat';
 import { countryName } from '@/utils/countries';
 import { cx } from '@/utils/cx';
+import { formatDate } from '@/utils/deadline';
 import { formatInstantShort, formatMoney } from './tripFormat';
 import classes from './Calc.module.css';
 
@@ -32,7 +33,7 @@ function dayOf(iso: string, lang: string, timeZone?: string): string {
 /** Where a fuel price came from and its day, under the fuel line; a missing price is marked in red. */
 function PriceSource({ line }: { line: CostLine }) {
   const { t, i18n } = useTranslation();
-  if (line.kind !== 'FUEL' || !line.source) return null;
+  if ((line.kind !== 'FUEL' && line.kind !== 'ADBLUE') || !line.source) return null;
   const day = line.priceDate ? new Intl.DateTimeFormat(i18n.resolvedLanguage ?? 'en', { dateStyle: 'short', timeZone: 'UTC' }).format(new Date(`${line.priceDate}T00:00:00Z`)) : null;
   return (
     <Text size="xs" c={line.source === 'MISSING' ? 'red' : 'dimmed'}>
@@ -53,6 +54,7 @@ export function CalcResult({ plan, legNames, countries = [] }: { plan: CalcPlan;
   const time = (iso: string) => new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit', timeZone: tz }).format(new Date(iso));
   const km = (v: number) => new Intl.NumberFormat(lang, { maximumFractionDigits: 0 }).format(v);
   const tot = plan.totals;
+  const base = plan.costs.baseCurrency ?? null;
 
   // Group timeline items by the day they start on.
   const days: { day: string; items: TimelineItem[] }[] = [];
@@ -193,7 +195,15 @@ export function CalcResult({ plan, legNames, countries = [] }: { plan: CalcPlan;
                   <Table.Td className={classes.num}>{l.rate != null && l.currency ? `× ${formatMoney(l.rate, l.currency, lang)}` : ''}</Table.Td>
                   <Table.Td className={classes.num}>
                     {l.amount != null && l.currency ? (
-                      <b>{formatMoney(l.amount, l.currency, lang)}</b>
+                      <>
+                        <b>{formatMoney(l.amount, l.currency, lang)}</b>
+                        {/* Another currency than the base one: its share of the base total, too. */}
+                        {base && l.currency !== base && l.amountBase != null && (
+                          <Text size="xs" c="dimmed">
+                            ≈ {formatMoney(l.amountBase, base, lang)}
+                          </Text>
+                        )}
+                      </>
                     ) : (
                       // Not priced: not part of the total, so it must not look like a zero.
                       <Group gap={4} justify="flex-end" wrap="nowrap" c="red">
@@ -219,6 +229,31 @@ export function CalcResult({ plan, legNames, countries = [] }: { plan: CalcPlan;
             </Text>
           ))}
         </Group>
+        {base && plan.costs.totalBase != null && (
+          <Group justify="flex-end" gap="lg" mt={4}>
+            <Text size="sm" c="dimmed">
+              {t('calc.total_base', { currency: base })}
+            </Text>
+            <Text fz="lg" fw={700} className={classes.num}>
+              {formatMoney(plan.costs.totalBase, base, lang)}
+            </Text>
+          </Group>
+        )}
+        {base && (plan.costs.fxRates ?? []).length > 0 && (
+          <Text size="xs" c="dimmed" ta="right" mt={4}>
+            {(plan.costs.fxRates ?? [])
+              .map((r) =>
+                t('calc.fx_rate', {
+                  currency: r.currency,
+                  rate: new Intl.NumberFormat(lang, { maximumFractionDigits: 4 }).format(r.rate),
+                  base,
+                  source: r.source ?? '—',
+                  date: r.rateDate ? formatDate(r.rateDate, lang) : '—',
+                }),
+              )
+              .join(' · ')}
+          </Text>
+        )}
       </Paper>
 
       {plan.driverStates.length > 0 && (

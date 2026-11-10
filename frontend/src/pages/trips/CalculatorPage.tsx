@@ -238,6 +238,9 @@ export function CalculatorPage() {
   const [consumption, setConsumption] = useState<number | string>('');
   const [fuelPrice, setFuelPrice] = useState<number | string>('');
   const [fuelCurrency, setFuelCurrency] = useState<string | null>('EUR');
+  const [adBluePct, setAdBluePct] = useState<number | string>('');
+  const [adBluePrice, setAdBluePrice] = useState<number | string>('');
+  const [adBlueCurrency, setAdBlueCurrency] = useState<string | null>('EUR');
   const [others, setOthers] = useState<OtherRow[]>([]);
   const [plan, setPlan] = useState<CalcPlan | null>(null);
   const [planLegNames, setPlanLegNames] = useState<string[]>([]);
@@ -465,6 +468,9 @@ export function CalculatorPage() {
           consumptionL100km: num(consumption),
           fuelPrice: num(fuelPrice),
           fuelCurrency: num(fuelPrice) != null ? fuelCurrency : null,
+          adBluePct: num(adBluePct),
+          adBluePrice: num(adBluePrice),
+          adBlueCurrency: num(adBluePrice) != null ? adBlueCurrency : null,
           otherCosts: others
             .filter((o) => o.label.trim() && num(o.amount) != null && o.currency)
             .map((o) => ({ label: o.label.trim(), amount: num(o.amount) ?? 0, currency: o.currency ?? 'EUR' })),
@@ -671,6 +677,11 @@ export function CalculatorPage() {
               <Group grow align="flex-start">
                 <NumberInput size="xs" label={t('calc.fuel_price')} placeholder={t('calc.from_fuel')} value={fuelPrice} onChange={setFuelPrice} decimalScale={3} decimalSeparator={dec} allowNegative={false} hideControls />
                 <Select size="xs" label={t('orders.currency')} data={CURRENCIES} value={fuelCurrency} onChange={setFuelCurrency} searchable error={err('options.fuelCurrency')} />
+              </Group>
+              <Group grow align="flex-start">
+                <NumberInput size="xs" label={<LabelHint label={t('calc.adblue_pct')} hint={t('hint.calc.adblue_pct')} />} placeholder={t('calc.adblue_pct_auto')} value={adBluePct} onChange={setAdBluePct} decimalScale={2} decimalSeparator={dec} min={0} max={20} allowNegative={false} hideControls error={err('options.adBluePct')} />
+                <NumberInput size="xs" label={t('calc.adblue_price')} placeholder={t('calc.from_fuel')} value={adBluePrice} onChange={setAdBluePrice} decimalScale={3} decimalSeparator={dec} allowNegative={false} hideControls error={err('options.adBluePrice')} />
+                <Select size="xs" label={t('orders.currency')} data={CURRENCIES} value={adBlueCurrency} onChange={setAdBlueCurrency} searchable error={err('options.adBlueCurrency')} />
               </Group>
               <Stack gap={4}>
                 <Checkbox size="xs" label={<LabelHint label={t('calc.opt_extended')} hint={t('hos.rule_hint.DAILY_DRIVING_9H')} />} checked={extended} onChange={(e) => setExtended(e.currentTarget.checked)} />

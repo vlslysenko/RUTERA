@@ -30,6 +30,35 @@ export function listFuelPrices() {
   return [row(1, 'PL', 5.21, 23, 'PLN'), row(2, 'DE', 1.401, 19, 'EUR'), row(3, 'CZ', 31.9, 21, 'CZK'), row(4, 'FR', 1.398, 20, 'EUR')];
 }
 
+/** ECB-like rates in PLN, the mock firma's base currency (backend b718bf8: base units per 1 unit). */
+const FX: Record<string, number> = { PLN: 1, EUR: 4.265, CZK: 0.1702, HUF: 0.01085, CHF: 4.62, GBP: 5.06, SEK: 0.392, DKK: 0.5717, NOK: 0.3712, RON: 0.8571, BGN: 2.1807 };
+
+/** Each line's amount in the base currency and the base total; a currency without a rate leaves the total empty. */
+function inBase(lines: CostLine[], missing: string[]) {
+  const base = 'PLN';
+  const used = new Set<string>();
+  let total = 0;
+  let complete = true;
+  for (const l of lines) {
+    if (l.amount == null || !l.currency) continue;
+    const rate = FX[l.currency];
+    if (rate == null) {
+      complete = false;
+      l.amountBase = null;
+      continue;
+    }
+    if (l.currency !== base) used.add(l.currency);
+    l.amountBase = Math.round(l.amount * rate * 100) / 100;
+    total += l.amountBase;
+  }
+  if (!complete && !missing.includes('calc.missing.fx_rate')) missing.push('calc.missing.fx_rate');
+  return {
+    baseCurrency: base,
+    totalBase: complete ? Math.round(total * 100) / 100 : null,
+    fxRates: [...used].map((currency) => ({ currency, rate: FX[currency], rateDate: '2026-11-07', source: 'ECB' })),
+  };
+}
+
 const invalid = (details: Record<string, string>): MockReply => ({ status: 422, body: { code: 'error.validation', details } });
 const r2 = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100;
 const MIN = 60_000;
@@ -301,7 +330,7 @@ export function plan(req: CalcRequest, lk: CalcLookup): MockReply {
     },
     timeline,
     driverStates: states,
-    costs: { lines, totals: [...totals].map(([currency, amount]) => ({ currency, amount })), missing },
+    costs: { lines, totals: [...totals].map(([currency, amount]) => ({ currency, amount })), missing, ...inBase(lines, missing) },
     payHidden,
     warnings,
   };

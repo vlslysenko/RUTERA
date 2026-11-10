@@ -57,6 +57,11 @@ export interface CalcOptions {
   fuelPrice: number | null;
   fuelCurrency: string | null;
   otherCosts: CalcOtherCost[];
+  /** AdBlue as % of the diesel litres; empty: by the vehicle's Euro class (backend 2e4adcc). */
+  adBluePct?: number | null;
+  /** AdBlue price per litre; empty: the firma's own AdBlue purchases. */
+  adBluePrice?: number | null;
+  adBlueCurrency?: string | null;
 }
 
 export interface CalcRequest {
@@ -101,7 +106,7 @@ export interface CalcDriverState {
   weeklyRestDueAt: string | null;
 }
 
-export const COST_KINDS = ['FUEL', 'DRIVER_KM', 'DRIVER_PER_DIEM', 'DRIVER_BASE', 'TOLL', 'OTHER'] as const;
+export const COST_KINDS = ['FUEL', 'ADBLUE', 'DRIVER_KM', 'DRIVER_PER_DIEM', 'DRIVER_BASE', 'TOLL', 'OTHER'] as const;
 export type CostKind = (typeof COST_KINDS)[number];
 
 /**
@@ -125,9 +130,19 @@ export interface CostLine {
   rate: number | null;
   amount: number | null;
   currency: string | null;
-  /** FUEL only: where the price came from, and its day (YYYY-MM-DD). */
+  /** FUEL and ADBLUE: where the price came from, and its day (YYYY-MM-DD). */
   source?: FuelSource | null;
   priceDate?: string | null;
+  /** The amount in the firma's base currency; null without an amount or an exchange rate (backend b718bf8). */
+  amountBase?: number | null;
+}
+
+/** An exchange rate used for the base currency total: base currency units per 1 unit of the currency. */
+export interface FxUsed {
+  currency: string;
+  rate: number;
+  rateDate: string | null;
+  source: string | null;
 }
 
 export interface CalcPlan {
@@ -152,6 +167,10 @@ export interface CalcPlan {
     totals: { currency: string; amount: number }[];
     /** calc.missing.* codes: what could not be priced. */
     missing: string[];
+    /** The trip total in the firma's base currency; null when a currency has no rate (calc.missing.fx_rate). */
+    baseCurrency?: string | null;
+    totalBase?: number | null;
+    fxRates?: FxUsed[];
   };
   /** Driver pay left out: the user lacks driver.payment/view. */
   payHidden: boolean;
