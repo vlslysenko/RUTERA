@@ -10,18 +10,20 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 
 /**
- * Asks every {@link FuelPriceProvider} once a day (04:40 UTC, when {@code rutera.scheduling.enabled}) and stores its
- * quotes in the shared price table, one row per country, product and day. None is built in yet: a provider is a
- * bean of that type. A failing provider is logged and skipped.
+ * Asks every NATIONAL {@link FuelPriceProvider} for the quotes of the last 14 days (daily at 04:40 UTC, when
+ * {@code rutera.scheduling.enabled}) and stores them in {@code fuel_price_ref}, one row per country, product, source
+ * and day. None is built in yet: a provider is a bean of that type. A failing provider is logged and skipped.
  */
 @Service
 public class FuelPriceImporter {
 
+    private static final int DAYS_BACK = 14;
     private static final Logger log = LoggerFactory.getLogger(FuelPriceImporter.class);
 
     private final List<FuelPriceProvider> providers;
@@ -40,27 +42,35 @@ public class FuelPriceImporter {
         run(LocalDate.now(ZoneOffset.UTC));
     }
 
-    /** Imports the quotes of every provider; the number of rows written. */
+    /** Imports the quotes of every national provider; the number of rows written. */
     public int run(LocalDate today) {
         int written = 0;
         for (FuelPriceProvider provider : providers) {
+            if (provider.kind() != FuelPriceProvider.Kind.NATIONAL) {
+                continue;
+            }
             try {
-                List<FuelPriceProvider.Quote> quotes = provider.quotes(today);
+                List<FuelPriceProvider.PriceQuote> quotes = provider.fetch(today.minusDays(DAYS_BACK));
+                Instant now = Instant.now();
                 Integer n = tx.execute(s -> {
                     int count = 0;
-                    for (FuelPriceProvider.Quote q : quotes) {
-                        if (q.priceNet() == null || q.priceNet().signum() <= 0 || q.country() == null
-                                || !FuelPriceService.PRODUCTS.contains(q.product())) {
+                    for (FuelPriceProvider.PriceQuote q : quotes) {
+                        if (q.net() == null || q.net().signum() <= 0 || q.country() == null || q.priceDate() == null
+                                || q.currency() == null || !FuelPriceService.PRODUCTS.contains(q.product())) {
                             continue;
                         }
-                        FuelPrice p = prices.findByCountryAndProductAndValidOn(q.country(), q.product(), q.validOn())
-                                .orElseGet(FuelPrice::new);
+                        FuelPrice p = prices.findByCountryAndProductAndSourceAndPriceDate(q.country(), q.product(),
+                                provider.name(), q.priceDate()).orElseGet(FuelPrice::new);
                         p.setCountry(q.country());
                         p.setProduct(q.product());
-                        p.setValidOn(q.validOn());
-                        p.setPriceNet(q.priceNet().setScale(4, RoundingMode.HALF_UP));
+                        p.setPriceDate(q.priceDate());
+                        p.setNet(q.net().setScale(4, RoundingMode.HALF_UP));
+                        p.setGross(q.gross() == null ? null : q.gross().setScale(4, RoundingMode.HALF_UP));
+                        p.setVatRate(q.vatRate());
                         p.setCurrency(q.currency());
+                        p.setKind(FuelPrice.Kind.AVERAGE);
                         p.setSource(provider.name());
+                        p.setFetchedAt(now);
                         prices.save(p);
                         count++;
                     }

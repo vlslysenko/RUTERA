@@ -8,14 +8,15 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-/** Not tenant-filtered: fuel prices are shared by all firmas. */
+/** Not tenant-filtered: reference fuel prices are shared by all firmas. */
 public interface FuelPriceRepository extends JpaRepository<FuelPrice, Long> {
 
-    Optional<FuelPrice> findFirstByCountryAndProductAndValidOnLessThanEqualOrderByValidOnDesc(
+    /** The newest rows on or before the day, newest first (a few, to choose between sources of the same day). */
+    List<FuelPrice> findTop10ByCountryAndProductAndPriceDateLessThanEqualOrderByPriceDateDescIdDesc(
             String country, FuelTransaction.Product product, LocalDate day);
 
-    Optional<FuelPrice> findByCountryAndProductAndValidOn(String country, FuelTransaction.Product product,
-                                                          LocalDate validOn);
+    Optional<FuelPrice> findByCountryAndProductAndSourceAndPriceDate(String country, FuelTransaction.Product product,
+                                                                     String source, LocalDate priceDate);
 
-    List<FuelPrice> findAllByOrderByCountryAscProductAscValidOnDesc();
+    List<FuelPrice> findAllByOrderByCountryAscProductAscPriceDateDescIdDesc();
 }

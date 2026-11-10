@@ -5,22 +5,67 @@ import com.rutera.common.domain.FuelTransaction;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 /**
- * A source of fuel prices per country (a public bulletin, a price API). Every bean of this type is asked once a day
- * by {@link FuelPriceImporter}; its quotes go into the shared price table, so the calculator never waits for it and
- * keeps working when it is down.
+ * A source of fuel prices, as in the provider contract of the fuel research (2026-11-10). A NATIONAL provider (the EU
+ * Weekly Oil Bulletin, national statistics, official maximum prices) is asked by {@link FuelPriceImporter} on a
+ * schedule and its quotes go into {@code fuel_price_ref}, so the calculator never waits for it. A STATION provider
+ * (prices of filling stations near a point) answers on demand; none is built in yet.
  */
 public interface FuelPriceProvider {
 
-    /** Short name, stored as the source of its rows. */
+    enum Kind {
+        NATIONAL, STATION
+    }
+
+    /** Where a resolved price was found, in the order the calculator tries them. */
+    enum Quality {
+        /** Typed into the calculation. */
+        MANUAL,
+        /** The firma's contract price or card discount (to come). */
+        CONTRACT,
+        /** The firma's own fuel card purchases in that country. */
+        OWN_TX,
+        /** A reference price times the firma's discount factor (to come). */
+        REFERENCE_ADJUSTED,
+        /** A reference price of the country ({@code fuel_price_ref}). */
+        REFERENCE,
+        /** The firma's own purchases in all countries, in its base currency: a last resort. */
+        OWN_TX_ALL,
+        /** No price. */
+        MISSING
+    }
+
+    /**
+     * A price per litre (kg for LNG/CNG). From a provider: one country, product and day in the country's currency,
+     * with net and gross and the VAT rate (percent); quality REFERENCE, the base currency fields empty. Resolved for
+     * a firma: also the price in its base currency when the currency is the same (fxRate 1), and the quality.
+     */
+    record PriceQuote(String country, FuelTransaction.Product product, BigDecimal net, BigDecimal gross,
+                      BigDecimal vatRate, String currency, BigDecimal netBase, String baseCurrency, BigDecimal fxRate,
+                      LocalDate priceDate, String source, Quality quality, BigDecimal firmFactor, String note) {
+    }
+
+    /** A filling station's price near a point (STATION providers). */
+    record StationPrice(String name, String brand, double lat, double lng, double distanceKm, BigDecimal price,
+                        String currency, java.time.Instant at, Boolean hgv) {
+    }
+
+    /** Short name, stored as the source of its rows (e.g. EU_WOB). */
     String name();
 
-    /** The current prices: net per litre (kg for LNG/CNG) without VAT. An empty list when nothing is new. */
-    List<Quote> quotes(LocalDate today) throws Exception;
+    /** ISO country codes it has prices for. */
+    Set<String> countries();
 
-    /** One price of one product in one country. */
-    record Quote(String country, FuelTransaction.Product product, BigDecimal priceNet, String currency,
-                 LocalDate validOn) {
+    Kind kind();
+
+    /** NATIONAL: the quotes published since the day (rows for fuel_price_ref); an empty list when nothing is new. */
+    List<PriceQuote> fetch(LocalDate since) throws Exception;
+
+    /** STATION only: station prices around a point. */
+    default List<StationPrice> near(double lat, double lng, double radiusKm, FuelTransaction.Product product)
+            throws Exception {
+        throw new UnsupportedOperationException(name() + " has no station prices");
     }
 }

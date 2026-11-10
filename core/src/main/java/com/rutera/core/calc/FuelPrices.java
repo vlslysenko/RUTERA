@@ -4,35 +4,32 @@ import com.rutera.common.domain.FuelPrice;
 import com.rutera.common.domain.FuelTransaction;
 import com.rutera.common.repository.FuelPriceRepository;
 import com.rutera.common.repository.FuelTransactionRepository;
+import com.rutera.core.calc.FuelPriceProvider.PriceQuote;
+import com.rutera.core.calc.FuelPriceProvider.Quality;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
- * Fuel prices for the trip calculator, net per litre. In a country: the firma's own fuel card purchases there since
- * the given instant (the currency with the most litres), else the shared price table ({@code fuel_price}, latest row
- * on or before the day). For the whole trip: the firma's average in its base currency.
+ * Net fuel prices per litre for the trip calculator ({@code resolve}): in a country the firma's own fuel card
+ * purchases there since the given instant (the currency with the most litres; the net of a purchase is its net,
+ * else gross minus VAT, else gross without the country's VAT rate), else the reference price of the country
+ * ({@code fuel_price_ref}, the newest on or before the day, a national average before a cap). Over all countries the
+ * firma's average in its base currency, the last resort. A quote tells its {@link Quality}.
  */
 @Service
 public class FuelPrices {
 
-    /** The price given in the request's options. */
-    public static final String OPTIONS = "OPTIONS";
-    /** The firma's fuel card purchases in that country. */
-    public static final String FUEL_CARDS = "FUEL_CARDS";
-    /** The shared price table. */
-    public static final String PRICE_TABLE = "PRICE_TABLE";
-    /** The firma's fuel card purchases anywhere, in its base currency. */
-    public static final String FUEL_CARDS_ALL = "FUEL_CARDS_ALL";
-
-    /** A price per litre with its currency and where it comes from. */
-    public record Price(BigDecimal perLitre, String currency, String source) {
-    }
+    private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
     private final FuelTransactionRepository transactions;
     private final FuelPriceRepository table;
@@ -42,33 +39,95 @@ public class FuelPrices {
         this.table = table;
     }
 
-    /** The price in a country: the firma's fuel cards there, else the price table. */
-    public Optional<Price> inCountry(String country, FuelTransaction.Product product, Instant since, LocalDate day) {
-        List<Object[]> rows = transactions.averagePriceInCountry(product, country, since);
-        Object[] best = null;
-        for (Object[] row : rows) {
-            if (row[1] != null && (best == null || ((BigDecimal) row[2]).compareTo((BigDecimal) best[2]) > 0)) {
-                best = row;
+    /** The price in a country: own fuel card purchases there, else the reference price. */
+    public Optional<PriceQuote> resolve(String country, FuelTransaction.Product product, Instant since, LocalDate day,
+                                        String base) {
+        Map<String, BigDecimal[]> byCurrency = new HashMap<>();
+        LocalDate last = null;
+        for (FuelTransaction t : transactions.findByProductAndCountryAndAtGreaterThanEqual(product, country, since)) {
+            BigDecimal net = net(t, day);
+            if (net == null || t.getQuantity() == null || t.getQuantity().signum() <= 0 || t.getCurrency() == null) {
+                continue;
             }
+            BigDecimal[] sum = byCurrency.computeIfAbsent(t.getCurrency(), k -> new BigDecimal[]{BigDecimal.ZERO,
+                    BigDecimal.ZERO});
+            sum[0] = sum[0].add(net);
+            sum[1] = sum[1].add(t.getQuantity());
+            LocalDate at = LocalDate.ofInstant(t.getAt(), ZoneOffset.UTC);
+            last = last == null || at.isAfter(last) ? at : last;
         }
+        Map.Entry<String, BigDecimal[]> best = byCurrency.entrySet().stream()
+                .max(Comparator.comparing(e -> e.getValue()[1])).orElse(null);
         if (best != null) {
-            return Optional.of(new Price(scale((BigDecimal) best[1]), (String) best[0], FUEL_CARDS));
+            return Optional.of(quote(country, product, perUnit(best.getValue()), best.getKey(), base, last, "OWN_TX",
+                    Quality.OWN_TX));
         }
-        return table.findFirstByCountryAndProductAndValidOnLessThanEqualOrderByValidOnDesc(country, product, day)
-                .map(FuelPrices::of);
+        return reference(country, product, day).map(p -> quote(country, product, p.getNet(), p.getCurrency(), base,
+                p.getPriceDate(), p.getSource(), Quality.REFERENCE));
     }
 
     /** The firma's average over all its purchases in the base currency. */
-    public Optional<Price> firmAverage(FuelTransaction.Product product, String currency, Instant since) {
-        BigDecimal average = transactions.averagePrice(product, currency, since);
-        return average == null ? Optional.empty() : Optional.of(new Price(scale(average), currency, FUEL_CARDS_ALL));
+    public Optional<PriceQuote> firmAverage(FuelTransaction.Product product, String base, Instant since,
+                                            LocalDate day) {
+        BigDecimal[] sum = {BigDecimal.ZERO, BigDecimal.ZERO};
+        LocalDate last = null;
+        for (FuelTransaction t : transactions.findByProductAndAtGreaterThanEqual(product, since)) {
+            BigDecimal net = net(t, day);
+            if (net == null || !base.equals(t.getCurrency()) || t.getQuantity() == null
+                    || t.getQuantity().signum() <= 0) {
+                continue;
+            }
+            sum[0] = sum[0].add(net);
+            sum[1] = sum[1].add(t.getQuantity());
+            LocalDate at = LocalDate.ofInstant(t.getAt(), ZoneOffset.UTC);
+            last = last == null || at.isAfter(last) ? at : last;
+        }
+        if (sum[1].signum() == 0) {
+            return Optional.empty();
+        }
+        return Optional.of(quote(null, product, perUnit(sum), base, base, last, "OWN_TX", Quality.OWN_TX_ALL));
     }
 
-    private static Price of(FuelPrice p) {
-        return new Price(p.getPriceNet(), p.getCurrency(), PRICE_TABLE);
+    /** The newest reference row on or before the day; of one day a national average before a cap or median. */
+    Optional<FuelPrice> reference(String country, FuelTransaction.Product product, LocalDate day) {
+        List<FuelPrice> rows = table.findTop10ByCountryAndProductAndPriceDateLessThanEqualOrderByPriceDateDescIdDesc(
+                country, product, day);
+        if (rows.isEmpty()) {
+            return Optional.empty();
+        }
+        LocalDate newest = rows.getFirst().getPriceDate();
+        return rows.stream().filter(r -> r.getPriceDate().equals(newest))
+                .min(Comparator.comparingInt(r -> r.getKind() == FuelPrice.Kind.AVERAGE ? 0 : 1));
     }
 
-    private static BigDecimal scale(BigDecimal value) {
-        return value.setScale(4, RoundingMode.HALF_UP);
+    /** The net amount of a purchase: its net, else gross minus VAT, else gross without the country's VAT rate. */
+    private BigDecimal net(FuelTransaction t, LocalDate day) {
+        if (t.getNet() != null) {
+            return t.getNet();
+        }
+        if (t.getGross() == null) {
+            return null;
+        }
+        if (t.getVat() != null) {
+            return t.getGross().subtract(t.getVat());
+        }
+        if (t.getCountry() == null) {
+            return null;
+        }
+        BigDecimal rate = reference(t.getCountry(), FuelTransaction.Product.DIESEL, day)
+                .map(FuelPrice::getVatRate).orElse(null);
+        return rate == null ? null
+                : t.getGross().multiply(HUNDRED).divide(HUNDRED.add(rate), 4, RoundingMode.HALF_UP);
+    }
+
+    private static BigDecimal perUnit(BigDecimal[] sum) {
+        return sum[0].divide(sum[1], 4, RoundingMode.HALF_UP);
+    }
+
+    private static PriceQuote quote(String country, FuelTransaction.Product product, BigDecimal net, String currency,
+                                    String base, LocalDate day, String source, Quality quality) {
+        boolean same = currency.equals(base);
+        return new PriceQuote(country, product, net.setScale(4, RoundingMode.HALF_UP), null, null, currency,
+                same ? net : null, base, same ? BigDecimal.ONE : null, day, source, quality, null, null);
     }
 }

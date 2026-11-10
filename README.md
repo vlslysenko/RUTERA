@@ -777,16 +777,23 @@ driving is used up (45 h, 24 h when allowed, longer until Monday when only the n
 of two swaps at the wheel, co-driving counts as the passive driver's break and the crew rests 9 h within 30 h. Not
 modelled: split daily rest, ferries and trains, compensation of reduced weekly rests, opening hours of loading places.
 
-Costs: fuel = km x consumption (options, else the vehicle's `avgL100km`) / 100 x the net DIESEL price per litre:
-the options' `fuelPrice` for the whole trip; else per country of the route the firma's own fuel card purchases in
-that country in the last 30 days (the currency with the most litres), else the shared price table, else the firma's
-average over all its purchases in the base currency. One FUEL line without a country when every country got the same
-price, else one line per country; `source` of a FUEL line: `OPTIONS`, `FUEL_CARDS`, `PRICE_TABLE`,
-`FUEL_CARDS_ALL`. The price table (`GET /app/calc/fuel-prices`, `trip.trip/view`; shared by all firmas, written only
-by the operator: `POST /app/calc/fuel-prices` `{country, product: DIESEL | ADBLUE | PETROL | LNG | CNG, priceNet,
-currency, validOn, source?}` replaces the row of that country, product and day, `DELETE /app/calc/fuel-prices/{id}`)
-holds net prices without VAT; the latest row on or before the start day counts. Price sources plug in as beans of
-`core.calc.FuelPriceProvider`, imported daily into the table by `FuelPriceImporter` (none built in yet); per driver
+Costs: fuel = km x consumption (options, else the vehicle's `avgL100km`) / 100 x the net DIESEL price per litre
+(without VAT: carriers deduct it), per country of the route with its km ("as driven"): the options' `fuelPrice` for
+the whole trip (`MANUAL`); else the firma's own fuel card purchases in that country in the last 30 days (`OWN_TX`,
+the currency with the most litres; a purchase's net is its net, else gross minus VAT, else gross without the
+country's VAT rate), else the reference price of the country (`REFERENCE`, `fuel_price_ref`: the newest on or before
+the start day, a national average before a cap), else the firma's average over all purchases in its base currency
+(`OWN_TX_ALL`). One FUEL line without a country when every country got the same price, else one per country; a FUEL
+line's `source` is that quality (`MISSING` without a price) and `priceDate` the day of the price. The reference
+prices start with the EU Weekly Oil Bulletin of 2026-11-02 for diesel in the 27 EU countries (V18, CC BY 4.0, per
+litre in each country's currency with gross, VAT rate and excise). `GET /app/calc/fuel-prices` (`trip.trip/view`)
+lists them; only the operator writes them (shared by all firmas): `POST /app/calc/fuel-prices` `{country, product:
+DIESEL | ADBLUE | PETROL | LNG | CNG, priceDate, net (or gross with vatRate), gross?, vatRate?, excisePer1000l?,
+currency, kind?: AVERAGE | CAP | STATION_MEDIAN, source? (MANUAL)}` replaces the row of that country, product, source
+and day, `DELETE /app/calc/fuel-prices/{id}`. Price sources plug in as `core.calc.FuelPriceProvider` beans (the
+provider contract of the fuel research: name, countries, kind NATIONAL | STATION, `fetch(since)` -> `PriceQuote`);
+`FuelPriceImporter` stores the quotes of the national ones daily (none built in yet: the bulletin's XLSX reader
+comes next). Not yet: exchange rates and a total in the base currency, AdBlue, the tax calendar; per driver
 with the pay rate valid on the start day: `perKm` x km, per diem (abroad when any km is outside the firma's
 country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = toll km per country x the
 matching tariff (rows whose axles and weight conditions hold for the truck as routed, so a tractor with its

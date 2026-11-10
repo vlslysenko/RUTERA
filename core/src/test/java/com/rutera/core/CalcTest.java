@@ -86,7 +86,7 @@ class CalcTest extends AbstractIntegrationTest {
         id(c.post("/app/drivers/" + driverId + "/pay-rates", Map.of("validFrom", "2026-01-01", "monthlyBase", 3000,
                 "perDiemHome", 30, "perDiemAbroad", 50, "perKm", 0.10, "currency", "EUR")));
         Map<String, Object> diesel = new HashMap<>(Map.of("at", "2026-10-30T10:00:00Z", "product", "DIESEL",
-                "quantity", 100, "net", 500, "gross", 615, "currency", "PLN"));
+                "quantity", 100, "net", 500, "gross", 615, "currency", "PLN", "country", "PL"));
         id(c.post("/app/fuel/transactions", diesel));
         id(c.post("/app/calc/toll-tariffs", tariff("DE", null, null, 0.30, "EUR")));
         id(c.post("/app/calc/toll-tariffs", tariff("DE", "EURO_6", 5, 0.348, "EUR")));
@@ -108,11 +108,19 @@ class CalcTest extends AbstractIntegrationTest {
         assertThat(plan.get("driverStates").get(0).get("source").asString()).isEqualTo("FRESH");
         assertThat(plan.get("payHidden").asBoolean()).isFalse();
 
-        JsonNode fuel = line(plan, "FUEL", null);
-        assertThat(fuel.get("source").asString()).isEqualTo("FUEL_CARDS_ALL");
-        assertThat(fuel.get("quantity").asDouble()).isEqualTo(300.0);
-        assertThat(fuel.get("rate").asDouble()).isEqualTo(5.0);
-        assertThat(fuel.get("amount").asDouble()).isEqualTo(1500.0);
+        // Fuel per country as driven: PL from the firma's own card purchases there, DE from the bulletin (V18).
+        JsonNode plFuel = line(plan, "FUEL", "PL");
+        assertThat(plFuel.get("source").asString()).isEqualTo("OWN_TX");
+        assertThat(plFuel.get("quantity").asDouble()).isEqualTo(90.0);
+        assertThat(plFuel.get("rate").asDouble()).isEqualTo(5.0);
+        assertThat(plFuel.get("amount").asDouble()).isEqualTo(450.0);
+        JsonNode deFuel = line(plan, "FUEL", "DE");
+        assertThat(deFuel.get("source").asString()).isEqualTo("REFERENCE");
+        assertThat(deFuel.get("quantity").asDouble()).isEqualTo(210.0);
+        assertThat(deFuel.get("rate").asDouble()).as("net, without VAT").isEqualTo(1.918);
+        assertThat(deFuel.get("currency").asString()).isEqualTo("EUR");
+        assertThat(deFuel.get("priceDate").asString()).isEqualTo("2026-11-02");
+        assertThat(deFuel.get("amount").asDouble()).isEqualTo(402.78);
         assertThat(line(plan, "DRIVER_KM", null).get("amount").asDouble()).isEqualTo(100.0);
         assertThat(line(plan, "DRIVER_PER_DIEM", null).get("amount").asDouble()).as("abroad, 2 days").isEqualTo(100.0);
         assertThat(line(plan, "DRIVER_BASE", null).get("amount").asDouble()).isEqualTo(200.0);
@@ -129,31 +137,35 @@ class CalcTest extends AbstractIntegrationTest {
         assertThat(line(tolledPlan, "TOLL", "PL").get("amount").asDouble()).isEqualTo(24.0);
         assertThat(line(tolledPlan, "TOLL", "DE").get("quantity").asDouble()).isEqualTo(700.0);
 
-        // Fuel per country: no card purchases with a country here, so the shared price table, else the firma average.
+        // The operator keeps the reference prices; a newer row of the start day wins over the bulletin's.
         Client operator = client();
         createUser("operator-calc@test.local", "OperatorCalc-1", Role.SUPERUSER, null, true);
         assertThat(operator.login("operator-calc@test.local", "OperatorCalc-1").getResponse().getStatus()).isEqualTo(200);
-        Map<String, Object> dePrice = new HashMap<>(Map.of("country", "DE", "product", "DIESEL", "priceNet", 1.42,
-                "currency", "EUR", "validOn", "2026-10-01", "source", "test"));
+        Map<String, Object> dePrice = new HashMap<>(Map.of("country", "DE", "product", "DIESEL", "gross", 1.785,
+                "vatRate", 19, "currency", "EUR", "priceDate", "2026-11-02", "source", "TEST"));
         assertThat(c.post("/app/calc/fuel-prices", dePrice).getResponse().getStatus()).as("operator only").isEqualTo(403);
-        assertThat(body(operator.post("/app/calc/fuel-prices", dePrice)).get("priceNet").asDouble()).isEqualTo(1.42);
-        dePrice.put("priceNet", 1.45);
-        assertThat(body(operator.post("/app/calc/fuel-prices", dePrice)).get("priceNet").asDouble()).as("replaced")
-                .isEqualTo(1.45);
-        Map<String, Object> later = new HashMap<>(dePrice);
-        later.put("validOn", "2026-12-01");
-        later.put("priceNet", 9.99);
+        JsonNode saved = body(operator.post("/app/calc/fuel-prices", dePrice));
+        assertThat(saved.get("net").asDouble()).as("gross without 19 % VAT").isEqualTo(1.5);
+        assertThat(saved.get("kind").asString()).isEqualTo("AVERAGE");
+        Map<String, Object> later = new HashMap<>(Map.of("country", "DE", "product", "DIESEL", "net", 9.99,
+                "currency", "EUR", "priceDate", "2026-12-01", "source", "TEST"));
         operator.post("/app/calc/fuel-prices", later);
-        assertThat(body(c.get("/app/calc/fuel-prices")).size()).isEqualTo(2);
+        JsonNode prices = body(c.get("/app/calc/fuel-prices"));
+        assertThat(prices.size()).as("27 bulletin rows and 2 more").isEqualTo(29);
         JsonNode perCountry = body(c.post("/app/calc/trip", trip(vehicleId, List.of(driverId), "FRESH")));
-        JsonNode deFuel = line(perCountry, "FUEL", "DE");
-        assertThat(deFuel.get("quantity").asDouble()).isEqualTo(210.0);
-        assertThat(deFuel.get("rate").asDouble()).as("the row valid on the start day").isEqualTo(1.45);
-        assertThat(deFuel.get("currency").asString()).isEqualTo("EUR");
-        assertThat(deFuel.get("source").asString()).isEqualTo("PRICE_TABLE");
-        JsonNode plFuel = line(perCountry, "FUEL", "PL");
-        assertThat(plFuel.get("rate").asDouble()).as("no table row: the firma average").isEqualTo(5.0);
-        assertThat(plFuel.get("source").asString()).isEqualTo("FUEL_CARDS_ALL");
+        assertThat(line(perCountry, "FUEL", "DE").get("rate").asDouble()).as("valid on the start day").isEqualTo(1.5);
+
+        // Own purchases with gross only: net without the country's VAT rate; no reference price: the firma average.
+        id(c.post("/app/fuel/transactions", new HashMap<>(Map.of("at", "2026-10-31T10:00:00Z", "product", "DIESEL",
+                "quantity", 100, "gross", 238, "currency", "EUR", "country", "DE"))));
+        Map<String, Object> swiss = trip(vehicleId, List.of(driverId), "FRESH");
+        swiss.put("legs", List.of(Map.of("name", "Köln - Basel - Zürich", "distanceKm", 600, "countries",
+                List.of(Map.of("country", "DE", "km", 500), Map.of("country", "CH", "km", 100)))));
+        JsonNode swissPlan = body(c.post("/app/calc/trip", swiss));
+        assertThat(line(swissPlan, "FUEL", "DE").get("rate").asDouble()).as("238 / 1.19 / 100").isEqualTo(2.0);
+        assertThat(line(swissPlan, "FUEL", "DE").get("source").asString()).isEqualTo("OWN_TX");
+        assertThat(line(swissPlan, "FUEL", "CH").get("source").asString()).isEqualTo("OWN_TX_ALL");
+        assertThat(line(swissPlan, "FUEL", "CH").get("rate").asDouble()).isEqualTo(5.0);
 
         // A tractor's card holds the tractor alone (2 axles, 18 t): the toll class is the combination's (5 axles, 40 t).
         long tractorId = id(c.post("/app/fleet/vehicles", new HashMap<>(Map.of("kind", "TRACTOR", "plate", "PO 7002C",
@@ -167,7 +179,7 @@ class CalcTest extends AbstractIntegrationTest {
         Map<String, Double> totalsByCurrency = new HashMap<>();
         plan.get("costs").get("totals").forEach(t -> totalsByCurrency.put(t.get("currency").asString(),
                 t.get("amount").asDouble()));
-        assertThat(totalsByCurrency).containsEntry("EUR", 643.6).containsEntry("PLN", 1560.0);
+        assertThat(totalsByCurrency).containsEntry("EUR", 1046.38).containsEntry("PLN", 510.0);
         assertThat(plan.get("costs").get("missing")).isEmpty();
 
         JsonNode tacho = body(c.post("/app/calc/trip", trip(vehicleId, List.of(driverId), null)));

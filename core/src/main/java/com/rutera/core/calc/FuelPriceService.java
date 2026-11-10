@@ -19,12 +19,14 @@ import java.math.RoundingMode;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * The shared fuel price table ({@code /app/calc/fuel-prices}): everyone with the calculator reads it, only the
- * operator (SUPERUSER) writes it, because it is the same for all firmas. A row per country, product and day.
+ * The shared reference fuel prices ({@code /app/calc/fuel-prices}, table {@code fuel_price_ref}): everyone with the
+ * calculator reads them, only the operator (SUPERUSER) writes, because they are the same for all firmas. A row per
+ * country, product, source and day; net without VAT is required, gross with VAT and the VAT rate fill each other.
  */
 @Service
 public class FuelPriceService {
@@ -32,6 +34,8 @@ public class FuelPriceService {
     static final Set<FuelTransaction.Product> PRODUCTS = EnumSet.of(FuelTransaction.Product.DIESEL,
             FuelTransaction.Product.ADBLUE, FuelTransaction.Product.PETROL, FuelTransaction.Product.LNG,
             FuelTransaction.Product.CNG);
+    static final String MANUAL_SOURCE = "MANUAL";
+    private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
     private final FuelPriceRepository prices;
 
@@ -42,11 +46,11 @@ public class FuelPriceService {
     @RequiresPrivilege(Privileges.TRIP_TRIP_VIEW)
     @Transactional(readOnly = true)
     public List<CalcDto.FuelPriceDto> list() {
-        return prices.findAllByOrderByCountryAscProductAscValidOnDesc().stream().map(CalcDto.FuelPriceDto::of)
-                .toList();
+        return prices.findAllByOrderByCountryAscProductAscPriceDateDescIdDesc().stream()
+                .map(CalcDto.FuelPriceDto::of).toList();
     }
 
-    /** Creates the row of the country, product and day, or replaces its price. */
+    /** Creates the row of the country, product, source and day, or replaces its prices. */
     @Transactional
     public CalcDto.FuelPriceDto save(CalcDto.FuelPriceInput in) {
         requireOperator();
@@ -60,31 +64,45 @@ public class FuelPriceService {
         if (product != null && !PRODUCTS.contains(product)) {
             errors.put("product", ErrorCodes.FIELD_INVALID_VALUE);
         }
-        if (in.priceNet() == null) {
-            errors.put("priceNet", ErrorCodes.FIELD_REQUIRED);
-        } else if (in.priceNet().signum() <= 0 || in.priceNet().compareTo(new BigDecimal("99999")) > 0) {
-            errors.put("priceNet", ErrorCodes.FIELD_INVALID_VALUE);
+        FuelPrice.Kind kind = in.kind() == null || in.kind().isBlank() ? FuelPrice.Kind.AVERAGE
+                : InputFields.parseEnum(FuelPrice.Kind.class, "kind", in.kind(), false, errors);
+        positive("net", in.net(), errors);
+        positive("gross", in.gross(), errors);
+        if (in.vatRate() != null && (in.vatRate().signum() < 0 || in.vatRate().compareTo(HUNDRED) >= 0)) {
+            errors.put("vatRate", ErrorCodes.FIELD_INVALID_VALUE);
         }
-        String currency = in.currency() == null ? null : in.currency().strip().toUpperCase(java.util.Locale.ROOT);
+        if (in.net() == null && (in.gross() == null || in.vatRate() == null)) {
+            errors.put("net", ErrorCodes.FIELD_REQUIRED);
+        }
+        String currency = in.currency() == null ? null : in.currency().strip().toUpperCase(Locale.ROOT);
         if (currency == null || currency.isEmpty()) {
             errors.put("currency", ErrorCodes.FIELD_REQUIRED);
         } else if (!currency.matches("[A-Z]{3}")) {
             errors.put("currency", ErrorCodes.FIELD_INVALID_FORMAT);
         }
-        if (in.validOn() == null) {
-            errors.put("validOn", ErrorCodes.FIELD_REQUIRED);
+        if (in.priceDate() == null) {
+            errors.put("priceDate", ErrorCodes.FIELD_REQUIRED);
         }
         if (!errors.isEmpty()) {
             throw ApiException.validation(errors);
         }
-        FuelPrice p = prices.findByCountryAndProductAndValidOn(country, product, in.validOn())
+        String source = InputFields.blankToNull(in.source()) == null ? MANUAL_SOURCE : in.source().strip();
+        BigDecimal net = in.net() != null ? in.net()
+                : in.gross().multiply(HUNDRED).divide(HUNDRED.add(in.vatRate()), 4, RoundingMode.HALF_UP);
+        BigDecimal gross = in.gross() != null ? in.gross() : in.vatRate() == null ? null
+                : net.multiply(HUNDRED.add(in.vatRate())).divide(HUNDRED, 4, RoundingMode.HALF_UP);
+        FuelPrice p = prices.findByCountryAndProductAndSourceAndPriceDate(country, product, source, in.priceDate())
                 .orElseGet(FuelPrice::new);
         p.setCountry(country);
         p.setProduct(product);
-        p.setValidOn(in.validOn());
-        p.setPriceNet(in.priceNet().setScale(4, RoundingMode.HALF_UP));
+        p.setPriceDate(in.priceDate());
+        p.setNet(net.setScale(4, RoundingMode.HALF_UP));
+        p.setGross(gross == null ? null : gross.setScale(4, RoundingMode.HALF_UP));
+        p.setVatRate(in.vatRate());
+        p.setExcisePer1000l(in.excisePer1000l());
         p.setCurrency(currency);
-        p.setSource(InputFields.blankToNull(in.source()));
+        p.setKind(kind);
+        p.setSource(source);
         return CalcDto.FuelPriceDto.of(prices.save(p));
     }
 
@@ -93,6 +111,12 @@ public class FuelPriceService {
         requireOperator();
         FuelPrice p = prices.findById(id).orElseThrow(() -> ApiException.notFound(ErrorCodes.NOT_FOUND));
         prices.delete(p);
+    }
+
+    private static void positive(String field, BigDecimal value, Map<String, String> errors) {
+        if (value != null && (value.signum() <= 0 || value.compareTo(new BigDecimal("9999999")) > 0)) {
+            errors.put(field, ErrorCodes.FIELD_INVALID_VALUE);
+        }
     }
 
     private static void requireOperator() {
