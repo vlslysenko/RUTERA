@@ -72,7 +72,8 @@ public class CalcController {
 
     @PostMapping({"/app/calc/route", "/api/v1/calc/route"})
     public CalcDto.Route route(@Valid @RequestBody CalcDto.RouteInput input) {
-        return routes.plan(input);
+        CalcDto.Route route = routes.plan(input);
+        return route.withBreakdown(calc.breakdown(input, route));
     }
 
     @PostMapping({"/app/calc/trip", "/api/v1/calc/trip"})

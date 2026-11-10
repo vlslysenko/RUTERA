@@ -62,8 +62,10 @@ public final class CalcDto {
     }
 
     /** Body of {@code POST /app/calc/route}. */
+    /** Body of {@code POST /app/calc/route}; start, drivers and options only feed the cost breakdown. */
     public record RouteInput(@Valid @Size(max = 25) List<PointInput> points, Long vehicleId, @Valid ProfileInput profile,
-                             Boolean avoidTolls, Boolean avoidFerries) {
+                             Boolean avoidTolls, Boolean avoidFerries, Instant start,
+                             @Size(max = 2) List<Long> driverIds, @Valid Options options) {
     }
 
     public record RoutePoint(double lat, double lng, String label) {
@@ -75,7 +77,19 @@ public final class CalcDto {
 
     /** A truck route; polylines are encoded with precision 6; OSM data needs the attribution shown. */
     public record Route(BigDecimal distanceKm, int durationMin, List<RoutePoint> points, List<RouteLeg> legs,
-                        int polylinePrecision, String attribution, Truck truck) {
+                        int polylinePrecision, String attribution, Truck truck, RouteBreakdown breakdown) {
+
+        Route withBreakdown(RouteBreakdown b) {
+            return new Route(distanceKm, durationMin, points, legs, polylinePrecision, attribution, truck, b);
+        }
+    }
+
+    /**
+     * What the route costs, from the trip calculator on its legs: km and toll km per country of the whole route, the
+     * arrival with breaks and rests, the days, and the cost lines (FUEL, TOLL per country, driver pay when drivers are
+     * given and the user may see pay).
+     */
+    public record RouteBreakdown(List<CountryKm> countries, Instant eta, int days, Costs costs, boolean payHidden) {
     }
 
     /** A place for search-as-you-type ({@code GET /app/calc/places}); country is ISO 3166-1 alpha-2. */

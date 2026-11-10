@@ -168,6 +168,28 @@ class RouteTest extends AbstractIntegrationTest {
         assertThat(lastRoute).contains("\"costing\":\"truck\"").contains("\"height\":4.0").contains("\"weight\":40.0")
                 .contains("\"axle_count\":5").contains("\"use_ferry\":0.0");
         assertThat(route.get("truck").get("weightT").asDouble()).isEqualTo(40.0);
+        JsonNode breakdown = route.get("breakdown");
+        assertThat(breakdown.get("days").asInt()).isEqualTo(1);
+        assertThat(breakdown.get("eta").asString()).isNotEmpty();
+        assertThat(breakdown.get("countries").get(0).get("tollKm").asDouble()).isEqualTo(100.0);
+        assertThat(breakdown.get("costs").get("missing").toString()).contains("calc.missing.toll_tariff")
+                .contains("calc.missing.consumption");
+
+        // With a tariff the route says what the tolls cost: toll km x rate per country.
+        assertThat(c.post("/app/calc/toll-tariffs", Map.of("country", "DE", "ratePerKm", 0.348, "currency", "EUR"))
+                .getResponse().getStatus()).isEqualTo(201);
+        Map<String, Object> costed = new HashMap<>(request);
+        costed.put("start", "2026-11-02T06:00:00Z");
+        JsonNode lines = body(c.post("/app/calc/route", costed)).get("breakdown").get("costs").get("lines");
+        JsonNode deToll = null;
+        for (JsonNode l : lines) {
+            if (l.get("kind").asString().equals("TOLL") && l.get("country").asString().equals("DE")) {
+                deToll = l;
+            }
+        }
+        assertThat(deToll).isNotNull();
+        assertThat(deToll.get("quantity").asDouble()).isEqualTo(130.0);
+        assertThat(deToll.get("amount").asDouble()).isEqualTo(45.24);
 
         // A tractor drives as a combination: 40 t whatever its card says, its trailer's axles and height added.
         long trailerId = body(c.post("/app/fleet/vehicles", Map.of("kind", "SEMI_TRAILER", "plate", "RT 1002",

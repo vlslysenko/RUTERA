@@ -742,7 +742,12 @@ for the kind: a tractor (and no vehicle at all) as a combination with a semi-tra
 whatever the card says (it holds the tractor alone), 11.5 t per axle, the axles and height of its default trailer
 added when known, else 5 axles; a truck 4.0 m, 2.55 m, 12 m, 18 t, 11.5 t, 2 axles; a van 2.7 m, 2.1 m, 6 m, 3.5 t,
 2 axles. Valhalla keeps to the OSM restrictions for them (maxweight, maxheight, maxwidth, maxlength, maxaxleload,
-hgv, hazmat); `truck` in the answer is what was used. Km per country come from the edges of the route. Toll km
+hgv, hazmat); `truck` in the answer is what was used. Km per country come from the edges of the route.
+`breakdown: {countries: [{country, km, tollKm}], eta, days, costs: {lines, totals, missing}, payHidden}` is what the
+route costs: the trip calculator on its legs (the body may add `start` (default now), `driverIds` (up to 2; their
+tachograph state, and driver pay lines when the user has `driver.payment/view`) and `options` as in `/calc/trip`;
+a point's `serviceMin` is the loading or unloading there), so FUEL per country, TOLL per country on its toll km and
+the driver lines are the same as in a plan of the same legs. Toll km
 of a country are its edges flagged as toll in OSM (concession motorways) plus the road classes of its truck toll
 network (`core.calc.TollNetwork`, 2026): DE, HU, DK, BG motorway, trunk and primary roads; PL (e-TOLL A/S), AT, CZ,
 SK, BE, NL, SI motorways and expressways; CH every road; elsewhere only the flagged roads. National roads that are

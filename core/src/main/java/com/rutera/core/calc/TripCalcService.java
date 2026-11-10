@@ -30,6 +30,7 @@ import java.math.RoundingMode;
 import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -85,6 +86,32 @@ public class TripCalcService {
     private record Input(Instant start, Vehicle vehicle, List<Driver> crew, int crewSize, DriverState.Source mode,
                          CalcDto.ManualState manual, List<HosPlanner.Leg> legs, Map<String, BigDecimal> kmByCountry,
                          Map<String, BigDecimal> tollKmByCountry, BigDecimal distance, CalcDto.Options options) {
+    }
+
+    /**
+     * The cost breakdown of a computed route: the plan of its legs (start: the input's, else now; drivers and options
+     * as given, the drivers' tachograph state when there are drivers) reduced to countries, arrival, days and costs.
+     */
+    @RequiresPrivilege(Privileges.TRIP_TRIP_VIEW)
+    @Transactional(readOnly = true)
+    public CalcDto.RouteBreakdown breakdown(CalcDto.RouteInput in, CalcDto.Route route) {
+        Instant start = in.start() != null ? in.start() : Instant.now().truncatedTo(ChronoUnit.MINUTES);
+        CalcDto.TripInput trip = new CalcDto.TripInput(start, in.vehicleId(), in.driverIds(), null, null, null,
+                legsOf(in.points(), route), null, in.options());
+        CalcDto.Plan plan = plan(trip);
+        Map<String, BigDecimal[]> sums = new LinkedHashMap<>();
+        for (CalcDto.RouteLeg leg : route.legs()) {
+            for (CalcDto.CountryKm c : leg.countries()) {
+                BigDecimal[] sum = sums.computeIfAbsent(c.country(), k -> new BigDecimal[]{BigDecimal.ZERO, null});
+                sum[0] = sum[0].add(c.km());
+                if (c.tollKm() != null) {
+                    sum[1] = sum[1] == null ? c.tollKm() : sum[1].add(c.tollKm());
+                }
+            }
+        }
+        List<CalcDto.CountryKm> countries = sums.entrySet().stream()
+                .map(e -> new CalcDto.CountryKm(e.getKey(), e.getValue()[0], e.getValue()[1])).toList();
+        return new CalcDto.RouteBreakdown(countries, plan.eta(), plan.totals().days(), plan.costs(), plan.payHidden());
     }
 
     @RequiresPrivilege(Privileges.TRIP_TRIP_VIEW)

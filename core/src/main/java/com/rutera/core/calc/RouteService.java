@@ -144,7 +144,7 @@ public class RouteService {
             minutes += l.durationMin();
         }
         return new CalcDto.Route(km(km), minutes, points, out, 6, ATTRIBUTION, new CalcDto.Truck(truck.heightM(),
-                truck.widthM(), truck.lengthM(), truck.weightT(), truck.axleLoadT(), truck.axles(), truck.hazmat()));
+                truck.widthM(), truck.lengthM(), truck.weightT(), truck.axleLoadT(), truck.axles(), truck.hazmat()), null);
     }
 
     /** The truck as it drives: the vehicle card, else the EU limits of its kind; a tractor as a combination. */
