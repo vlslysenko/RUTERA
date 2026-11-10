@@ -67,6 +67,16 @@ const MAX_VIAS = 23;
 const place = (text = ''): Place => ({ key: ++seq, text, lat: null, lng: null });
 const filled = (p: Place) => p.lat != null || p.text.trim() !== '';
 const coords = (lat: number, lng: number) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+// LegInput.name is at most 200 characters on the backend; a place gets at most 90 of them.
+const LEG_NAME_MAX = 200;
+const PLACE_NAME_MAX = 90;
+const clip = (s: string, max: number) => (s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s);
+/** A place as the user knows it: what was typed, or the routed label of a point picked on the map. */
+const placeName = (p: Place | undefined, routed: string | undefined) => {
+  const typed = p?.text.trim() ?? '';
+  const picked = p?.lat != null && p.lng != null && typed === coords(p.lat, p.lng);
+  return clip(!typed || picked ? (routed ?? typed) : typed, PLACE_NAME_MAX);
+};
 const num = (v: number | string | null | undefined) => (v === '' || v == null ? null : Number(v));
 const minutes = (h: number | string) => {
   const n = num(h);
@@ -247,6 +257,8 @@ export function CalculatorPage() {
   const [planCountries, setPlanCountries] = useState<CountryKm[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [failure, setFailure] = useState<string | null>(null);
+  // The leg (1-based) a failure of a route-built leg belongs to.
+  const [failureLeg, setFailureLeg] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const crew = useCrewOptions([vehicleId, driver1, driver2]);
   const dec = decimalSeparator(lang);
@@ -366,15 +378,28 @@ export function CalculatorPage() {
   const setLeg = (key: number, patch: Partial<LegRow>) => setLegs((ls) => ls.map((l) => (l.key === key ? { ...l, ...patch } : l)));
 
   /** The legs from the route: loading at the start (0 km), then one leg per stretch with its km per country. */
-  const legsOfRoute = (r: CalcRoute): CalcLeg[] => [
-    { name: r.points[0]?.label ?? from.text.trim(), distanceKm: 0, durationMin: null, countries: null, serviceMin: minutes(loadH) },
-    ...r.legs.map((l) => ({ name: `${l.from.label} – ${l.to.label}`, distanceKm: l.distanceKm, durationMin: l.durationMin, countries: l.countries, serviceMin: minutes(unloadH) })),
-  ];
+  /**
+   * The legs from the route: loading at the start (0 km), then one leg per stretch with its km per country. Names use
+   * what was typed (the geocoder's full labels run past the 200 characters of a leg name).
+   */
+  const legsOfRoute = (r: CalcRoute, places: Place[]): CalcLeg[] => {
+    const names = r.points.map((pt, i) => placeName(places[i], pt.label));
+    return [
+      { name: names[0] ?? null, distanceKm: 0, durationMin: null, countries: null, serviceMin: minutes(loadH) },
+      ...r.legs.map((l, i) => ({
+        name: clip(`${names[i] ?? clip(l.from.label, PLACE_NAME_MAX)} – ${names[i + 1] ?? clip(l.to.label, PLACE_NAME_MAX)}`, LEG_NAME_MAX),
+        distanceKm: l.distanceKm,
+        durationMin: l.durationMin,
+        countries: l.countries,
+        serviceMin: minutes(unloadH),
+      })),
+    ];
+  };
 
   /** Without a routing engine: one leg of the typed-in distance (km in the firma's country). */
   const legsOfDistance = (): CalcLeg[] => [
-    { name: from.text.trim(), distanceKm: 0, durationMin: null, countries: null, serviceMin: minutes(loadH) },
-    { name: `${from.text.trim()} – ${to.text.trim()}`, distanceKm: num(distanceKm) ?? 0, durationMin: null, countries: null, serviceMin: minutes(unloadH) },
+    { name: placeName(from, undefined), distanceKm: 0, durationMin: null, countries: null, serviceMin: minutes(loadH) },
+    { name: clip(`${placeName(from, undefined)} – ${placeName(to, undefined)}`, LEG_NAME_MAX), distanceKm: num(distanceKm) ?? 0, durationMin: null, countries: null, serviceMin: minutes(unloadH) },
   ];
 
   const legsOfRows = (): CalcLeg[] =>
@@ -428,6 +453,7 @@ export function CalculatorPage() {
     setErrors(local);
     setPlaceErrors({});
     setFailure(null);
+    setFailureLeg(null);
     if (Object.keys(local).length) return;
 
     setBusy(true);
@@ -438,7 +464,7 @@ export function CalculatorPage() {
       else {
         const r = route ?? (await routeOf(places));
         if (!r) return;
-        used = legsOfRoute(r);
+        used = legsOfRoute(r, places);
       }
       const body: CalcRequest = {
         start: fromZonedInput(start, tz) ?? '',
@@ -484,8 +510,11 @@ export function CalculatorPage() {
       } catch (e) {
         if (e instanceof ApiError && e.details) {
           setErrors(e.details);
-          // Legs built from the route have no fields on screen: name the first problem instead.
-          setFailure(manualLegs ? errorCode(e) : (Object.values(e.details)[0] ?? errorCode(e)));
+          // Legs built from the route have no fields on screen: name the first problem and its leg instead.
+          const [field, code] = Object.entries(e.details)[0] ?? [];
+          const leg = field ? /^legs\[(\d+)\]/.exec(field) : null;
+          setFailure(manualLegs || !code ? errorCode(e) : code);
+          setFailureLeg(!manualLegs && leg ? Number(leg[1]) + 1 : null);
         } else setFailure(errorCode(e));
       }
     } finally {
@@ -582,6 +611,7 @@ export function CalculatorPage() {
           </Button>
           {failure && (
             <Alert color={failure === 'calc.routing_off' ? 'gray' : 'red'} variant="light" p="xs">
+              {failureLeg != null && `${t('calc.leg_n', { n: failureLeg })}: `}
               {t(failure)}
             </Alert>
           )}
@@ -733,7 +763,7 @@ export function CalculatorPage() {
                     <div key={l.key} className={classes.leg}>
                       <Stack gap={6}>
                         <Group gap={6} wrap="nowrap" align="flex-end">
-                          <TextInput size="xs" label={`${i + 1}. ${t('calc.leg_name')}`} placeholder={t(i === 0 ? 'calc.leg_name_first' : 'calc.leg_name_hint')} value={l.name} onChange={(e) => setLeg(l.key, { name: e.currentTarget.value })} style={{ flex: 1 }} />
+                          <TextInput size="xs" maxLength={200} label={`${i + 1}. ${t('calc.leg_name')}`} placeholder={t(i === 0 ? 'calc.leg_name_first' : 'calc.leg_name_hint')} value={l.name} onChange={(e) => setLeg(l.key, { name: e.currentTarget.value })} style={{ flex: 1 }} />
                           <Tooltip label={t('common.delete')}>
                             <ActionIcon variant="subtle" color="red" onClick={() => setLegs((ls) => ls.filter((x) => x.key !== l.key))} disabled={legs.length === 1} aria-label={t('common.delete')} mb={2}>
                               <IconTrash size={16} />
