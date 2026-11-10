@@ -61,11 +61,9 @@ function NavEntry({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const Icon = item.icon;
   const label = t(item.labelKey);
   const link = (
-    <NavLink
-      to={item.path}
-      className={({ isActive }) => cx(classes.nav, isActive && classes.active)}
-      aria-label={label}
-    >
+    // A string className, not a function: Tooltip (collapsed menu) merges classNames and would drop a function, leaving
+    // the link with the browser's default colours. The active entry is styled through aria-current="page".
+    <NavLink to={item.path} className={classes.nav} aria-label={label}>
       <Icon size={18} stroke={1.8} />
       <span className={classes.label}>{label}</span>
     </NavLink>

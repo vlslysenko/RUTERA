@@ -66,7 +66,7 @@
   flex: none;
 }
 
-.active {
+.nav[aria-current='page'] {
   background: var(--rutera-side-active);
   color: var(--rutera-side-accent);
 }
