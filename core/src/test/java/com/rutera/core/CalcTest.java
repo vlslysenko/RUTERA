@@ -178,6 +178,16 @@ class CalcTest extends AbstractIntegrationTest {
         assertThat(line(swissPlan, "FUEL", "CH").get("source").asString()).isEqualTo("OWN_TX_ALL");
         assertThat(line(swissPlan, "FUEL", "CH").get("rate").asDouble()).isEqualTo(5.0);
 
+        // Tax calendar: Austria's cut of 6.7 ct/l ends on 2026-11-30, so a December trip pays it on the price of 11-02.
+        Map<String, Object> december = trip(vehicleId, List.of(driverId), "FRESH");
+        december.put("start", "2026-12-07T06:00:00Z");
+        december.put("legs", List.of(Map.of("name", "Wien - Salzburg", "distanceKm", 300, "countries",
+                List.of(Map.of("country", "AT", "km", 300)))));
+        JsonNode decemberPlan = body(c.post("/app/calc/trip", december));
+        assertThat(line(decemberPlan, "FUEL", null).get("rate").asDouble()).as("1.790 + 0.067").isEqualTo(1.857);
+        assertThat(decemberPlan.get("warnings").toString()).contains("calc.warning.fuel_tax_change");
+        assertThat(perCountry.get("warnings").toString()).as("before the change").doesNotContain("fuel_tax_change");
+
         // A tractor's card holds the tractor alone (2 axles, 18 t): the toll class is the combination's (5 axles, 40 t).
         long tractorId = id(c.post("/app/fleet/vehicles", new HashMap<>(Map.of("kind", "TRACTOR", "plate", "PO 7002C",
                 "euroClass", "EURO_6", "axles", 2, "grossWeightKg", 18000, "avgL100km", 30))));

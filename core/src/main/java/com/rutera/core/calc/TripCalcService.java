@@ -180,7 +180,7 @@ public class TripCalcService {
                 breaks, rests, work, duration, dailyRests, weeklyRests, days);
 
         boolean payHidden = !CurrentUser.require().hasPrivilege(Privileges.DRIVER_PAYMENT_VIEW);
-        CalcDto.Costs costs = costs(input, firma, days, kmByDriver, payHidden, missing);
+        CalcDto.Costs costs = costs(input, firma, days, kmByDriver, payHidden, missing, warnings);
         return new CalcDto.Plan(input.start(), result.eta(), totals, timeline, stateDtos, costs, payHidden,
                 List.copyOf(new LinkedHashSet<>(warnings)));
     }
@@ -222,7 +222,7 @@ public class TripCalcService {
      * driver gets no pay lines and no missing code.
      */
     private CalcDto.Costs costs(Input input, Firma firma, int days, Map<Integer, BigDecimal> kmByDriver,
-                                boolean payHidden, List<String> missing) {
+                                boolean payHidden, List<String> missing, List<String> warnings) {
         CalcDto.Options o = input.options();
         String base = firma.getBaseCurrency();
         BigDecimal km = input.distance();
@@ -234,12 +234,12 @@ public class TripCalcService {
             missing.add("calc.missing.consumption");
         }
         productLines("FUEL", FuelTransaction.Product.DIESEL, consumption, o.fuelPrice(), o.fuelCurrency(),
-                "calc.missing.fuel_price", input, firma, base, lines, missing);
+                "calc.missing.fuel_price", input, firma, base, lines, missing, warnings);
         BigDecimal adBluePct = o.adBluePct() != null ? o.adBluePct() : adBluePct(input.vehicle());
         if (consumption != null && adBluePct.signum() > 0) {
             productLines("ADBLUE", FuelTransaction.Product.ADBLUE, consumption.multiply(adBluePct).divide(HUNDRED, 4,
                     RoundingMode.HALF_UP), o.adBluePrice(), o.adBlueCurrency(), "calc.missing.adblue_price", input,
-                    firma, base, lines, missing);
+                    firma, base, lines, missing, warnings);
         }
 
         if (!payHidden) {
@@ -350,7 +350,8 @@ public class TripCalcService {
      */
     private void productLines(String kind, FuelTransaction.Product product, BigDecimal perHundredKm,
                               BigDecimal optionPrice, String optionCurrency, String missingCode, Input input,
-                              Firma firma, String base, List<CalcDto.CostLine> lines, List<String> missing) {
+                              Firma firma, String base, List<CalcDto.CostLine> lines, List<String> missing,
+                              List<String> warnings) {
         BigDecimal km = input.distance();
         LocalDate day = LocalDate.ofInstant(input.start(), zone(firma));
         if (optionPrice != null) {
@@ -364,7 +365,11 @@ public class TripCalcService {
         FuelPriceProvider.PriceQuote average = fuelPrices.firmAverage(product, base, since, day).orElse(null);
         Map<String, FuelPriceProvider.PriceQuote> byCountry = new LinkedHashMap<>();
         for (String country : input.kmByCountry().keySet()) {
-            byCountry.put(country, fuelPrices.resolve(country, product, since, day, base).orElse(average));
+            FuelPriceProvider.PriceQuote q = fuelPrices.resolve(country, product, since, day, base).orElse(average);
+            if (q != null && FuelPrices.TAX_CHANGE.equals(q.note())) {
+                addOnce(warnings, "calc.warning.fuel_tax_change");
+            }
+            byCountry.put(country, q);
         }
         Set<String> distinct = new HashSet<>();
         byCountry.values().forEach(q -> distinct.add(q == null ? "-"

@@ -1,8 +1,10 @@
 package com.rutera.core.calc;
 
 import com.rutera.common.domain.FuelPrice;
+import com.rutera.common.domain.FuelTaxRate;
 import com.rutera.common.domain.FuelTransaction;
 import com.rutera.common.repository.FuelPriceRepository;
+import com.rutera.common.repository.FuelTaxRateRepository;
 import com.rutera.common.repository.FuelTransactionRepository;
 import com.rutera.core.calc.FuelPriceProvider.PriceQuote;
 import com.rutera.core.calc.FuelPriceProvider.Quality;
@@ -25,18 +27,29 @@ import java.util.Optional;
  * else gross minus VAT, else gross without the country's VAT rate), else the reference price of the country
  * ({@code fuel_price_ref}, the newest on or before the day, a national average before a cap). Over all countries the
  * firma's average in its base currency, the last resort. A quote tells its {@link Quality}.
+ * <p>
+ * Tax calendar ({@code fuel_tax_rate}): a price from before the trip's day is moved by the change of the excise
+ * between the two days (e.g. the end of a temporary cut); such a quote has the note {@link #TAX_CHANGE}.
  */
 @Service
 public class FuelPrices {
 
+    /** The note of a quote moved to the tax of the trip's day. */
+    public static final String TAX_CHANGE = "TAX_CHANGE";
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
+    private static final BigDecimal THOUSAND = BigDecimal.valueOf(1000);
 
     private final FuelTransactionRepository transactions;
     private final FuelPriceRepository table;
+    private final FuelTaxRateRepository taxes;
+    private final Fx fx;
 
-    public FuelPrices(FuelTransactionRepository transactions, FuelPriceRepository table) {
+    public FuelPrices(FuelTransactionRepository transactions, FuelPriceRepository table, FuelTaxRateRepository taxes,
+                      Fx fx) {
         this.transactions = transactions;
         this.table = table;
+        this.taxes = taxes;
+        this.fx = fx;
     }
 
     /** The price in a country: own fuel card purchases there, else the reference price. */
@@ -59,11 +72,47 @@ public class FuelPrices {
         Map.Entry<String, BigDecimal[]> best = byCurrency.entrySet().stream()
                 .max(Comparator.comparing(e -> e.getValue()[1])).orElse(null);
         if (best != null) {
-            return Optional.of(quote(country, product, perUnit(best.getValue()), best.getKey(), base, last, "OWN_TX",
-                    Quality.OWN_TX));
+            return Optional.of(adjust(quote(country, product, perUnit(best.getValue()), best.getKey(), base, last,
+                    "OWN_TX", Quality.OWN_TX), day));
         }
-        return reference(country, product, day).map(p -> quote(country, product, p.getNet(), p.getCurrency(), base,
-                p.getPriceDate(), p.getSource(), Quality.REFERENCE));
+        return reference(country, product, day).map(p -> adjust(quote(country, product, p.getNet(), p.getCurrency(),
+                base, p.getPriceDate(), p.getSource(), Quality.REFERENCE), day));
+    }
+
+    /** The price moved by the excise change between its day and the trip's day (tax calendar), if any. */
+    PriceQuote adjust(PriceQuote q, LocalDate day) {
+        if (q.priceDate() == null || q.country() == null || !day.isAfter(q.priceDate())) {
+            return q;
+        }
+        Optional<FuelTaxRate> then = period(q.country(), q.product(), q.priceDate());
+        Optional<FuelTaxRate> now = period(q.country(), q.product(), day);
+        if (then.isEmpty() || now.isEmpty() || then.get().getId().equals(now.get().getId())
+                || then.get().getExcisePer1000l() == null || now.get().getExcisePer1000l() == null
+                || !then.get().getCurrency().equals(now.get().getCurrency())) {
+            return q;
+        }
+        BigDecimal delta = now.get().getExcisePer1000l().subtract(then.get().getExcisePer1000l())
+                .divide(THOUSAND, 6, RoundingMode.HALF_UP);
+        if (delta.signum() == 0) {
+            return q;
+        }
+        if (!now.get().getCurrency().equals(q.currency())) {
+            Optional<Fx.Rate> rate = fx.rate(now.get().getCurrency(), q.currency(), day);
+            if (rate.isEmpty()) {
+                return q;
+            }
+            delta = delta.multiply(rate.get().rate());
+        }
+        BigDecimal net = q.net().add(delta).setScale(4, RoundingMode.HALF_UP);
+        boolean same = q.currency().equals(q.baseCurrency());
+        return new PriceQuote(q.country(), q.product(), net, q.gross(), q.vatRate(), q.excisePer1000l(), q.currency(),
+                same ? net : null, q.baseCurrency(), q.fxRate(), q.priceDate(), q.source(), q.quality(), q.firmFactor(),
+                TAX_CHANGE);
+    }
+
+    private Optional<FuelTaxRate> period(String country, FuelTransaction.Product product, LocalDate day) {
+        return taxes.findFirstByCountryAndProductAndValidFromLessThanEqualOrderByValidFromDesc(country, product, day)
+                .filter(r -> r.getValidTo() == null || !r.getValidTo().isBefore(day));
     }
 
     /** The firma's average over all its purchases in the base currency. */

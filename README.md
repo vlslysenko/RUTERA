@@ -804,7 +804,11 @@ start day (the latest before it; `fx_rate`, units per 1 EUR, started with 2026-1
 currency `totalBase` is null and `missing` has `calc.missing.fx_rate`. ADBLUE lines the same way for AdBlue: litres =
 the diesel litres x `options.adBluePct` (else an estimate by the vehicle's Euro class: Euro 6 or unknown 5 %, Euro 5
 4 %, Euro 4 3 %, Euro 3 none), priced by `options.adBluePrice` / `adBlueCurrency`, else the firma's own ADBLUE
-purchases (there is no public AdBlue price), else `calc.missing.adblue_price`. Not yet: the tax calendar; per driver
+purchases (there is no public AdBlue price), else `calc.missing.adblue_price`. Tax calendar (`fuel_tax_rate`, VAT
+and excise per 1000 l per country and period, shared; V20 starts it with the temporary 2026 measures that end on known
+days: AT and SE on 2026-11-30, DE and PL on 2026-12-31): a price from before the trip's day is moved by the excise
+change between the two days (converted with the ECB rate when the price is in another currency), and the plan warns
+`calc.warning.fuel_tax_change`; per driver
 with the pay rate valid on the start day: `perKm` x km, per diem (abroad when any km is outside the firma's
 country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = toll km per country x the
 matching tariff (rows whose axles and weight conditions hold for the truck as routed, so a tractor with its
