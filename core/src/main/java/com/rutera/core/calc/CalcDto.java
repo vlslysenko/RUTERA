@@ -119,10 +119,20 @@ public final class CalcDto {
     /** kind: FUEL, DRIVER_KM, DRIVER_PER_DIEM, DRIVER_BASE, TOLL, OTHER; rate and amount null when unknown. */
     /**
      * A cost line. For FUEL: source is the price's quality (FuelPriceProvider.Quality: MANUAL, OWN_TX, REFERENCE,
-     * OWN_TX_ALL, MISSING) and priceDate the day of the price; else both are null.
+     * OWN_TX_ALL, MISSING) and priceDate the day of the price; else both are null. amountBase: the amount in the
+     * firma's base currency (null without an amount or an exchange rate).
      */
     public record CostLine(String kind, String label, String country, BigDecimal quantity, String unit,
-                           BigDecimal rate, BigDecimal amount, String currency, String source, LocalDate priceDate) {
+                           BigDecimal rate, BigDecimal amount, String currency, String source, LocalDate priceDate,
+                           BigDecimal amountBase) {
+
+        CostLine withAmountBase(BigDecimal value) {
+            return new CostLine(kind, label, country, quantity, unit, rate, amount, currency, source, priceDate, value);
+        }
+    }
+
+    /** An exchange rate used for the base currency total: base currency units per 1 unit of the currency. */
+    public record FxUsed(String currency, BigDecimal rate, LocalDate rateDate, String source) {
     }
 
     /** A reference fuel price ({@code fuel_price_ref}): per litre in the country's currency, net without VAT. */
@@ -145,7 +155,12 @@ public final class CalcDto {
     public record CurrencyTotal(String currency, BigDecimal amount) {
     }
 
-    public record Costs(List<CostLine> lines, List<CurrencyTotal> totals, List<String> missing) {
+    /**
+     * The cost lines, totals per currency, and the total in the firma's base currency (null when a currency has no
+     * exchange rate: then missing has calc.missing.fx_rate) with the rates used.
+     */
+    public record Costs(List<CostLine> lines, List<CurrencyTotal> totals, List<String> missing, String baseCurrency,
+                        BigDecimal totalBase, List<FxUsed> fxRates) {
     }
 
     public record Plan(Instant start, Instant eta, Totals totals, List<Event> timeline,

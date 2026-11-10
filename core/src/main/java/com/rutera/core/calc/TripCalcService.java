@@ -64,6 +64,7 @@ public class TripCalcService {
     private final DriverPayRateRepository payRates;
     private final FuelTransactionRepository fuel;
     private final FuelPrices fuelPrices;
+    private final Fx fx;
     private final TollTariffRepository tariffs;
     private final HosService hos;
     private final RouteService routes;
@@ -71,7 +72,7 @@ public class TripCalcService {
     public TripCalcService(FirmaRepository firmas, VehicleRepository vehicles, DriverRepository drivers,
                            DriverPayRateRepository payRates, FuelTransactionRepository fuel,
                            TollTariffRepository tariffs, HosService hos, RouteService routes,
-                           FuelPrices fuelPrices) {
+                           FuelPrices fuelPrices, Fx fx) {
         this.firmas = firmas;
         this.vehicles = vehicles;
         this.drivers = drivers;
@@ -81,6 +82,7 @@ public class TripCalcService {
         this.hos = hos;
         this.routes = routes;
         this.fuelPrices = fuelPrices;
+        this.fx = fx;
     }
 
     private record Input(Instant start, Vehicle vehicle, List<Driver> crew, int crewSize, DriverState.Source mode,
@@ -251,18 +253,18 @@ public class TripCalcService {
                 BigDecimal driven = kmByDriver.getOrDefault(i + 1, BigDecimal.ZERO).setScale(1, RoundingMode.HALF_UP);
                 if (rate.getPerKm() != null) {
                     lines.add(new CalcDto.CostLine("DRIVER_KM", label, null, driven, "KM", rate.getPerKm(),
-                            money(driven.multiply(rate.getPerKm())), rate.getCurrency(), null, null));
+                            money(driven.multiply(rate.getPerKm())), rate.getCurrency(), null, null, null));
                 }
                 BigDecimal perDiem = abroad ? rate.getPerDiemAbroad() : rate.getPerDiemHome();
                 if (perDiem != null) {
                     lines.add(new CalcDto.CostLine("DRIVER_PER_DIEM", label, null, BigDecimal.valueOf(days), "DAY",
-                            perDiem, money(perDiem.multiply(BigDecimal.valueOf(days))), rate.getCurrency(), null, null));
+                            perDiem, money(perDiem.multiply(BigDecimal.valueOf(days))), rate.getCurrency(), null, null, null));
                 }
                 if (rate.getMonthlyBase() != null) {
                     BigDecimal daily = rate.getMonthlyBase().divide(THIRTY, 4, RoundingMode.HALF_UP);
                     lines.add(new CalcDto.CostLine("DRIVER_BASE", label, null, BigDecimal.valueOf(days), "DAY",
                             daily.setScale(2, RoundingMode.HALF_UP),
-                            money(daily.multiply(BigDecimal.valueOf(days))), rate.getCurrency(), null, null));
+                            money(daily.multiply(BigDecimal.valueOf(days))), rate.getCurrency(), null, null, null));
                 }
             }
         }
@@ -286,13 +288,13 @@ public class TripCalcService {
             lines.add(new CalcDto.CostLine("TOLL", null, e.getKey(), e.getValue().setScale(1, RoundingMode.HALF_UP),
                     "KM", t == null ? null : t.getRatePerKm(),
                     t == null ? null : money(e.getValue().multiply(t.getRatePerKm())),
-                    t == null ? base : t.getCurrency(), null, null));
+                    t == null ? base : t.getCurrency(), null, null, null));
         }
 
         if (o.otherCosts() != null) {
             for (CalcDto.OtherCost c : o.otherCosts()) {
                 lines.add(new CalcDto.CostLine("OTHER", InputFields.blankToNull(c.label()), null, null, null, null,
-                        money(c.amount()), c.currency() == null ? base : FuelValues.currency(c.currency()), null, null));
+                        money(c.amount()), c.currency() == null ? base : FuelValues.currency(c.currency()), null, null, null));
             }
         }
 
@@ -302,8 +304,35 @@ public class TripCalcService {
                 sums.merge(l.currency(), l.amount(), BigDecimal::add);
             }
         }
-        return new CalcDto.Costs(lines, sums.entrySet().stream()
-                .map(e -> new CalcDto.CurrencyTotal(e.getKey(), e.getValue())).toList(), List.copyOf(missing));
+        // The total in the base currency with the ECB rates of the start day (the latest before it).
+        LocalDate fxDay = LocalDate.ofInstant(input.start(), zone(firma));
+        Map<String, Fx.Rate> used = new TreeMap<>();
+        Set<String> lacking = new HashSet<>();
+        BigDecimal totalBase = BigDecimal.ZERO;
+        List<CalcDto.CostLine> converted = new ArrayList<>();
+        for (CalcDto.CostLine l : lines) {
+            BigDecimal amountBase = null;
+            if (l.amount() != null && l.currency() != null) {
+                Fx.Rate r = l.currency().equals(base) ? null
+                        : used.computeIfAbsent(l.currency(), c -> fx.rate(c, base, fxDay).orElse(null));
+                if (r == null && !l.currency().equals(base)) {
+                    used.remove(l.currency());
+                    lacking.add(l.currency());
+                } else {
+                    amountBase = r == null ? l.amount() : money(l.amount().multiply(r.rate()));
+                    totalBase = totalBase.add(amountBase);
+                }
+            }
+            converted.add(l.withAmountBase(amountBase));
+        }
+        if (!lacking.isEmpty()) {
+            addOnce(missing, "calc.missing.fx_rate");
+        }
+        return new CalcDto.Costs(converted, sums.entrySet().stream()
+                .map(e -> new CalcDto.CurrencyTotal(e.getKey(), e.getValue())).toList(), List.copyOf(missing), base,
+                lacking.isEmpty() ? totalBase : null, used.values().stream()
+                .map(r -> new CalcDto.FxUsed(r.from(), r.rate().setScale(6, RoundingMode.HALF_UP), r.rateDate(),
+                        r.source())).toList());
     }
 
     /**
@@ -359,7 +388,7 @@ public class TripCalcService {
                 litres == null || rate == null ? null : money(litres.multiply(rate)),
                 price == null ? base : price.currency(),
                 price == null ? FuelPriceProvider.Quality.MISSING.name() : price.quality().name(),
-                price == null ? null : price.priceDate());
+                price == null ? null : price.priceDate(), null);
     }
 
     /**

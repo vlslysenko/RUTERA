@@ -180,6 +180,14 @@ class CalcTest extends AbstractIntegrationTest {
         plan.get("costs").get("totals").forEach(t -> totalsByCurrency.put(t.get("currency").asString(),
                 t.get("amount").asDouble()));
         assertThat(totalsByCurrency).containsEntry("EUR", 1046.38).containsEntry("PLN", 510.0);
+        // The total in the base currency (PLN): every EUR line at the ECB rate of the start day (V19: 4.4185).
+        JsonNode costs = plan.get("costs");
+        assertThat(costs.get("baseCurrency").asString()).isEqualTo("PLN");
+        assertThat(costs.get("totalBase").asDouble()).isEqualTo(5133.43);
+        assertThat(costs.get("fxRates").get(0).get("currency").asString()).isEqualTo("EUR");
+        assertThat(costs.get("fxRates").get(0).get("rate").asDouble()).isEqualTo(4.4185);
+        assertThat(costs.get("fxRates").get(0).get("rateDate").asString()).isEqualTo("2026-11-02");
+        assertThat(line(plan, "TOLL", "DE").get("amountBase").asDouble()).isEqualTo(1076.35);
         assertThat(plan.get("costs").get("missing")).isEmpty();
 
         JsonNode tacho = body(c.post("/app/calc/trip", trip(vehicleId, List.of(driverId), null)));

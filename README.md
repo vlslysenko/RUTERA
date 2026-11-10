@@ -797,7 +797,11 @@ provider contract of the fuel research: name, countries, kind NATIONAL | STATION
 taxes" and "duties and taxes" workbooks; diesel and Euro-super 95 of the 27 countries per litre in EUR, net = gross
 without the VAT rate of the duties file, the excise for euro countries; it replaces the starting rows of the same
 day (source `EU_WOB`), so their currency becomes EUR. Needs internet; `RUTERA_FUEL_BULLETIN_ENABLED=false` switches
-it off. Not yet: exchange rates and a total in the base currency, AdBlue, the tax calendar; per driver
+it off. Every cost line has `amountBase` and the costs `baseCurrency`, `totalBase` and `fxRates` [{currency, rate
+(base units per 1 unit), rateDate, source}]: the amounts in the firma's base currency at the ECB reference rate of the
+start day (the latest before it; `fx_rate`, units per 1 EUR, started with 2026-11-02, fetched on working days at
+16:30 Berlin time by `core.calc.EcbRates`, `RUTERA_FX_ECB_ENABLED=false` switches it off); without a rate for a
+currency `totalBase` is null and `missing` has `calc.missing.fx_rate`. Not yet: AdBlue, the tax calendar; per driver
 with the pay rate valid on the start day: `perKm` x km, per diem (abroad when any km is outside the firma's
 country, else home) x started 24 h periods, `monthlyBase` / 30 x the same days; tolls = toll km per country x the
 matching tariff (rows whose axles and weight conditions hold for the truck as routed, so a tractor with its
