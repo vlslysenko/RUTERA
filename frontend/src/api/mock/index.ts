@@ -817,7 +817,9 @@ const explanationLookup = {
     return v ? { id: v.id, plate: v.plate } : undefined;
   },
 };
+route('GET', '/app/explanations/reasons', scoped((_u, { query }) => explanationMock.reasons(query.ruleCode)));
 route('GET', '/app/explanations', scoped((_u, { query }, own) => explanationMock.list(violationStore(), query, own)));
+route('GET', '/app/explanations/:id/printout-note', scoped((_u, req) => explanationMock.printoutNote(violationStore(), req.params.id, req.query)));
 route('GET', '/app/explanations/:id/pdf', scoped((_u, req, own) => explanationMock.pdf(violationStore(), req.params.id, own)));
 route('GET', '/app/explanations/:id', scoped((_u, req, own) => explanationMock.get(violationStore(), req.params.id, own)));
 route('POST', '/app/explanations', withPrivilege('tacho.violation/ack', (u, { body }) =>

@@ -1,4 +1,4 @@
-import type { Explanation, ExplanationInput, ExplanationReason, SignInput } from '@/api/explanations';
+import type { Art12Claim, Explanation, ExplanationInput, ExplanationReason, ReasonOption, SignInput } from '@/api/explanations';
 import { EXPLANATION_REASONS } from '@/api/explanations';
 import type { Violation } from '@/api/hos';
 import { sketchPdf } from './cmr';
@@ -11,6 +11,51 @@ import type { MockReply } from './trips';
 
 let store: Explanation[] | null = null;
 let nextId = 1;
+
+// Daily and weekly driving may be extended to reach home or the base (Art. 12 paragraphs 2 and 3).
+const HOME_RULES = ['DAILY_DRIVING_9H', 'DAILY_DRIVING_10H', 'WEEKLY_DRIVING_56H'];
+// Reasons inspectors accept as Art. 12 paragraph 1 grounds (research list of the backend templates).
+const SAFETY_REASONS = ['TRAFFIC_ACCIDENT', 'ROAD_CLOSURE_DETOUR', 'EXTREME_WEATHER', 'NO_PARKING_SPACE', 'SECURITY_THREAT', 'VEHICLE_BREAKDOWN', 'LOAD_SAFETY', 'MEDICAL_EMERGENCY', 'AUTHORITY_ORDER', 'FERRY_TRAIN_DELAY'];
+const TEXT_REASONS = ['NO_PARKING_SPACE', 'DATA_DISPUTE', 'OTHER'];
+
+const allowed = (ruleCode: string) => ({ safety: true, home: HOME_RULES.includes(ruleCode) });
+const art12Fields = (ruleCode: string) => ({
+  infringementCode: ruleCode,
+  art12: null,
+  art12Place: null,
+  art12BreakFrom: null,
+  art12BreakTo: null,
+  printoutNote: null,
+  printoutNoteAt: null,
+  art12Allowed: allowed(ruleCode),
+});
+
+/** GET /app/explanations/reasons: the reasons with the Art. 12 claims they support for this rule. */
+export function reasons(ruleCode: string | undefined): MockReply {
+  const home = !ruleCode || HOME_RULES.includes(ruleCode);
+  const body: ReasonOption[] = EXPLANATION_REASONS.map((code) => ({
+    code,
+    art12Safety: SAFETY_REASONS.includes(code),
+    art12Home: home && code === 'REACH_HOME_OR_BASE',
+    textRequired: TEXT_REASONS.includes(code),
+  }));
+  return { status: 200, body };
+}
+
+/** GET /app/explanations/{id}/printout-note: the Polish note to copy onto the printout; unknowns as dotted blanks. */
+export function printoutNote(violations: Violation[], id: string, q: Record<string, string>): MockReply {
+  const e = explanations(violations).find((x) => String(x.id) === id);
+  if (!e) return fail(404, 'error.not_found');
+  const blank = '............';
+  const place = q.place || blank;
+  const text =
+    q.art12 === 'SAFETY'
+      ? `Art. 12 rozp. 561/2006 - przekroczenie w celu dotarcia do odpowiedniego miejsca postoju: ${place}. Przyczyna: ${q.reason ?? blank}.`
+      : q.art12 === 'HOME_2H'
+        ? `Art. 12 akapit 3 rozp. 561/2006 - powrót do bazy/miejsca zamieszkania: ${place}. Przerwa ${q.breakFrom || '..:..'}-${q.breakTo || '..:..'}.`
+        : `Art. 12 akapit 2 rozp. 561/2006 - powrót do bazy/miejsca zamieszkania: ${place}.`;
+  return { status: 200, body: { lang: 'pl', instruction: 'Przepisz odręcznie na wydruk z tachografu, z datą i podpisem.', text } };
+}
 
 const fail = (status: number, code: string, details?: Record<string, string>): MockReply => ({ status, body: { status, code, message: code, ...(details ? { details } : {}) } });
 
@@ -41,6 +86,7 @@ function fromViolation(v: Violation, status: Explanation['status'] = 'PENDING'):
     reason: signed ? 'TRAFFIC_JAM' : null,
     reasonText: signed ? 'Korek na A4 przed Legnicą po wypadku, brak wolnych miejsc na parkingu MOP.' : null,
     place: signed ? 'Legnica' : null,
+    ...art12Fields(v.rule),
     docLang: 'pl',
     signedAt: signed ? new Date(new Date(v.endAt).getTime() + 3_600_000).toISOString() : null,
     signedBy: signed ? v.driver : null,
@@ -120,6 +166,7 @@ export function create(
     reason: null,
     reasonText: null,
     place: null,
+    ...art12Fields(String(b.ruleCode)),
     docLang: 'pl',
     signedAt: null,
     signedBy: null,
@@ -138,12 +185,28 @@ export function sign(violations: Violation[], id: string, b: Partial<SignInput>,
   if (e.status !== 'PENDING') return fail(409, 'explanation.not_pending');
   const errors: Record<string, string> = {};
   if (!b.reason || !EXPLANATION_REASONS.includes(b.reason as ExplanationReason)) errors.reason = 'validation.required';
-  if (b.reason === 'OTHER' && !b.reasonText?.trim()) errors.reasonText = 'validation.required';
+  if (TEXT_REASONS.includes(b.reason ?? '') && !b.reasonText?.trim()) errors.reasonText = 'validation.required';
+  const claim = (b.art12 ?? 'NONE') as Art12Claim;
+  const over = e.exceededMin ?? 0;
+  const ok =
+    claim === 'NONE' ||
+    (claim === 'SAFETY' && SAFETY_REASONS.includes(b.reason ?? '')) ||
+    (claim === 'HOME_1H' && e.art12Allowed?.home && b.reason === 'REACH_HOME_OR_BASE' && over <= 60) ||
+    (claim === 'HOME_2H' && e.art12Allowed?.home && b.reason === 'REACH_HOME_OR_BASE' && over <= 120);
+  if (!ok) errors.art12 = 'validation.invalid_value';
+  if (claim !== 'NONE' && !b.art12Place?.trim()) errors.art12Place = 'validation.required';
+  if (claim !== 'NONE' && !b.printoutNote) errors.printoutNote = 'validation.required';
+  if (claim === 'HOME_2H' && (!b.art12BreakFrom || !b.art12BreakTo)) errors.art12BreakFrom = 'validation.required';
   if ((b.reasonText ?? '').length > 1000) errors.reasonText = 'validation.too_long';
   if ((b.place ?? '').length > 100) errors.place = 'validation.too_long';
   if (!b.signature?.startsWith('data:image/png;base64,') || b.signature.length > 300 * 1024) errors.signature = 'validation.invalid_value';
   if (Object.keys(errors).length) return fail(422, 'error.validation', errors);
-  Object.assign(e, { status: 'SIGNED', reason: b.reason, reasonText: b.reasonText?.trim() || null, place: b.place?.trim() || null, signedAt: new Date().toISOString(), signedBy: e.driver, hasPdf: true });
+  Object.assign(e, {
+    status: 'SIGNED', reason: b.reason, reasonText: b.reasonText?.trim() || null, place: b.place?.trim() || null,
+    art12: claim, art12Place: b.art12Place?.trim() || null, art12BreakFrom: b.art12BreakFrom ?? null, art12BreakTo: b.art12BreakTo ?? null,
+    printoutNote: claim === 'NONE' ? null : Boolean(b.printoutNote), printoutNoteAt: b.printoutNoteAt ?? null,
+    signedAt: new Date().toISOString(), signedBy: e.driver, hasPdf: true,
+  });
   return { status: 200, body: e };
 }
 

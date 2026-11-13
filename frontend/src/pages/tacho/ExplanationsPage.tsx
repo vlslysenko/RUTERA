@@ -312,6 +312,13 @@ export function ExplanationDetail({ mode }: { mode: 'drawer' | 'page' }) {
               { label: t('explanation.reason'), value: e.reason ? t(`explanation.reason.${e.reason}`) : '—' },
               ...(e.reasonText ? [{ label: t('explanation.text'), value: e.reasonText }] : []),
               ...(e.place ? [{ label: t('explanation.place'), value: e.place }] : []),
+              ...(e.art12 && e.art12 !== 'NONE'
+                ? [
+                    { label: t('explanation.art12.title'), value: `${t(`explanation.art12_short.${e.art12}`)}${e.art12Place ? ` · ${e.art12Place}` : ''}` },
+                    ...(e.art12BreakFrom ? [{ label: t('explanation.art12_break'), value: `${e.art12BreakFrom}–${e.art12BreakTo ?? ''}` }] : []),
+                    { label: t('explanation.printout_note'), value: t(e.printoutNote ? 'explanation.printout_done' : 'explanation.printout_missing') },
+                  ]
+                : []),
               { label: t('explanation.col.signed'), value: e.signedAt ? formatInstant(e.signedAt, lang, tz) : '—' },
               { label: t('explanation.doc_lang_label'), value: languageName(e.docLang) },
               { label: t('explanation.asked_by'), value: e.createdBy ? e.createdBy.name : t(`explanation.source.${e.source}`) },
