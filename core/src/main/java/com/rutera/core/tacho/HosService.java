@@ -70,6 +70,7 @@ public class HosService {
     private final DriverRepository drivers;
     private final DriverCardRepository cards;
     private final DriverViolationRepository violations;
+    private final com.rutera.core.explain.ExplanationService explanations;
     private final VehicleRepository vehicles;
     private final FirmaRepository firmas;
     private final AppUserRepository users;
@@ -78,7 +79,9 @@ public class HosService {
 
     public HosService(NamedParameterJdbcTemplate jdbc, DriverRepository drivers, DriverCardRepository cards,
                       DriverViolationRepository violations, VehicleRepository vehicles, FirmaRepository firmas,
-                      AppUserRepository users, DriverSelf self, AuditService audit) {
+                      AppUserRepository users, DriverSelf self, AuditService audit,
+                      com.rutera.core.explain.ExplanationService explanations) {
+        this.explanations = explanations;
         this.self = self;
         this.jdbc = jdbc;
         this.drivers = drivers;
@@ -260,6 +263,7 @@ public class HosService {
             }
             for (HosEngine.Found f : found) {
                 DriverViolation v = existing.remove(key(f.rule(), f.start()));
+                boolean isNew = v == null;
                 if (v == null) {
                     v = new DriverViolation();
                     v.setFirmaId(firmaId);
@@ -274,7 +278,11 @@ public class HosService {
                 v.setVehiclePlate(f.plate());
                 v.setDetails(f.details());
                 violations.save(v);
+                if (isNew) {
+                    explanations.onNewViolation(v);
+                }
             }
+            explanations.detach(existing.values().stream().map(DriverViolation::getId).toList());
             violations.deleteAll(existing.values());
             violations.flush();
         }
@@ -399,7 +407,10 @@ public class HosService {
                 .filter(Objects::nonNull).collect(Collectors.toSet())).stream()
                 .collect(Collectors.toMap(AppUser::getId, Function.identity()));
         Fleet fleet = fleet();
+        Map<Long, com.rutera.common.domain.DriverExplanation> explained = explanations.ofViolations(
+                list.stream().map(DriverViolation::getId).toList());
         return list.stream().map(v -> {
+            com.rutera.common.domain.DriverExplanation x = explained.get(v.getId());
             Driver d = driverOf.get(v.getDriverId());
             AppUser by = v.getAckBy() == null ? null : userOf.get(v.getAckBy());
             HosDto.Ack ack = v.getAckAt() == null ? null : new HosDto.Ack(
@@ -407,7 +418,8 @@ public class HosService {
                     v.getAckNote());
             return new HosDto.Violation(v.getId(), new HosDto.Ref(v.getDriverId(), d == null ? null : d.getFullName()),
                     v.getRule(), v.getSeverity(), v.getStartAt(), v.getEndAt(), v.getActualValue(), v.getLimitValue(),
-                    fleet.ref(v.getVehiclePlate(), null), v.getDetails(), ack);
+                    fleet.ref(v.getVehiclePlate(), null), v.getDetails(), ack, x == null ? null : x.getId(),
+                    x == null ? null : x.getStatus().name());
         }).toList();
     }
 

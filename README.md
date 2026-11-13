@@ -356,9 +356,11 @@ CANCELLED (409 `trip.file.trip_closed`) and deletes only its own uploads then. J
 content (`file: trip.file.type`), at most 15 MB (`file: trip.file.too_large`).
 
 Firma settings (`admin.firma/manage`): `GET /app/admin/firma` -> `{id, name, shortCode, country, vatId, address,
-email, lang, timezone, baseCurrency, plan, vehicleLimit, aiAccess, driversSeePay}`; `PUT` the editable part `{name,
-vatId?, address?, email?, lang, timezone, baseCurrency, driversSeePay?}` (plan, vehicle limit and the AI access add-on
-belong to billing). `/app/auth/me` carries `firma.driversSeePay`.
+email, lang, timezone, baseCurrency, plan, vehicleLimit, aiAccess, driversSeePay, explanationLang, explanationsAuto,
+explanationsDays}`; `PUT` the editable part `{name, vatId?, address?, email?, lang, timezone, baseCurrency,
+driversSeePay?, country?, explanationsAuto?, explanationsDays? (1-365)}` (country, the country of registration, and
+the explanation settings stay when left out; `explanationLang` is the language of drivers' explanations that follows
+from the country; plan, vehicle limit and the AI access add-on belong to billing). `/app/auth/me` carries `firma.driversSeePay`.
 
 Offline outbox of the cabinet: `POST /app/trips/{id}/files` and `POST /app/drivers/{id}/absences` accept an
 `Idempotency-Key` header (1-64 letters, digits, `-`, `_`; a uuid). The first request with a key runs as usual and
@@ -577,7 +579,8 @@ null, plate} | null}` (id null: the plate is not in the fleet). `HosDay = {day, 
 restMin, dailyRestMin, extDrivingInWeek, reducedRestInWeek, weeklyDrivingMin, biweeklyDrivingMin, remainingDailyMin,
 remainingWeeklyMin, nextWeeklyRestBy, violations}` for every day of the range, cut in the firma's time zone.
 `Violation = {id, driver: {id, name}, rule, severity: MINOR | SERIOUS | VERY_SERIOUS | MOST_SERIOUS, startAt, endAt,
-actualValue, limitValue (minutes), vehicle, details, ack: {by: {id, name}, at, note} | null}`.
+actualValue, limitValue (minutes), vehicle, details, ack: {by: {id, name}, at, note} | null, explanationId,
+explanationStatus}` (the driver explanation of the violation, if any).
 
 Rules (`core.tacho.hos.HosEngine`, pure code): unrecorded time and UNKNOWN count as rest; a rest of 9 h ends a shift,
 24 h is a weekly rest. `DAILY_DRIVING_9H` / `DAILY_DRIVING_10H` (two 10 h days per calendar week),
@@ -589,6 +592,37 @@ table per rule (`HosEngine.severity`). Not modelled yet: compensation of reduced
 for international transport, ferry/train interruptions, multi-manning specifics. Violations are recomputed after
 every import, assignment or deletion of a file and after a change of a driver's card; the same violation (driver,
 rule, start) keeps its acknowledgement.
+
+#### Driver explanations (`/app/explanations`)
+
+A driver's written statement on an infringement (oświadczenie kierowcy), signed on the phone and kept as a PDF.
+
+| Method | Path | Body / result |
+|---|---|---|
+| GET | `/app/explanations?status=&driverId=&from=&to=&page=&size=` | `{items: Explanation[], total}`, newest first (`tacho.hos/view`; a driver with `driver_app.self/use` gets only their own, whatever `driverId` says) |
+| GET | `/app/explanations/{id}` | `Explanation` (same) |
+| GET | `/app/explanations/{id}/pdf` | `application/pdf`: the signed one, or a preview marked as a draft (same) |
+| POST | `/app/explanations` | `{violationId}` or `{driverId, vehicleId?, ruleCode, startedAt, endedAt?, exceededMin?}` -> 201 `Explanation` (`tacho.violation/ack`); a violation that has one gives it back (a cancelled one is reopened), the same driver, rule and start by hand 409 `error.conflict` |
+| POST | `/app/explanations/{id}/remind` | `Explanation`: the push again (`tacho.violation/ack`) |
+| POST | `/app/explanations/{id}/cancel` | `Explanation` (`tacho.violation/ack`) |
+| POST | `/app/explanations/{id}/sign` | `{reason, reasonText?, place?, signature}` -> `Explanation`: only the driver it belongs to (`driver_app.self/use`) |
+
+`Explanation = {id, status: PENDING | SIGNED | CANCELLED, source: AUTO | MANUAL, driver: {id, name}, vehicle: {id |
+null, plate} | null, violationId | null, ruleCode, startedAt, endedAt, actualMin, limitMin, exceededMin, reason,
+reasonText, place, docLang, signedAt, signedBy: {id, name} | null, cancelledAt, createdAt, createdBy: {id, name} |
+null, hasPdf}`. `reason`: `SAFE_STOPPING_PLACE`, `SAFETY`, `RETURN_FOR_WEEKLY_REST` (Article 12 of Regulation
+561/2006), `TRAFFIC_JAM`, `NO_PARKING`, `ACCIDENT`, `ROAD_CLOSURE`, `BREAKDOWN`, `WEATHER`, `LOADING_DELAY`, `OTHER`
+(needs `reasonText`, at most 1000 characters; `place` at most 100). `signature`: a PNG data URL
+(`data:image/png;base64,...`, at most 300 KB). Sign or cancel what is not PENDING: 409 `explanation.not_pending`.
+The infringement's data is copied (violations are recomputed after every import); `violationId` is cleared when its
+violation disappears.
+
+The import asks for one for every new violation that started in the last `explanationsDays` days (firma setting,
+default 28) while `explanationsAuto` is on (default); the driver's login gets the push `explanation.requested`
+(`/driver/explanations/{id}`, tag `explanation-{id}`, texts `notify.explanation.requested.*`). Signing stores the
+signature and the PDF in `stored_file` (kinds `SIGNATURE`, `EXPLANATION`). The PDF is written in the language of the
+firma's country of registration (`ExplanationTemplates`: one `resources/explanations/explanation_<lang>.properties`
+per language, English for a country without its own; for now Polish and English); `docLang` is the language used.
 
 ### Invoices, payments, debts and reminders (`/app/invoices`, `/app/debts`, `/app/reminders`)
 

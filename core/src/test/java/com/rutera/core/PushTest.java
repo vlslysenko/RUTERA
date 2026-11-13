@@ -329,6 +329,16 @@ class PushTest extends AbstractIntegrationTest {
         driverDocument(firmaId, driverId, DriverDocument.Kind.OTHER, laterDay.plusDays(400), 30);
         assertThat(deadlines.run(dayAfter)).isEqualTo(1);
         arrived(devices, 1);
+
+        // A driver explanation asked for by the office reaches the driver's phone.
+        JsonNode explanation = body(office.post("/app/explanations", Map.of("driverId", driverId,
+                "ruleCode", "DAILY_DRIVING_9H", "startedAt", "2031-03-02T05:00:00Z", "exceededMin", 20)));
+        JsonNode asked = arrived(devices, 1).get("driver");
+        assertThat(asked.get("type").asString()).isEqualTo("explanation.requested");
+        assertThat(asked.get("title").asString()).isEqualTo("Potrzebne oświadczenie");
+        assertThat(asked.get("body").asString()).startsWith("Dzienna jazda ponad 9 godz., 02.03.2031");
+        assertThat(asked.get("url").asString()).isEqualTo("/driver/explanations/" + explanation.get("id").asLong());
+        assertThat(asked.get("tag").asString()).isEqualTo("explanation-" + explanation.get("id").asLong());
         assertThat(RECEIVED.poll(300, TimeUnit.MILLISECONDS)).as("nothing more").isNull();
     }
 }

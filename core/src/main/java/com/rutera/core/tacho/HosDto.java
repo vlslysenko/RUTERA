@@ -37,7 +37,7 @@ public final class HosDto {
 
     public record Violation(Long id, Ref driver, DriverViolation.Rule rule, DriverViolation.Severity severity,
                             Instant startAt, Instant endAt, int actualValue, int limitValue, VehicleRef vehicle,
-                            String details, Ack ack) {
+                            String details, Ack ack, Long explanationId, String explanationStatus) {
     }
 
     public record Page(List<Violation> items, long total) {

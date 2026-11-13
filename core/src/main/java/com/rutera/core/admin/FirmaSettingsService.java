@@ -1,5 +1,7 @@
 package com.rutera.core.admin;
 
+import com.rutera.core.explain.ExplanationSettings;
+import com.rutera.core.explain.ExplanationTemplates;
 import com.rutera.common.domain.Firma;
 import com.rutera.common.i18n.SupportedLanguages;
 import com.rutera.common.repository.FirmaRepository;
@@ -36,20 +38,35 @@ public class FirmaSettingsService {
     private final FirmaRepository firmas;
     private final AuditService audit;
 
-    public FirmaSettingsService(FirmaRepository firmas, AuditService audit) {
+    private final ExplanationSettings explanationSettings;
+    private final ExplanationTemplates explanationTemplates;
+
+    public FirmaSettingsService(FirmaRepository firmas, AuditService audit, ExplanationSettings explanationSettings,
+                                ExplanationTemplates explanationTemplates) {
+        this.explanationSettings = explanationSettings;
+        this.explanationTemplates = explanationTemplates;
         this.firmas = firmas;
         this.audit = audit;
     }
 
+    /**
+     * The settings; country is the country of registration, explanationLang the language of drivers' explanations
+     * that follows from it (English while there is no template for the country's language).
+     */
     public record Settings(Long id, String name, String shortCode, String country, String vatId, String address,
                            String email, String lang, String timezone, String baseCurrency, String plan,
-                           int vehicleLimit, boolean aiAccess, boolean driversSeePay) {
+                           int vehicleLimit, boolean aiAccess, boolean driversSeePay, String explanationLang,
+                           boolean explanationsAuto, int explanationsDays) {
     }
 
-    /** Body of {@code PUT /app/admin/firma}: a full replacement of the editable settings. */
+    /**
+     * Body of {@code PUT /app/admin/firma}: a full replacement of the editable settings; country, explanationsAuto
+     * and explanationsDays are kept when left out.
+     */
     public record SettingsInput(@Size(max = 200) String name, @Size(max = 32) String vatId,
                                 @Size(max = 500) String address, @Size(max = 254) String email, String lang,
-                                String timezone, String baseCurrency, Boolean driversSeePay) {
+                                String timezone, String baseCurrency, Boolean driversSeePay, String country,
+                                Boolean explanationsAuto, Integer explanationsDays) {
     }
 
     @RequiresPrivilege(Privileges.ADMIN_FIRMA_MANAGE)
@@ -93,9 +110,21 @@ public class FirmaSettingsService {
         } else if (!CURRENCY.matcher(currency).matches()) {
             errors.put("baseCurrency", ErrorCodes.FIELD_INVALID_FORMAT);
         }
+        String country = in.country() == null ? f.getCountry() : InputFields.country("country", in.country(), errors);
+        if (in.country() != null && country == null && !errors.containsKey("country")) {
+            errors.put("country", ErrorCodes.FIELD_REQUIRED);
+        }
+        if (in.explanationsDays() != null && (in.explanationsDays() < 1
+                || in.explanationsDays() > ExplanationSettings.MAX_DAYS)) {
+            errors.put("explanationsDays", ErrorCodes.FIELD_INVALID_VALUE);
+        }
         if (!errors.isEmpty()) {
             throw ApiException.validation(errors);
         }
+        f.setCountry(country);
+        explanationSettings.save(f.getId(), in.explanationsAuto() == null ? explanationSettings.auto()
+                : in.explanationsAuto(), in.explanationsDays() == null ? explanationSettings.days()
+                : in.explanationsDays());
         f.setName(name);
         f.setVatId(InputFields.blankToNull(in.vatId()));
         f.setAddress(InputFields.blankToNull(in.address()));
@@ -106,7 +135,8 @@ public class FirmaSettingsService {
         f.setDriversSeePay(Boolean.TRUE.equals(in.driversSeePay()));
         firmas.save(f);
         audit.record(AuditEvent.of(MODULE, "firma_settings_updated", "Updated the company settings")
-                .entity("firma", f.getId()).detail("driversSeePay", f.isDriversSeePay()));
+                .entity("firma", f.getId()).detail("driversSeePay", f.isDriversSeePay())
+                .detail("country", f.getCountry()));
         return toDto(f);
     }
 
@@ -115,9 +145,10 @@ public class FirmaSettingsService {
                 .orElseThrow(() -> ApiException.notFound(ErrorCodes.NOT_FOUND));
     }
 
-    private static Settings toDto(Firma f) {
+    private Settings toDto(Firma f) {
         return new Settings(f.getId(), f.getName(), f.getShortCode(), f.getCountry(), f.getVatId(), f.getAddress(),
                 f.getEmail(), f.getLang(), f.getTimezone(), f.getBaseCurrency(), f.getPlan(), f.getVehicleLimit(),
-                f.isAiAccess(), f.isDriversSeePay());
+                f.isAiAccess(), f.isDriversSeePay(), explanationTemplates.documentLanguage(f.getCountry()),
+                explanationSettings.auto(), explanationSettings.days());
     }
 }
