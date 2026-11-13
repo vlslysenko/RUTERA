@@ -29,7 +29,12 @@ import java.time.LocalDate;
  *                                         exceededMin?} -> 201 Explanation          (tacho.violation/ack)
  * POST /app/explanations/{id}/remind     -> Explanation (push again)                 (tacho.violation/ack)
  * POST /app/explanations/{id}/cancel     -> Explanation                              (tacho.violation/ack)
- * POST /app/explanations/{id}/sign       {reason, reasonText?, place?, signature} -> Explanation (the driver)
+ * GET  /app/explanations/reasons?ruleCode=  -> [{code, art12Safety, art12Home, textRequired}]   (same)
+ * GET  /app/explanations/{id}/printout-note?reason=&art12=&place=&breakFrom=&breakTo=
+ *                                        -> {lang, instruction, text} to copy onto the printout (same)
+ * POST /app/explanations/{id}/sign       {reason, reasonText?, place?, signature, art12?, art12Place?,
+ *                                         art12BreakFrom?, art12BreakTo?, printoutNote?, printoutNoteAt?}
+ *                                        -> Explanation (the driver)
  * </pre>
  */
 @RestController
@@ -52,6 +57,21 @@ public class ExplanationController {
                                     @RequestParam(defaultValue = "0") int page,
                                     @RequestParam(defaultValue = "50") int size) {
         return service.list(status, driverId, from, to, page, size);
+    }
+
+    @GetMapping("/reasons")
+    public java.util.List<ExplanationDto.ReasonOption> reasons(@RequestParam(required = false) String ruleCode) {
+        return service.reasons(ruleCode);
+    }
+
+    @GetMapping("/{id}/printout-note")
+    public ExplanationDto.PrintoutNote printoutNote(@PathVariable Long id,
+                                                    @RequestParam(required = false) String reason,
+                                                    @RequestParam(required = false) String art12,
+                                                    @RequestParam(required = false) String place,
+                                                    @RequestParam(required = false) String breakFrom,
+                                                    @RequestParam(required = false) String breakTo) {
+        return service.printoutNote(id, reason, art12, place, breakFrom, breakTo);
     }
 
     @GetMapping("/{id}")

@@ -74,7 +74,6 @@ public class ExplanationService {
     private static final int MAX_SIGNATURE_BYTES = 300 * 1024;
     private static final String PNG_PREFIX = "data:image/png;base64,";
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-    private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm");
 
     private final DriverExplanationRepository explanations;
     private final DriverViolationRepository violations;
@@ -246,12 +245,19 @@ public class ExplanationService {
         self.requireOwn(e.getDriverId());
         requirePending(e);
         Map<String, String> errors = new LinkedHashMap<>();
-        DriverExplanation.Reason reason = InputFields.parseEnum(DriverExplanation.Reason.class, "reason",
-                in == null ? null : in.reason(), true, errors);
+        String reasonCode = in == null ? null : in.reason();
+        DriverExplanation.Reason reason = ExplanationCatalog.reason(reasonCode).orElse(null);
+        if (reasonCode == null || reasonCode.isBlank()) {
+            errors.put("reason", ErrorCodes.FIELD_REQUIRED);
+        } else if (reason == null) {
+            errors.put("reason", ErrorCodes.FIELD_INVALID_VALUE);
+        }
         String text = in == null ? null : InputFields.blankToNull(in.reasonText());
-        if (reason == DriverExplanation.Reason.OTHER && text == null) {
+        if (reason != null && text == null && ExplanationCatalog.textRequired(reason)
+                && !ExplanationCatalog.isAlias(reasonCode)) {
             errors.put("reasonText", ErrorCodes.FIELD_REQUIRED);
         }
+        Art12Claim claim = art12(e, reason, in, errors);
         if (text != null && text.length() > 1000) {
             errors.put("reasonText", ErrorCodes.FIELD_TOO_LONG);
         }
@@ -268,6 +274,12 @@ public class ExplanationService {
         e.setReason(reason);
         e.setReasonText(text);
         e.setPlace(place);
+        e.setArt12(claim.art12());
+        e.setArt12Place(claim.place());
+        e.setArt12BreakFrom(claim.breakFrom());
+        e.setArt12BreakTo(claim.breakTo());
+        e.setPrintoutNote(claim.printoutNote());
+        e.setPrintoutNoteAt(claim.printoutNoteAt());
         e.setSignedAt(Instant.now());
         e.setSignedBy(userId);
         e.setDocLang(templates.documentLanguage(firma.getCountry()));
@@ -284,6 +296,139 @@ public class ExplanationService {
                 .entity("driver_explanation", e.getId()).detail("driverId", e.getDriverId())
                 .detail("reason", reason.name()));
         return toDtos(List.of(e)).getFirst();
+    }
+
+    /**
+     * The reasons, each with whether it allows an Article 12 claim for the infringement of this rule (with no rule:
+     * whether the reason ever does) and whether it needs the driver's text.
+     */
+    @RequiresPrivilege({Privileges.TACHO_HOS_VIEW, Privileges.DRIVER_APP_SELF_USE})
+    public List<ExplanationDto.ReasonOption> reasons(String ruleCode) {
+        ExplanationCatalog.Infringement inf;
+        try {
+            inf = ruleCode == null || ruleCode.isBlank() ? null : ExplanationCatalog.infringement(ruleCode.strip());
+        } catch (IllegalArgumentException e) {
+            throw ApiException.validation(Map.of("ruleCode", ErrorCodes.FIELD_INVALID_VALUE));
+        }
+        return java.util.Arrays.stream(DriverExplanation.Reason.values()).map(r -> new ExplanationDto.ReasonOption(
+                r.name(), inf == null ? ExplanationCatalog.safetyReason(r) : ExplanationCatalog.safetyAllowed(inf, r),
+                inf == null ? ExplanationCatalog.homeReason(r) : ExplanationCatalog.homeAllowed(inf, r),
+                ExplanationCatalog.textRequired(r))).toList();
+    }
+
+    /**
+     * The note to copy by hand onto the tachograph printout (Article 12), in the document's language, filled with
+     * what is known: the reason, the Article 12 claim and its place, the break before a 2 h extension.
+     */
+    @RequiresPrivilege({Privileges.TACHO_HOS_VIEW, Privileges.DRIVER_APP_SELF_USE})
+    @Transactional(readOnly = true)
+    public ExplanationDto.PrintoutNote printoutNote(Long id, String reasonCode, String art12, String place,
+                                                    String breakFrom, String breakTo) {
+        DriverExplanation e = visible(id);
+        Firma firma = firma();
+        String docLang = templates.documentLanguage(firma.getCountry());
+        ExplanationTemplates.Template t = templates.template(docLang);
+        ZoneId zone = zone(firma);
+        DriverExplanation.Reason reason = ExplanationCatalog.reason(reasonCode).orElse(e.getReason());
+        DriverExplanation.Art12 claim = parseArt12(art12);
+        if (claim == null) {
+            claim = reason == DriverExplanation.Reason.REACH_HOME_OR_BASE ? DriverExplanation.Art12.HOME_1H
+                    : DriverExplanation.Art12.SAFETY;
+        }
+        boolean home = claim == DriverExplanation.Art12.HOME_1H || claim == DriverExplanation.Art12.HOME_2H;
+        Instant at = e.getEndedAt() != null ? e.getEndedAt() : e.getStartedAt();
+        Driver driver = drivers.findById(e.getDriverId()).orElse(null);
+        ExplanationCatalog.Infringement inf = e.getRuleCode() == null ? null
+                : ExplanationCatalog.infringement(e.getRuleCode());
+        Map<String, String> v = new java.util.HashMap<>();
+        v.put("date", t.date(at.atZone(zone)));
+        v.put("time", t.time(at.atZone(zone)));
+        v.put("reasonShort", reason == null ? null : t.text("reason." + reason.name() + ".short"));
+        v.put("infringementShort", inf == null ? null : t.text("printout.infringementShort." + inf.name()));
+        v.put("excess", e.getExceededMin() == null ? null : t.duration(e.getExceededMin()));
+        v.put("location", e.getPlace());
+        String p = InputFields.blankToNull(place) != null ? place.strip() : e.getArt12Place();
+        v.put("stopPlace", p);
+        v.put("destination", p);
+        v.put("breakFrom", InputFields.blankToNull(breakFrom) != null ? breakFrom.strip() : e.getArt12BreakFrom());
+        v.put("breakTo", InputFields.blankToNull(breakTo) != null ? breakTo.strip() : e.getArt12BreakTo());
+        v.put("driverName", driver == null ? null : driver.getFullName());
+        v.put("cardNumber", cards.findByDriverIdOrderByIdDesc(e.getDriverId()).stream().findFirst()
+                .map(DriverCard::getCardNumber).orElse(null));
+        v.put("plate", e.getVehiclePlate());
+        String text = t.fill(home ? "printout.art12Home" : "printout.art12Safety", v).replaceAll("\\s+", " ")
+                .replace(" .", ".").strip();
+        return new ExplanationDto.PrintoutNote(docLang, t.text("printout.instruction"), text);
+    }
+
+    /** The Article 12 claim of a signing, checked against the infringement and the reason. */
+    private record Art12Claim(DriverExplanation.Art12 art12, String place, String breakFrom, String breakTo,
+                              Boolean printoutNote, Instant printoutNoteAt) {
+    }
+
+    private static Art12Claim art12(DriverExplanation e, DriverExplanation.Reason reason,
+                                    ExplanationDto.SignInput in, Map<String, String> errors) {
+        DriverExplanation.Art12 art12 = in == null ? DriverExplanation.Art12.NONE : parseArt12(in.art12());
+        if (art12 == null) {
+            errors.put("art12", ErrorCodes.FIELD_INVALID_VALUE);
+            return new Art12Claim(DriverExplanation.Art12.NONE, null, null, null, null, null);
+        }
+        if (art12 == DriverExplanation.Art12.NONE) {
+            return new Art12Claim(art12, null, null, null, in == null ? null : in.printoutNote(), null);
+        }
+        ExplanationCatalog.Infringement inf = e.getRuleCode() == null ? null
+                : ExplanationCatalog.infringement(e.getRuleCode());
+        boolean home = art12 != DriverExplanation.Art12.SAFETY;
+        boolean allowed = home ? ExplanationCatalog.homeAllowed(inf, reason)
+                : ExplanationCatalog.safetyAllowed(inf, reason);
+        if (!allowed) {
+            errors.put("art12", ErrorCodes.FIELD_INVALID_VALUE);
+        }
+        Integer exceeded = e.getExceededMin();
+        if (exceeded != null && ((art12 == DriverExplanation.Art12.HOME_1H && exceeded > 60)
+                || (art12 == DriverExplanation.Art12.HOME_2H && exceeded > 120))) {
+            errors.put("art12", ErrorCodes.FIELD_INVALID_VALUE);
+        }
+        String place = InputFields.blankToNull(in.art12Place());
+        if (place == null) {
+            errors.put("art12Place", ErrorCodes.FIELD_REQUIRED);
+        } else if (place.length() > 100) {
+            errors.put("art12Place", ErrorCodes.FIELD_TOO_LONG);
+        }
+        String from = InputFields.blankToNull(in.art12BreakFrom());
+        String to = InputFields.blankToNull(in.art12BreakTo());
+        if (art12 == DriverExplanation.Art12.HOME_2H) {
+            if (from == null) {
+                errors.put("art12BreakFrom", ErrorCodes.FIELD_REQUIRED);
+            } else if (!from.matches("([01]\\d|2[0-3]):[0-5]\\d")) {
+                errors.put("art12BreakFrom", ErrorCodes.FIELD_INVALID_FORMAT);
+            }
+            if (to == null) {
+                errors.put("art12BreakTo", ErrorCodes.FIELD_REQUIRED);
+            } else if (!to.matches("([01]\\d|2[0-3]):[0-5]\\d")) {
+                errors.put("art12BreakTo", ErrorCodes.FIELD_INVALID_FORMAT);
+            }
+        } else {
+            from = null;
+            to = null;
+        }
+        if (in.printoutNote() == null) {
+            errors.put("printoutNote", ErrorCodes.FIELD_REQUIRED);
+        }
+        return new Art12Claim(art12, place, from, to, in.printoutNote(),
+                Boolean.TRUE.equals(in.printoutNote()) ? in.printoutNoteAt() : null);
+    }
+
+    /** NONE when empty, null when unknown. */
+    private static DriverExplanation.Art12 parseArt12(String text) {
+        if (text == null || text.isBlank()) {
+            return DriverExplanation.Art12.NONE;
+        }
+        try {
+            return DriverExplanation.Art12.valueOf(text.strip().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 
     // --- helpers -------------------------------------------------------------------------------------------
@@ -365,6 +510,12 @@ public class ExplanationService {
         e.setStartedAt(in.startedAt());
         e.setEndedAt(in.endedAt());
         e.setExceededMin(in.exceededMin());
+        int limit = ExplanationCatalog.limitMin(rule);
+        e.setLimitMin(limit);
+        if (in.exceededMin() != null) {
+            int actual = ExplanationCatalog.minimum(rule) ? limit - in.exceededMin() : limit + in.exceededMin();
+            e.setActualMin(actual < 0 ? null : actual);
+        }
         e.setStatus(DriverExplanation.Status.PENDING);
         e.setSource(DriverExplanation.Source.MANUAL);
         e.setDocLang(templates.documentLanguage(firma.getCountry()));
@@ -392,19 +543,49 @@ public class ExplanationService {
         ExplanationTemplates.Template t = templates.template(docLang);
         ZoneId zone = zone(firma);
         Driver driver = drivers.findById(e.getDriverId()).orElse(null);
-        String card = cards.findByDriverIdOrderByIdDesc(e.getDriverId()).stream().findFirst()
-                .map(DriverCard::getCardNumber).orElse(null);
-        String values = e.getActualMin() == null || e.getLimitMin() == null ? null
-                : t.duration(e.getActualMin()) + " / " + t.duration(e.getLimitMin());
-        ExplanationPdf.Data data = new ExplanationPdf.Data(firma.getName(), oneLine(firma.getAddress()),
-                driver == null ? null : driver.getFullName(), card, e.getVehiclePlate(),
-                DATE.format(e.getStartedAt().atZone(zone)), TIME.format(e.getStartedAt().atZone(zone)),
-                e.getEndedAt() == null ? null : TIME.format(e.getEndedAt().atZone(zone)),
-                e.getRuleCode() == null ? null : lang.get("hos.rule." + e.getRuleCode(), docLang), values,
-                e.getExceededMin() == null ? null : t.duration(e.getExceededMin()),
-                e.getReason() == null ? null : e.getReason().name(), e.getReasonText(), e.getPlace(),
-                e.getSignedAt() == null ? null : DATE.format(e.getSignedAt().atZone(zone)), signature);
-        return pdf.render(data, t, draft);
+        DriverCard card = cards.findByDriverIdOrderByIdDesc(e.getDriverId()).stream().findFirst().orElse(null);
+        ExplanationCatalog.Infringement inf = e.getRuleCode() == null ? null
+                : ExplanationCatalog.infringement(e.getRuleCode());
+        Map<String, String> v = new java.util.HashMap<>();
+        v.put("firma.name", firma.getName());
+        v.put("firma.address", oneLine(firma.getAddress()));
+        v.put("firma.taxId", firma.getVatId());
+        v.put("driver.fullName", driver == null ? null : driver.getFullName());
+        v.put("driver.cardNumber", card == null ? null : card.getCardNumber());
+        v.put("vehicle.plate", e.getVehiclePlate());
+        v.put("doc.number", Long.toString(e.getId()));
+        v.put("doc.place", e.getPlace());
+        Instant docAt = e.getSignedAt() != null ? e.getSignedAt() : Instant.now();
+        v.put("doc.date", t.date(docAt.atZone(zone)));
+        v.put("source.label", t.text("source." + (e.getViolationId() != null || e.getSource()
+                == DriverExplanation.Source.AUTO ? "BOTH" : "MANUAL")));
+        v.put("source.downloadedAt", card == null || card.getLastDownloadAt() == null ? null
+                : t.date(card.getLastDownloadAt().atZone(zone)));
+        v.put("inf.date", t.date(e.getStartedAt().atZone(zone)));
+        v.put("inf.period", t.date(e.getStartedAt().atZone(zone)) + " " + t.time(e.getStartedAt().atZone(zone))
+                + (e.getEndedAt() == null ? "" : " – " + t.date(e.getEndedAt().atZone(zone)) + " "
+                + t.time(e.getEndedAt().atZone(zone))));
+        v.put("inf.limit", e.getLimitMin() == null ? null : t.duration(e.getLimitMin()));
+        v.put("inf.recorded", e.getActualMin() == null ? null : t.duration(e.getActualMin()));
+        v.put("inf.excess", e.getExceededMin() == null ? null : t.duration(e.getExceededMin()));
+        v.put("reason.details", e.getReasonText());
+        v.put("dispute.text", e.getReasonText());
+        v.put("art12.stopPlace", e.getArt12Place());
+        v.put("art12.destination", e.getArt12Place());
+        v.put("art12.breakFrom", e.getArt12BreakFrom());
+        v.put("art12.breakTo", e.getArt12BreakTo());
+        if (e.getPrintoutNoteAt() != null) {
+            v.put("art12.noteDate", t.date(e.getPrintoutNoteAt().atZone(zone)));
+            v.put("art12.noteTime", t.time(e.getPrintoutNoteAt().atZone(zone)));
+        }
+        if (e.getSignedAt() != null) {
+            v.put("sign.timestamp", t.date(e.getSignedAt().atZone(zone)) + " " + t.time(e.getSignedAt().atZone(zone)));
+        }
+        String label = e.getRuleCode() == null ? null : lang.get("hos.rule." + e.getRuleCode(), docLang);
+        boolean possible = inf != null && (inf.safety || inf.home);
+        ExplanationPdf.Doc doc = new ExplanationPdf.Doc(v, inf == null ? "OTHER" : inf.name(), label, e.getReason(),
+                e.getArt12(), possible, e.getPrintoutNote(), signature, e.getSignedAt() != null);
+        return pdf.render(doc, t, draft);
     }
 
     private static byte[] signature(String dataUrl, Map<String, String> errors) {
@@ -477,14 +658,20 @@ public class ExplanationService {
         return list.stream().map(e -> {
             Driver d = driverOf.get(e.getDriverId());
             Vehicle v = e.getVehiclePlate() == null ? null : vehicleOf.get(plateKey(e.getVehiclePlate()));
+            ExplanationCatalog.Infringement inf = e.getRuleCode() == null ? null
+                    : ExplanationCatalog.infringement(e.getRuleCode());
             return new ExplanationDto.Explanation(e.getId(), e.getStatus().name(), e.getSource().name(),
                     new ExplanationDto.Ref(e.getDriverId(), d == null ? null : d.getFullName()),
                     e.getVehiclePlate() == null ? null
                             : new ExplanationDto.VehicleRef(v == null ? null : v.getId(), e.getVehiclePlate()),
-                    e.getViolationId(), e.getRuleCode(), e.getStartedAt(), e.getEndedAt(), e.getActualMin(),
-                    e.getLimitMin(), e.getExceededMin(), e.getReason() == null ? null : e.getReason().name(),
-                    e.getReasonText(), e.getPlace(), e.getDocLang(), e.getSignedAt(), ref(userOf, e.getSignedBy()),
-                    e.getCancelledAt(), e.getCreatedAt(), ref(userOf, e.getCreatedBy()), e.getPdfFileId() != null);
+                    e.getViolationId(), e.getRuleCode(), inf == null ? null : inf.name(), e.getStartedAt(),
+                    e.getEndedAt(), e.getActualMin(), e.getLimitMin(), e.getExceededMin(),
+                    e.getReason() == null ? null : e.getReason().name(), e.getReasonText(), e.getPlace(),
+                    e.getArt12() == null ? null : e.getArt12().name(), e.getArt12Place(), e.getArt12BreakFrom(),
+                    e.getArt12BreakTo(), e.getPrintoutNote(), e.getPrintoutNoteAt(),
+                    new ExplanationDto.Art12Allowed(inf != null && inf.safety, inf != null && inf.home),
+                    e.getDocLang(), e.getSignedAt(), ref(userOf, e.getSignedBy()), e.getCancelledAt(),
+                    e.getCreatedAt(), ref(userOf, e.getCreatedBy()), e.getPdfFileId() != null);
         }).toList();
     }
 

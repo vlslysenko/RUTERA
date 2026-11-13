@@ -2,7 +2,9 @@
 -- infringement: created by the office or automatically when the import finds a new violation; the driver picks a
 -- reason and signs in the cabinet; the signed PDF (template in the language of the firma's country) is kept in
 -- stored_file. The infringement's data is copied, because violations are recomputed after every import; violation_id
--- is cleared when its violation disappears.
+-- is cleared when its violation disappears. art12: the driver's Article 12 claim (NONE, SAFETY = first paragraph,
+-- HOME_1H / HOME_2H = second / third paragraph) with the stopping place or destination, the 30 min break before a 2 h
+-- extension, and whether the handwritten note on the tachograph printout was made.
 CREATE TABLE driver_explanation (
     id                  BIGINT        NOT NULL AUTO_INCREMENT,
     firma_id            BIGINT        NOT NULL,
@@ -20,6 +22,12 @@ CREATE TABLE driver_explanation (
     reason              VARCHAR(32)   NULL,
     reason_text         VARCHAR(1000) NULL,
     place               VARCHAR(100)  NULL,
+    art12               VARCHAR(16)   NULL,
+    art12_place         VARCHAR(100)  NULL,
+    art12_break_from    VARCHAR(5)    NULL,
+    art12_break_to      VARCHAR(5)    NULL,
+    printout_note       BOOLEAN       NULL,
+    printout_note_at    DATETIME(6)   NULL,
     doc_lang            VARCHAR(5)    NULL,
     signed_at           DATETIME(6)   NULL,
     signed_by           BIGINT        NULL,

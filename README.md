@@ -602,17 +602,40 @@ A driver's written statement on an infringement (oświadczenie kierowcy), signed
 | GET | `/app/explanations?status=&driverId=&from=&to=&page=&size=` | `{items: Explanation[], total}`, newest first (`tacho.hos/view`; a driver with `driver_app.self/use` gets only their own, whatever `driverId` says) |
 | GET | `/app/explanations/{id}` | `Explanation` (same) |
 | GET | `/app/explanations/{id}/pdf` | `application/pdf`: the signed one, or a preview marked as a draft (same) |
+| GET | `/app/explanations/reasons?ruleCode=` | `[{code, art12Safety, art12Home, textRequired}]`: every reason, whether it allows an Article 12 claim for the infringement of that rule (with no rule: whether it ever does) and whether it needs `reasonText` (same); an unknown rule 422 `ruleCode: validation.invalid_value` |
+| GET | `/app/explanations/{id}/printout-note?reason=&art12=&place=&breakFrom=&breakTo=` | `{lang, instruction, text}`: the Article 12 note to copy by hand onto the tachograph printout, in the document's language, filled with the explanation's data and these values (all optional; `art12` defaults to `HOME_1H` for `REACH_HOME_OR_BASE`, else `SAFETY`); what is unknown prints as a line to fill in (same) |
 | POST | `/app/explanations` | `{violationId}` or `{driverId, vehicleId?, ruleCode, startedAt, endedAt?, exceededMin?}` -> 201 `Explanation` (`tacho.violation/ack`); a violation that has one gives it back (a cancelled one is reopened), the same driver, rule and start by hand 409 `error.conflict` |
 | POST | `/app/explanations/{id}/remind` | `Explanation`: the push again (`tacho.violation/ack`) |
 | POST | `/app/explanations/{id}/cancel` | `Explanation` (`tacho.violation/ack`) |
-| POST | `/app/explanations/{id}/sign` | `{reason, reasonText?, place?, signature}` -> `Explanation`: only the driver it belongs to (`driver_app.self/use`) |
+| POST | `/app/explanations/{id}/sign` | `{reason, reasonText?, place?, signature, art12?, art12Place?, art12BreakFrom?, art12BreakTo?, printoutNote?, printoutNoteAt?}` -> `Explanation`: only the driver it belongs to (`driver_app.self/use`) |
 
 `Explanation = {id, status: PENDING | SIGNED | CANCELLED, source: AUTO | MANUAL, driver: {id, name}, vehicle: {id |
-null, plate} | null, violationId | null, ruleCode, startedAt, endedAt, actualMin, limitMin, exceededMin, reason,
-reasonText, place, docLang, signedAt, signedBy: {id, name} | null, cancelledAt, createdAt, createdBy: {id, name} |
-null, hasPdf}`. `reason`: `SAFE_STOPPING_PLACE`, `SAFETY`, `RETURN_FOR_WEEKLY_REST` (Article 12 of Regulation
-561/2006), `TRAFFIC_JAM`, `NO_PARKING`, `ACCIDENT`, `ROAD_CLOSURE`, `BREAKDOWN`, `WEATHER`, `LOADING_DELAY`, `OTHER`
-(needs `reasonText`, at most 1000 characters; `place` at most 100). `signature`: a PNG data URL
+null, plate} | null, violationId | null, ruleCode, infringementCode, startedAt, endedAt, actualMin, limitMin,
+exceededMin, reason, reasonText, place, art12, art12Place, art12BreakFrom, art12BreakTo, printoutNote,
+printoutNoteAt, art12Allowed: {safety, home}, docLang, signedAt, signedBy: {id, name} | null, cancelledAt, createdAt,
+createdBy: {id, name} | null, hasPdf}`. `infringementCode` is the template's code of the rule
+(`DAILY_DRIVING_EXCEEDED`, `WEEKLY_DRIVING_EXCEEDED`, `FORTNIGHTLY_DRIVING_EXCEEDED`, `CONTINUOUS_DRIVING_EXCEEDED`,
+`DAILY_REST_INSUFFICIENT`, `WEEKLY_REST_INSUFFICIENT`); `art12Allowed` says which Article 12 claims the infringement
+allows at all (safety: every one; home: daily and weekly driving).
+
+`reason` (the researched list, research/driver-explanations): `TRAFFIC_ACCIDENT`, `ROAD_CLOSURE_DETOUR`,
+`EXTREME_WEATHER`, `NO_PARKING_SPACE`, `SECURITY_THREAT`, `VEHICLE_BREAKDOWN`, `LOAD_SAFETY`, `MEDICAL_EMERGENCY`,
+`AUTHORITY_ORDER`, `FERRY_TRAIN_DELAY`, `REACH_HOME_OR_BASE`, `TRAFFIC_JAM`, `LOADING_DELAY`, `DISPATCH_INSTRUCTION`,
+`OWN_PLANNING_ERROR`, `RECORDING_ERROR`, `CARD_OR_TACHOGRAPH_FAULT`, `DATA_DISPUTE`, `OTHER`. `NO_PARKING_SPACE`,
+`DATA_DISPUTE` and `OTHER` need `reasonText` (at most 1000 characters; `place`, where the statement is written, at
+most 100). The first version's codes are still accepted and stored as their new ones, without needing a text:
+`SAFE_STOPPING_PLACE` and `NO_PARKING` -> `NO_PARKING_SPACE`, `SAFETY` -> `SECURITY_THREAT`,
+`RETURN_FOR_WEEKLY_REST` -> `REACH_HOME_OR_BASE`, `ACCIDENT` -> `TRAFFIC_ACCIDENT`, `ROAD_CLOSURE` ->
+`ROAD_CLOSURE_DETOUR`, `BREAKDOWN` -> `VEHICLE_BREAKDOWN`, `WEATHER` -> `EXTREME_WEATHER`.
+
+`art12` (Article 12 of Regulation 561/2006, default `NONE`): `SAFETY` (first paragraph: reaching a suitable stopping
+place; reasons `TRAFFIC_ACCIDENT`, `ROAD_CLOSURE_DETOUR`, `EXTREME_WEATHER`, `NO_PARKING_SPACE`, `SECURITY_THREAT`,
+`VEHICLE_BREAKDOWN`, `LOAD_SAFETY`, `MEDICAL_EMERGENCY`, `FERRY_TRAIN_DELAY`), `HOME_1H` / `HOME_2H` (second and
+third paragraph: up to 1 h / 2 h more daily or weekly driving to reach the base or home for a weekly rest; reason
+`REACH_HOME_OR_BASE`, `exceededMin` at most 60 / 120). A claim needs `art12Place` (the stopping place or the
+destination, at most 100) and `printoutNote` (whether the note was written on the printout; `printoutNoteAt` when it
+was); `HOME_2H` also `art12BreakFrom` and `art12BreakTo` (`HH:mm`, the 30 min break before the extension). A claim
+the infringement or the reason does not allow: `art12: validation.invalid_value`. `signature`: a PNG data URL
 (`data:image/png;base64,...`, at most 300 KB). Sign or cancel what is not PENDING: 409 `explanation.not_pending`.
 The infringement's data is copied (violations are recomputed after every import); `violationId` is cleared when its
 violation disappears.
@@ -622,7 +645,12 @@ default 28) while `explanationsAuto` is on (default); the driver's login gets th
 (`/driver/explanations/{id}`, tag `explanation-{id}`, texts `notify.explanation.requested.*`). Signing stores the
 signature and the PDF in `stored_file` (kinds `SIGNATURE`, `EXPLANATION`). The PDF is written in the language of the
 firma's country of registration (`ExplanationTemplates`: one `resources/explanations/explanation_<lang>.properties`
-per language, English for a country without its own; for now Polish and English); `docLang` is the language used.
+per language, `{{name}}` placeholders, English for a country without its own); `docLang` is the language used.
+Templates (the research's, a draft not reviewed by a lawyer): `pl` (PL), `de` (DE, AT, CH, LI, LU), `cs` (CZ), `sk`
+(SK), `lt` (LT), `lv` (LV), `ro` (RO), `hu` (HU), `nl` (NL, BE), `es` (ES), `en` (MT, IE, GB and every other country).
+The PDF: the firma's header, the data table, 1 the infringement, 2 the reason with the driver's words, 3 the Article
+12 claim (or that none is made) and the note on the printout, 4 the declaration (or the dispute of the data), the
+driver's signature, 5 the employer's part to fill in by hand.
 
 ### Invoices, payments, debts and reminders (`/app/invoices`, `/app/debts`, `/app/reminders`)
 

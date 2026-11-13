@@ -26,10 +26,17 @@ public class DriverExplanation extends TenantEntity {
         AUTO, MANUAL
     }
 
-    /** Art. 12 of Regulation 561/2006 first (stopping place, safety, return for the weekly rest), then everyday ones. */
+    /** The reasons of the researched templates (research/driver-explanations, reasons.csv) and a plain traffic jam. */
     public enum Reason {
-        SAFE_STOPPING_PLACE, SAFETY, RETURN_FOR_WEEKLY_REST, TRAFFIC_JAM, NO_PARKING, ACCIDENT, ROAD_CLOSURE, BREAKDOWN,
-        WEATHER, LOADING_DELAY, OTHER
+        TRAFFIC_ACCIDENT, ROAD_CLOSURE_DETOUR, EXTREME_WEATHER, NO_PARKING_SPACE, SECURITY_THREAT, VEHICLE_BREAKDOWN,
+        LOAD_SAFETY, MEDICAL_EMERGENCY, AUTHORITY_ORDER, FERRY_TRAIN_DELAY, REACH_HOME_OR_BASE, TRAFFIC_JAM,
+        LOADING_DELAY, DISPATCH_INSTRUCTION, OWN_PLANNING_ERROR, RECORDING_ERROR, CARD_OR_TACHOGRAPH_FAULT,
+        DATA_DISPUTE, OTHER
+    }
+
+    /** The driver's Article 12 claim of Regulation 561/2006: none, first paragraph, second (1 h) or third (2 h). */
+    public enum Art12 {
+        NONE, SAFETY, HOME_1H, HOME_2H
     }
 
     @Column(name = "driver_id", nullable = false)
@@ -83,6 +90,28 @@ public class DriverExplanation extends TenantEntity {
 
     @Column(name = "doc_lang", length = 5)
     private String docLang;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "art12", length = 16)
+    private Art12 art12;
+
+    /** The stopping place (SAFETY) or the destination (HOME_*). */
+    @Column(name = "art12_place", length = 100)
+    private String art12Place;
+
+    @Column(name = "art12_break_from", length = 5)
+    private String art12BreakFrom;
+
+    @Column(name = "art12_break_to", length = 5)
+    private String art12BreakTo;
+
+    /** Whether the handwritten note was made on the tachograph printout (Article 12). */
+    @Column(name = "printout_note")
+    private Boolean printoutNote;
+
+    @Column(name = "printout_note_at")
+    private Instant printoutNoteAt;
 
     @Column(name = "signed_at")
     private Instant signedAt;
@@ -220,6 +249,54 @@ public class DriverExplanation extends TenantEntity {
 
     public void setDocLang(String docLang) {
         this.docLang = docLang;
+    }
+
+    public Art12 getArt12() {
+        return art12;
+    }
+
+    public void setArt12(Art12 art12) {
+        this.art12 = art12;
+    }
+
+    public String getArt12Place() {
+        return art12Place;
+    }
+
+    public void setArt12Place(String art12Place) {
+        this.art12Place = art12Place;
+    }
+
+    public String getArt12BreakFrom() {
+        return art12BreakFrom;
+    }
+
+    public void setArt12BreakFrom(String art12BreakFrom) {
+        this.art12BreakFrom = art12BreakFrom;
+    }
+
+    public String getArt12BreakTo() {
+        return art12BreakTo;
+    }
+
+    public void setArt12BreakTo(String art12BreakTo) {
+        this.art12BreakTo = art12BreakTo;
+    }
+
+    public Boolean getPrintoutNote() {
+        return printoutNote;
+    }
+
+    public void setPrintoutNote(Boolean printoutNote) {
+        this.printoutNote = printoutNote;
+    }
+
+    public Instant getPrintoutNoteAt() {
+        return printoutNoteAt;
+    }
+
+    public void setPrintoutNoteAt(Instant printoutNoteAt) {
+        this.printoutNoteAt = printoutNoteAt;
     }
 
     public Instant getSignedAt() {
