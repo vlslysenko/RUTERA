@@ -1,0 +1,51 @@
+/* Settings -> Company: link cards to the other firma-level settings. */
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  color: inherit;
+  text-decoration: none;
+}
+
+.link:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 1px;
+}
+
+.linkIcon {
+  display: inline-flex;
+  flex: none;
+  color: var(--mantine-primary-color-filled);
+}
+
+.linkBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.chevron {
+  flex: none;
+  color: var(--mantine-color-dimmed);
+}
+
+/* Three selects side by side; below 48em one under another. */
+@media (max-width: 48em) {
+  .wrap {
+    flex-direction: column;
+  }
+
+  .wrap > * {
+    max-width: 100%;
+  }
+}

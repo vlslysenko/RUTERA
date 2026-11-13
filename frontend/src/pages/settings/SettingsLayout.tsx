@@ -6,7 +6,7 @@ import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
 import { PageHeader } from '@/components/PageHeader';
 
-/** Settings: profile, own password, own API tokens, and for admins the users and all API tokens of the firma. Tabs are routes. */
+/** Settings: profile, own password, own API tokens, and for admins the company, its users, all API tokens and the event log. Tabs are routes. */
 export function SettingsLayout() {
   const { t } = useTranslation();
   const user = useUser();
@@ -20,8 +20,9 @@ export function SettingsLayout() {
     { value: '/settings/password', label: t('settings.tab.password') },
     // Drivers use the cabinet, not the public API.
     ...(firma && hasPrivilege(user, PRIV.PROFILE_SELF_MANAGE) && !usesDriverApp(user) ? [{ value: '/settings/tokens', label: t('settings.tab.tokens') }] : []),
-    ...(firma && hasPrivilege(user, PRIV.ADMIN_USER_VIEW) ? [{ value: '/settings/users', label: t('settings.tab.users') }] : []),
+    // The company tab gathers the firma's settings and links to the rest, so it comes first of the firma tabs.
     ...(firma && hasPrivilege(user, PRIV.ADMIN_FIRMA_MANAGE) ? [{ value: '/settings/firma', label: t('settings.tab.firma') }] : []),
+    ...(firma && hasPrivilege(user, PRIV.ADMIN_USER_VIEW) ? [{ value: '/settings/users', label: t('settings.tab.users') }] : []),
     ...(firma && hasPrivilege(user, PRIV.ADMIN_API_TOKEN_MANAGE) ? [{ value: '/settings/api-tokens', label: t('settings.tab.api_tokens') }] : []),
     ...(firma && hasPrivilege(user, PRIV.ADMIN_AUDIT_VIEW) ? [{ value: '/settings/audit', label: t('settings.tab.audit') }] : []),
   ];
