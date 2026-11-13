@@ -317,7 +317,7 @@ export function cancelCmr(id: string, crew: CrewLookup): MockReply {
 }
 
 /** A minimal valid PDF: one page per copy, one line per filled box (ASCII only, like a sketch of the real form). */
-function sketchPdf(pages: string[][]): Blob {
+export function sketchPdf(pages: string[][]): Blob {
   const esc = (s: string) => s.replace(/[^\x20-\x7e]/g, '?').replace(/([()\\])/g, '\\$1');
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',

@@ -228,3 +228,15 @@
   border-radius: var(--mantine-radius-sm);
   background: var(--mantine-color-body);
 }
+
+/* A list row that opens something (explanations). */
+.rowLink {
+  padding: 8px 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Choices for a finger: a taller row per radio. */
+.choice {
+  padding: 4px 0;
+}

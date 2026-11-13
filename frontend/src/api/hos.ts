@@ -100,6 +100,9 @@ export interface Violation {
   /** Short technical English text, not translated. */
   details: string | null;
   ack: { by: { id: number; name: string }; at: string; note: string | null } | null;
+  /** The driver's explanation of it, when one was asked for (proposed with the explanations contract). */
+  explanationId?: number | null;
+  explanationStatus?: 'PENDING' | 'SIGNED' | 'CANCELLED' | null;
 }
 
 export interface ViolationFilter {

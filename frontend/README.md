@@ -205,6 +205,17 @@ Installation: `src/app/install.ts` catches `beforeinstallprompt` at start (impor
 "Me" tab shows "Install RUTERA on this phone" with a button where the browser offers it, the Share -> Add to Home
 Screen hint on iPhone/iPad, and nothing when the app already runs installed.
 
+### Driver explanations
+
+`/app/explanations` (backend cd005a4, `src/api/explanations.ts`): the import asks for an explanation of every new
+infringement of the last `explanationsDays` days (Settings -> Company: `explanationsAuto`, `explanationsDays`), the
+office asks by hand or from a violation card. The driver gets the push `explanation.requested`, a banner on "Today"
+and the list `/driver/explanations`; `/driver/explanations/:id` shows the facts, the Art. 12 note on the printout, the
+reasons (`EXPLANATION_REASONS`, OTHER needs a text), place (100) and a finger signature (`components/SignaturePad`, a
+white pad, PNG data URL). The office list is Tachograph -> Explanations (filters in the URL, right panel with PDF
+preview or the signed PDF, remind, withdraw). The PDF language follows the firma's country of registration
+(`explanationLang`), the screens stay in the user's language. The mock builds explanations from the newest violations.
+
 ### Tooltips
 
 Theme defaults in `src/app/theme.ts` (`events` hover, focus and touch; multiline, `maw` 300). Three shapes, all texts in

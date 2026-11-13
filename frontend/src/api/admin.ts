@@ -43,11 +43,21 @@ export interface FirmaSettings {
   plan: string;
   vehicleLimit: number | null;
   aiAccess: boolean;
+  /** Language of the driver explanation PDF, from the country ("en" while the country has no template yet). */
+  explanationLang?: string;
+  /** The import asks drivers for explanations of new violations of the last explanationsDays days. */
+  explanationsAuto?: boolean;
+  explanationsDays?: number;
   /** Drivers see their own pay rates and payments in the cabinet. */
   driversSeePay: boolean;
 }
 
-export type FirmaSettingsInput = Pick<FirmaSettings, 'name' | 'vatId' | 'address' | 'email' | 'lang' | 'timezone' | 'baseCurrency' | 'driversSeePay'>;
+/** Country (ISO-2) and the explanation settings are kept when left out (backend cd005a4). */
+export type FirmaSettingsInput = Pick<FirmaSettings, 'name' | 'vatId' | 'address' | 'email' | 'lang' | 'timezone' | 'baseCurrency' | 'driversSeePay'> & {
+  country?: string;
+  explanationsAuto?: boolean;
+  explanationsDays?: number;
+};
 
 export const firmaApi = {
   get: () => api<FirmaSettings>('/admin/firma'),

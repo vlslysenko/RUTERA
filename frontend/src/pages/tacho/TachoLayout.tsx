@@ -5,7 +5,7 @@ import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
 import { PageHeader } from '@/components/PageHeader';
 
-/** Tachograph: uploaded files, driver activity and violations (561/2006). Tabs are routes. */
+/** Tachograph: uploaded files, driver activity, violations (561/2006) and the drivers' explanations. Tabs are routes. */
 export function TachoLayout() {
   const { t } = useTranslation();
   const user = useUser();
@@ -19,6 +19,7 @@ export function TachoLayout() {
       ? [
           { value: '/tacho/activity', label: t('tacho.tab.activity') },
           { value: '/tacho/violations', label: t('tacho.tab.violations') },
+          { value: '/tacho/explanations', label: t('tacho.tab.explanations') },
         ]
       : []),
   ];

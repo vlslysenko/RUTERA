@@ -2,9 +2,10 @@ import { Link } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ActionIcon, Alert, Anchor, Button, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconArrowRight, IconCheck, IconMapPin } from '@tabler/icons-react';
+import { IconArrowRight, IconCheck, IconMapPin, IconSignature } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
+import { EXPLANATIONS_KEY, explanationsApi } from '@/api/explanations';
 import { HOS_KEY, hosApi } from '@/api/hos';
 import { driverHrKey, hrApi } from '@/api/hr';
 import { TRIPS_KEY, tripsApi, type Trip, type TripStop } from '@/api/trips';
@@ -132,6 +133,9 @@ export function TodayPage() {
     queryFn: () => hosApi.activity(driverId, shiftDays(today, -6), today),
     retry: false,
   });
+  // Explanations waiting for the driver's signature (also asked for by a push).
+  const pendingFilter = { driverId, status: 'PENDING' as const, size: 20 };
+  const pending = useQuery({ queryKey: [...EXPLANATIONS_KEY, 'list', pendingFilter], queryFn: () => explanationsApi.list(pendingFilter), retry: false });
   const absence = useQuery({
     queryKey: [...driverHrKey(driverId, 'absences'), today, today],
     queryFn: () => hrApi.absences(driverId, today, today),
@@ -149,6 +153,16 @@ export function TodayPage() {
   return (
     <Stack gap="sm">
       <Text fw={600}>{capitalize(new Intl.DateTimeFormat(lang, { weekday: 'long', day: 'numeric', month: 'long', timeZone: tz }).format(new Date()))}</Text>
+      {(pending.data?.total ?? 0) > 0 && (
+        <Alert variant="light" color="orange" icon={<IconSignature size={18} />} p="sm">
+          <Stack gap={6}>
+            <Text size="sm">{t('explanation.pending_today', { count: pending.data!.total })}</Text>
+            <Button component={Link} to={pending.data!.total === 1 ? `/driver/explanations/${pending.data!.items[0].id}` : '/driver/explanations'} size="md" color="orange" w="fit-content">
+              {t('explanation.open')}
+            </Button>
+          </Stack>
+        </Alert>
+      )}
       {away && (
         <Alert variant="light" color="teal">
           {t('driver_app.absent_today', { kind: t(`absence.kind.${away.kind}`), to: formatDate(away.toDate, lang) })}

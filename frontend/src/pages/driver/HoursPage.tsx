@@ -1,5 +1,6 @@
+import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Stack, Text } from '@mantine/core';
+import { Anchor, Stack, Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { HOS, HOS_KEY, hosApi, VIOLATIONS_KEY } from '@/api/hos';
 import { useUser } from '@/auth/useAuth';
@@ -77,7 +78,7 @@ export function HoursPage() {
         </Card>
       )}
 
-      <Card title={t('driver_app.violations')}>
+      <Card title={t('driver_app.violations')} right={<Anchor component={Link} to="/driver/explanations" size="sm">{t('explanation.my_title')}</Anchor>}>
         {violations.isPending ? (
           <Waiting query={violations} />
         ) : violations.isError && violations.data === undefined ? (

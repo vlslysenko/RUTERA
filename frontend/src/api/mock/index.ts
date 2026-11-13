@@ -50,6 +50,7 @@ import * as calcMock from './calc';
 import * as routeMock from './route';
 import type { CmrInput } from '@/api/cmr';
 import * as cmrMock from './cmr';
+import * as explanationMock from './explanations';
 import type { OperatorFirmaCreate, OperatorFirmaInput } from '@/api/operator';
 import type { ApiTokenInput } from '@/api/tokens';
 import type { FirmaSettings, FirmaSettingsInput } from '@/api/admin';
@@ -125,7 +126,10 @@ const firmaSettings: FirmaSettings = {
   id: MOCK_FIRMA.id, name: MOCK_FIRMA.name, shortCode: 'TRANSPOL', country: 'PL', vatId: 'PL8961000000',
   address: 'ul. Kolejowa 12\n55-080 Kąty Wrocławskie', email: 'biuro@transpol.example', lang: 'pl',
   timezone: MOCK_FIRMA.timezone ?? 'Europe/Warsaw', baseCurrency: 'PLN', plan: 'PRO', vehicleLimit: 30, aiAccess: true, driversSeePay: false,
+  explanationLang: 'pl', explanationsAuto: true, explanationsDays: 28,
 };
+// Countries with an explanation template; elsewhere the PDF is in English (backend ExplanationTemplates).
+const EXPLANATION_TEMPLATES: Record<string, string> = { PL: 'pl' };
 
 function toUser(u: MockUser): User {
   const saved = readSettings()[String(u.id)] ?? {};
@@ -787,8 +791,44 @@ route('GET', '/app/tacho/violations', withPrivilegeOrSelf('tacho.hos/view', ownQ
 
 route('GET', '/app/tacho/violations/:id', withPrivilege('tacho.hos/view', (_u, req) => {
   const v = violationStore().find((x) => String(x.id) === req.params.id);
-  return v ? { status: 200, body: v } : error(404, 'error.not_found');
+  return v ? { status: 200, body: { ...v, ...explanationMock.ofViolation(violationStore(), v.id) } } : error(404, 'error.not_found');
 }));
+
+// --- driver explanations (proposed contract, src/api/explanations.ts) ---------------------------------------
+
+/** All explanations for the office (tacho.hos/view), the own ones for a driver in the cabinet, else none. */
+function explanationScope(u: MockUser): number | null | false {
+  if (u.role === 'SUPERUSER' || ROLE_PRIVILEGES[u.role].includes('tacho.hos/view')) return null;
+  const own = ownDriverId(u);
+  return own != null && ROLE_PRIVILEGES[u.role].includes('driver_app.self/use') ? own : false;
+}
+const scoped = (fn: (u: MockUser, req: MockRequest, own: number | null) => MockResponse): Handler =>
+  withAuth((u, req) => {
+    const s = explanationScope(u);
+    return s === false ? error(403, 'auth.access_denied') : fn(u, req, s);
+  });
+const explanationLookup = {
+  driver: (id: number) => {
+    const d = drivers.find((x) => x.id === id && !x.deleted);
+    return d ? { id: d.id, name: `${d.firstName} ${d.lastName}` } : undefined;
+  },
+  vehicle: (id: number) => {
+    const v = vehicles.find((x) => x.id === id && !x.deleted);
+    return v ? { id: v.id, plate: v.plate } : undefined;
+  },
+};
+route('GET', '/app/explanations', scoped((_u, { query }, own) => explanationMock.list(violationStore(), query, own)));
+route('GET', '/app/explanations/:id/pdf', scoped((_u, req, own) => explanationMock.pdf(violationStore(), req.params.id, own)));
+route('GET', '/app/explanations/:id', scoped((_u, req, own) => explanationMock.get(violationStore(), req.params.id, own)));
+route('POST', '/app/explanations', withPrivilege('tacho.violation/ack', (u, { body }) =>
+  explanationMock.create(violationStore(), (body ?? {}) as Record<string, unknown>, explanationLookup, { id: u.id, name: fullName(u) })));
+// Only the driver signs, in the cabinet.
+route('POST', '/app/explanations/:id/sign', withAuth((u, req) => {
+  const own = ownDriverId(u);
+  return own == null ? error(403, 'auth.access_denied') : explanationMock.sign(violationStore(), req.params.id, (req.body ?? {}) as Record<string, string>, own);
+}));
+route('POST', '/app/explanations/:id/cancel', withPrivilege('tacho.violation/ack', (_u, req) => explanationMock.cancel(violationStore(), req.params.id)));
+route('POST', '/app/explanations/:id/remind', withPrivilege('tacho.violation/ack', (_u, req) => explanationMock.remind(violationStore(), req.params.id)));
 
 route('POST', '/app/tacho/violations/:id/ack', withPrivilege('tacho.violation/ack', (u, req) => {
   const v = violationStore().find((x) => String(x.id) === req.params.id);
@@ -930,10 +970,15 @@ route('PUT', '/app/admin/firma', withPrivilege('admin.firma/manage', (_u, { body
     errors.timezone = 'validation.invalid_value';
   }
   if (!/^[A-Z]{3}$/.test(b.baseCurrency ?? '')) errors.baseCurrency = 'validation.invalid_format';
+  if (b.country != null && !/^[A-Z]{2}$/.test(b.country)) errors.country = 'validation.invalid_value';
+  if (b.explanationsDays != null && (!Number.isInteger(b.explanationsDays) || b.explanationsDays < 1 || b.explanationsDays > 365)) errors.explanationsDays = 'validation.invalid_value';
   if (Object.keys(errors).length) return error(422, 'error.validation', errors);
+  const country = b.country ?? firmaSettings.country;
   Object.assign(firmaSettings, {
     name, vatId: b.vatId ?? null, address: b.address ?? null, email: b.email ?? null, lang: b.lang, timezone: b.timezone,
     baseCurrency: b.baseCurrency, driversSeePay: b.driversSeePay ?? firmaSettings.driversSeePay,
+    country, explanationLang: EXPLANATION_TEMPLATES[country] ?? 'en',
+    explanationsAuto: b.explanationsAuto ?? firmaSettings.explanationsAuto, explanationsDays: b.explanationsDays ?? firmaSettings.explanationsDays,
   });
   return { status: 200, body: firmaSettings };
 }));

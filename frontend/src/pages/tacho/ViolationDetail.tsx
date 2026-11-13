@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Anchor, Button, Group, Paper, Stack, Text, Textarea, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconArrowBackUp, IconCheck } from '@tabler/icons-react';
+import { IconArrowBackUp, IconCheck, IconSignature } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { errorCode } from '@/api/errors';
+import { EXPLANATIONS_KEY, explanationsApi } from '@/api/explanations';
 import { HOS_KEY, VIOLATIONS_KEY, hosApi } from '@/api/hos';
 import { hasPrivilege, PRIV } from '@/auth/privileges';
 import { useUser } from '@/auth/useAuth';
@@ -15,6 +16,7 @@ import { KeyValueList } from '@/components/KeyValueList';
 import { Plate } from '@/components/Plate';
 import { formatInstant } from './format';
 import { formatMinutes, mondayOf, mondayOfDay, REST_RULES, ymdIn } from './hosFormat';
+import { ExplanationStatusChip } from './ExplanationChips';
 import { ReviewChip, SeverityChip } from './ViolationChips';
 import classes from './Hos.module.css';
 
@@ -35,6 +37,23 @@ export function ViolationDetail({ mode }: { mode: 'drawer' | 'page' }) {
   const canAck = hasPrivilege(me, PRIV.TACHO_VIOLATION_ACK);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
+
+  /** Asks the driver to explain this violation: the cabinet gets it with the facts filled in, and a push. */
+  const askExplanation = async () => {
+    setBusy(true);
+    try {
+      const e = await explanationsApi.create({ violationId: Number(id) });
+      void qc.invalidateQueries({ queryKey: [...VIOLATIONS_KEY, id] });
+      void qc.invalidateQueries({ queryKey: EXPLANATIONS_KEY });
+      notifications.show({ color: 'green', message: t('explanation.requested') });
+      await navigate(`/tacho/explanations/${e.id}`);
+    } catch (e) {
+      notifications.show({ color: 'red', message: t(errorCode(e)) });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const review = async (undo: boolean) => {
     setBusy(true);
@@ -118,6 +137,28 @@ export function ViolationDetail({ mode }: { mode: 'drawer' | 'page' }) {
           >
             {t('hos.v.show_week')}
           </Anchor>
+
+          <section className={classes.section}>
+            <h3 className={classes.sectionTitle}>{t('explanation.section')}</h3>
+            {v.explanationId != null ? (
+              <Group gap="xs">
+                {v.explanationStatus && <ExplanationStatusChip status={v.explanationStatus} />}
+                <Anchor component={Link} to={`/tacho/explanations/${v.explanationId}`} size="sm">
+                  {t('explanation.open_it')}
+                </Anchor>
+              </Group>
+            ) : canAck ? (
+              <Tooltip label={t('hint.action.explanation_ask')}>
+                <Button size="xs" variant="light" leftSection={<IconSignature size={14} />} onClick={() => void askExplanation()} loading={busy} w="fit-content">
+                  {t('explanation.ask')}
+                </Button>
+              </Tooltip>
+            ) : (
+              <Text size="sm" c="dimmed">
+                {t('explanation.none_yet')}
+              </Text>
+            )}
+          </section>
 
           <section className={classes.section}>
             <h3 className={classes.sectionTitle}>{t('hos.v.review')}</h3>

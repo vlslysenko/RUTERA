@@ -1,0 +1,38 @@
+.box {
+  position: relative;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.box[data-error] {
+  border-color: var(--mantine-color-error);
+}
+
+.pad {
+  display: block;
+  width: 100%;
+  /* The finger draws instead of scrolling or zooming the page. */
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* The line to sign on, as on paper. */
+.line {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 36px;
+  border-bottom: 1px dashed #b9c2cd;
+  pointer-events: none;
+}

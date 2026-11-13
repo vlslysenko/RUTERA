@@ -55,6 +55,8 @@ import { DriverShell } from '@/pages/driver/DriverShell';
 import { HoursPage } from '@/pages/driver/HoursPage';
 import { MePage } from '@/pages/driver/MePage';
 import { TodayPage } from '@/pages/driver/TodayPage';
+import { ExplanationSign, MyExplanations } from '@/pages/driver/ExplanationsPage';
+import { ExplanationDetail, ExplanationsPage } from '@/pages/tacho/ExplanationsPage';
 import { CalculatorPage } from '@/pages/trips/CalculatorPage';
 import { CmrDetail } from '@/pages/trips/CmrDetail';
 import { CmrForm } from '@/pages/trips/CmrForm';
@@ -97,6 +99,8 @@ export const router = createBrowserRouter([
           { path: 'hours', element: <HoursPage /> },
           { path: 'documents', element: <DocumentsPage /> },
           { path: 'me', element: <MePage /> },
+          { path: 'explanations', element: <MyExplanations /> },
+          { path: 'explanations/:id', element: <ExplanationSign /> },
         ],
       },
       {
@@ -277,6 +281,11 @@ export const router = createBrowserRouter([
                       element: <ViolationsPage />,
                       children: [{ path: ':id', element: <ViolationDetail mode="drawer" /> }],
                     },
+                    {
+                      path: 'explanations',
+                      element: <ExplanationsPage />,
+                      children: [{ path: ':id', element: <ExplanationDetail mode="drawer" /> }],
+                    },
                   ],
                 },
               ],
@@ -284,7 +293,10 @@ export const router = createBrowserRouter([
             { path: `${SCREENS.tacho.path}/files/:id/page`, element: <TachoFileDetail mode="page" /> },
             {
               element: <PrivilegeGuard privilege={PRIV.TACHO_HOS_VIEW} />,
-              children: [{ path: `${SCREENS.tacho.path}/violations/:id/page`, element: <ViolationDetail mode="page" /> }],
+              children: [
+                { path: `${SCREENS.tacho.path}/violations/:id/page`, element: <ViolationDetail mode="page" /> },
+                { path: `${SCREENS.tacho.path}/explanations/:id/page`, element: <ExplanationDetail mode="page" /> },
+              ],
             },
           ]),
           placeholder('documents'),

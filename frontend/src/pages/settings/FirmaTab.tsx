@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Controller, useForm, type FieldPath } from 'react-hook-form';
+import { Controller, useForm, useWatch, type FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button, Group, Paper, Select, SimpleGrid, Stack, Switch, Text, Textarea, TextInput, UnstyledButton } from '@mantine/core';
+import { Button, Group, NumberInput, Paper, Select, SimpleGrid, Stack, Switch, Text, Textarea, TextInput, UnstyledButton } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconChevronRight, IconCreditCard, IconGasStation, IconHistory, IconKey, IconMailForward, IconRoad, IconUsers } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +19,8 @@ import { LabelHint } from '@/components/LabelHint';
 import { applyServerErrors } from '@/forms/serverErrors';
 import { LANGUAGES } from '@/i18n/languages';
 import { CURRENCIES } from '@/pages/trips/tripFormat';
-import { countryName } from '@/utils/countries';
+import { countryOptions } from '@/utils/countries';
+import { languageName } from '@/i18n/languages';
 import { TIME_ZONES as ZONES } from '@/utils/zone';
 import classes from './FirmaTab.module.css';
 
@@ -38,10 +39,13 @@ const schema = z.object({
   timezone: z.string().min(1, 'validation.required'),
   baseCurrency: z.string().min(1, 'validation.required'),
   driversSeePay: z.boolean(),
+  country: z.string().regex(/^[A-Z]{2}$/, 'validation.required'),
+  explanationsAuto: z.boolean(),
+  explanationsDays: z.number({ error: 'validation.required' }).int('validation.invalid_value').min(1, 'validation.invalid_value').max(365, 'validation.invalid_value'),
 });
 
 type FormValues = z.infer<typeof schema>;
-const FIELDS: readonly FieldPath<FormValues>[] = ['name', 'vatId', 'address', 'email', 'lang', 'timezone', 'baseCurrency', 'driversSeePay'];
+const FIELDS: readonly FieldPath<FormValues>[] = ['name', 'vatId', 'address', 'email', 'lang', 'timezone', 'baseCurrency', 'driversSeePay', 'country', 'explanationsAuto', 'explanationsDays'];
 
 const toForm = (f: FirmaSettings): FormValues => ({
   name: f.name,
@@ -52,6 +56,9 @@ const toForm = (f: FirmaSettings): FormValues => ({
   timezone: f.timezone,
   baseCurrency: f.baseCurrency,
   driversSeePay: f.driversSeePay,
+  country: f.country,
+  explanationsAuto: f.explanationsAuto ?? true,
+  explanationsDays: f.explanationsDays ?? 28,
 });
 
 const blank = (s: string) => s.trim() || null;
@@ -100,6 +107,7 @@ export function FirmaTab() {
     setError,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<FormValues>({ resolver: zodResolver(schema), values: q.data ? toForm(q.data) : undefined });
+  const watchAuto = useWatch({ control, name: 'explanationsAuto' });
   const err = (name: keyof FormValues) => {
     const code = errors[name]?.message;
     return code ? t(code) : undefined;
@@ -115,6 +123,9 @@ export function FirmaTab() {
       timezone: f.timezone,
       baseCurrency: f.baseCurrency,
       driversSeePay: f.driversSeePay,
+      country: f.country,
+      explanationsAuto: f.explanationsAuto,
+      explanationsDays: f.explanationsDays,
     };
     try {
       qc.setQueryData(FIRMA_KEY, await firmaApi.update(body));
@@ -156,12 +167,24 @@ export function FirmaTab() {
                 <TextInput type="email" label={t('drivers.email')} error={err('email')} {...register('email')} />
               </Group>
               <Textarea label={t('contractors.address')} autosize minRows={2} maxRows={4} error={err('address')} {...register('address')} />
-              <KeyValueList
-                items={[
-                  { label: <LabelHint label={t('firma.country')} hint={t('hint.firma.country')} />, value: countryName(f.country, lang) },
-                  { label: t('firma.short_code'), value: f.shortCode },
-                ]}
-              />
+              <Group grow align="flex-start">
+                <Controller
+                  name="country"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label={<LabelHint label={t('firma.country')} hint={t('hint.firma.country')} />}
+                      data={countryOptions(lang, field.value)}
+                      value={field.value}
+                      onChange={(v) => v && field.onChange(v)}
+                      allowDeselect={false}
+                      searchable
+                      error={err('country')}
+                    />
+                  )}
+                />
+                <TextInput label={t('firma.short_code')} value={f.shortCode} readOnly variant="filled" />
+              </Group>
             </Stack>
           </Paper>
           <Paper withBorder p="md">
@@ -220,13 +243,45 @@ export function FirmaTab() {
           </Paper>
           <Paper withBorder p="md">
             <SectionTitle>{t('firma.section.drivers')}</SectionTitle>
-            <Controller
-              name="driversSeePay"
-              control={control}
-              render={({ field }) => (
-                <Switch label={t('firma.drivers_see_pay')} description={t('firma.drivers_see_pay_hint')} checked={field.value} onChange={(e) => field.onChange(e.currentTarget.checked)} />
-              )}
-            />
+            <Stack gap="md">
+              <Controller
+                name="driversSeePay"
+                control={control}
+                render={({ field }) => (
+                  <Switch label={t('firma.drivers_see_pay')} description={t('firma.drivers_see_pay_hint')} checked={field.value} onChange={(e) => field.onChange(e.currentTarget.checked)} />
+                )}
+              />
+              <Controller
+                name="explanationsAuto"
+                control={control}
+                render={({ field }) => (
+                  <Switch label={t('firma.explanations_auto')} description={t('firma.explanations_auto_hint')} checked={field.value} onChange={(e) => field.onChange(e.currentTarget.checked)} />
+                )}
+              />
+              <Group align="flex-end" gap="md" wrap="wrap">
+                <Controller
+                  name="explanationsDays"
+                  control={control}
+                  render={({ field }) => (
+                    <NumberInput
+                      label={<LabelHint label={t('firma.explanations_days')} hint={t('hint.firma.explanations_days')} />}
+                      value={field.value}
+                      onChange={(v) => field.onChange(typeof v === 'number' ? v : Number.NaN)}
+                      min={1}
+                      max={365}
+                      allowDecimal={false}
+                      allowNegative={false}
+                      w={200}
+                      disabled={!watchAuto}
+                      error={err('explanationsDays')}
+                    />
+                  )}
+                />
+                <Text size="sm" c="dimmed" mb={6}>
+                  {t('firma.explanation_lang', { lang: languageName(f.explanationLang ?? 'en') })}
+                </Text>
+              </Group>
+            </Stack>
           </Paper>
           <Group justify="flex-end">
             <Button type="submit" loading={isSubmitting} disabled={!isDirty}>
